@@ -9,7 +9,7 @@ module JPChar (
 import           Control.Monad (liftM, mplus)
 import qualified Data.Map as M
 
-data JPChar = Kanji String
+data JPChar = Kanji String String String
             | Hiragana String String
             | Katakana String String
             deriving (Show, Eq)
