@@ -1,5 +1,5 @@
 module Render (
-
+  renderFile
 ) where
 
 import           Control.Monad (liftM)
@@ -13,7 +13,7 @@ import           Doc
 import qualified UTF8File as U8F
 
 parse :: String -> String -> [ArticleDoc]
-parse j r = undefined
+parse j r = []
 
 construct :: String -> String -> Doc
 construct j r = List $ Tex <$> [
