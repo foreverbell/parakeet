@@ -42,12 +42,15 @@ flatten :: [(String, String)] -> String
 flatten xs = "[\n" ++ concatMap f (zip [1 .. ] xs) ++ "]"
   where
     l = length xs
-    f (i, (j, r)) = "  (\"" ++ (decodeString j) ++ "\", \"" ++ r ++ "\")" ++ t
-      where t | i == l         = "\n"
+    f (i, (j, r)) = h ++ "(\"" ++ (decodeString j) ++ "\", \"" ++ r ++ "\")" ++ t
+      where t | i == l         = " "
               | i `mod` 5 == 0 = ",\n"
               | otherwise      = ", "
+            h | i `mod` 5 == 1 = "  "
+              | otherwise      = ""
 
 main = do
   writeUTF8 "hiragana.out" . work =<< readUTF8 "hiragana.html"
   writeUTF8 "katakana.out" . work =<< readUTF8 "katakana.html"
     where work = T.pack . flatten . parse . encodeString . T.unpack
+
