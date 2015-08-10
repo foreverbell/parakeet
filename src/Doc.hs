@@ -1,8 +1,8 @@
 module Doc (
-  ArticleDoc
+  ArticleDoc(..)
 , CJKFontType(..)
-, TexDoc
-, Doc
+, TexDoc(..)
+, Doc(..)
 , texify
 ) where
 
@@ -30,7 +30,7 @@ data TexDoc = DocClass String
             | UsePackage String String
             | RubySep String
             | CJKFont CJKFontType String
-            | Document ArticleDoc
+            | Document [ArticleDoc]
             deriving (Show)
 
 data Doc = List [Doc]
@@ -44,9 +44,9 @@ texify doc = case doc of
  
 texifyArticle :: ArticleDoc -> ByteString
 texifyArticle doc = case doc of
-  Line     -> undefined
-  Break    -> undefined
-  JPChar c -> texifyJPChar c
+  Line     -> B.pack $ "\\\\ \n"
+  Break    -> B.pack $ "\\, "
+  JPChar c -> B.pack $ (texifyJPChar c) ++ " "
 
 texifyTex :: TexDoc -> ByteString
 texifyTex doc = case doc of
@@ -57,10 +57,10 @@ texifyTex doc = case doc of
   RubySep sep    -> B.pack $ printf "\\renewcommand\\rubysep{%s}\n" sep
   CJKFont Main f -> B.pack $ printf "\\setCJKmainfont{%s}\n" f
   CJKFont Sans f -> B.pack $ printf "\\setCJKsansfont{%s}\n" f
-  Document adoc  -> B.concat [ B.pack "\\begin{document}\n\n", texifyArticle adoc, B.pack "\n\\end{document}\n" ]
+  Document adoc  -> B.concat [ B.pack "\\begin{document}\n\n", B.concat (map texifyArticle adoc), B.pack "\n\\end{document}\n" ]
 
-texifyJPChar :: JPChar -> ByteString
-texifyJPChar (Kanji h j r) = B.pack $ printf "\\ruby{%s(%s)}{%s}" (build 0 h) (build 2 j) (build 5 r)
-texifyJPChar (Hiragana j r) = B.pack $ printf "\\ruby{%s}{%s}" (build 0 j) (build 5 r)
-texifyJPChar (Katakana j r) = B.pack $ printf "\\ruby{%s}{%s}" (build 0 j) (build 5 r)
+texifyJPChar :: JPChar -> String
+texifyJPChar (Kanji h j r) = printf "\\ruby{%s(%s)}{%s}" (build 0 h) (build 2 j) (build 5 r)
+texifyJPChar (Hiragana j r) = printf "\\ruby{%s}{%s}" (build 0 j) (build 5 r)
+texifyJPChar (Katakana j r) = printf "\\ruby{%s}{%s}" (build 0 j) (build 5 r)
 
