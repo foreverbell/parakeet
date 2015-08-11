@@ -1,24 +1,32 @@
-module JPChar (
-  JPChar(..)
+module JPToken (
+  JPToken(..)
 , hiraganaLookup
+, isHiraganaNormal
 , isHiraganaSmall
 , katakanaLookup
+, isKatakanaNormal
 , isKatakanaSmall
 , hikaLookup
-, romanLookup
-, isHan
+, romajiLookup
+, romajiGeminate
+, romajiLVowel
+, isKanji
 , isChoonpu
-, isSokuon
+, isHSokuon
+, isKSokuon
 ) where
 
 import           Control.Monad (liftM, mplus)
 import           Data.Char (ord)
+import           Data.Maybe (isJust)
 import qualified Data.Map as M
 
-data JPChar = Kanji String String String  -- han jap roman
-            | Hiragana String String      -- jap roman
-            | Katakana String String      -- jap roman
-            deriving (Show, Eq)
+data JPToken = Kanji String 
+             | Hiragana String
+             | Katakana String
+             | Romaji String
+             | Lit String
+             deriving (Show, Eq)
 
 -- * Hiraganas
 
@@ -49,11 +57,18 @@ hiraganaRaw = [
 hiraganaMap :: M.Map String String
 hiraganaMap = M.fromList hiraganaRaw
 
-hiraganaLookup :: String -> Maybe JPChar
-hiraganaLookup h = Hiragana h `liftM` M.lookup h hiraganaMap
+hiraganaLookup :: String -> Maybe JPToken
+hiraganaLookup [] = Nothing
+hiraganaLookup h | isHSokuon (head h) = romajiGeminate `liftM` hiraganaLookup (tail h)
+                 | otherwise          = Romaji `liftM` M.lookup h hiraganaMap
+
+isHiraganaNormal :: Char -> Bool
+isHiraganaNormal = isJust . hiraganaLookup . return
 
 isHiraganaSmall :: Char -> Bool
-isHiraganaSmall c = (ord c) `elem` [0x3041, 0x3043, 0x3045, 0x3047, 0x3049, 0x3063, 0x3083, 0x3085, 0x3087, 0x308e, 0x3095, 0x3096] 
+isHiraganaSmall c = c `elem` ['ぁ', 'ぃ', 'ぅ', 'ぇ', 'ぉ', 'っ', 'ゃ', 'ゅ', 'ょ', 'ゎ']
+    -- [0x3041, 0x3043, 0x3045, 0x3047, 0x3049, 0x3063, 0x3083, 0x3085, 0x3087, 0x308e, 0x3095, 0x3096] 
+    -- last two (3095, 3096) aren't commonly used in modern Japanese
 
 -- * Katahanas
 
@@ -84,32 +99,53 @@ katakanaRaw = [
 katakanaMap :: M.Map String String
 katakanaMap = M.fromList katakanaRaw
 
-katakanaLookup :: String -> Maybe JPChar
-katakanaLookup h = Katakana h `liftM` M.lookup h katakanaMap
+katakanaLookup :: String -> Maybe JPToken
+katakanaLookup [] = Nothing
+katakanaLookup k | isKSokuon (head k) = romajiGeminate `liftM` katakanaLookup (tail k)
+                 | isChoonpu (last k) = romajiLVowel `liftM` katakanaLookup (init k)
+                 | otherwise          = Romaji `liftM` M.lookup k katakanaMap
+
+isKatakanaNormal :: Char -> Bool
+isKatakanaNormal = isJust . katakanaLookup . return
 
 isKatakanaSmall :: Char -> Bool
-isKatakanaSmall c = (ord c) `elem` [0x30a1, 0x30a3, 0x30a5, 0x30a7, 0x30a9, 0x30c3, 0x30e3, 0x30e5, 0x30e7, 0x30ee, 0x30f5, 0x30f6]
+isKatakanaSmall c = c `elem` ['ァ', 'ィ', 'ゥ', 'ェ', 'ォ', 'ッ', 'ャ', 'ュ', 'ョ', 'ヮ', 'ヵ', 'ヶ']
+    -- [0x30a1, 0x30a3, 0x30a5, 0x30a7, 0x30a9, 0x30c3, 0x30e3, 0x30e5, 0x30e7, 0x30ee, 0x30f5, 0x30f6]
 
 -- * Common helpers
 
-hikaLookup :: String -> Maybe JPChar
+hikaLookup :: String -> Maybe JPToken
 hikaLookup j = hiraganaLookup j `mplus` katakanaLookup j
 
-romanMap :: M.Map String (String, String)
-romanMap = M.fromList $ zipWith helper hiraganaRaw katakanaRaw
+romajiMap :: M.Map String (String, String)
+romajiMap = M.fromList $ zipWith helper hiraganaRaw katakanaRaw
   where
     helper (h, hr) (k, kr) | hr /= kr  = error "bad data" -- never be here
                            | otherwise = (hr, (h, k))
 
-romanLookup :: String -> Maybe (String, String)
-romanLookup r = M.lookup r romanMap
+romajiLookup :: String -> Maybe (JPToken, JPToken)
+romajiLookup r = (\(h, k) -> return (Hiragana h, Katakana k)) =<< (M.lookup r romajiMap)
 
-isHan :: Char -> Bool      -- 漢字
-isHan = (\x -> x >= 0x4e00 && x <= 0x9fbf) . ord
+-- chi -> tchi, ka -> kka
+romajiGeminate :: JPToken -> JPToken
+romajiGeminate (Romaji s@('c':'h':_)) = Romaji $ 't':s
+romajiGeminate (Romaji s@(c:_))       = Romaji $ c:s
+romajiGeminate _                      = error "romaji geminate: not romaji"
+
+romajiLVowel :: JPToken -> JPToken
+romajiLVowel (Romaji s) = Romaji $ s ++ [t]
+  where t = last s
+romajiLVowel _          = error "romaji long vowel: not romaji"
+
+isKanji :: Char -> Bool    -- 漢字
+isKanji = (\x -> x >= 0x4e00 && x <= 0x9fbf) . ord
 
 isChoonpu :: Char -> Bool  -- 長音符
-isChoonpu c = (ord c) == 0x30fc
+isChoonpu = (==) 'ー'
 
-isSokuon :: Char -> Bool   -- 促音
-isSokuon c = (ord c) `elem` [0x3063, 0x30c3]
+isHSokuon :: Char -> Bool  -- 平仮名促音
+isHSokuon = (==) 'っ'
+
+isKSokuon :: Char -> Bool  -- 片仮名促音
+isKSokuon = (==) 'ッ'
 

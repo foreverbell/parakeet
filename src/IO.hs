@@ -1,4 +1,4 @@
-module UTF8File (
+module IO (
   readFile
 , writeFile
 ) where
