@@ -10,14 +10,12 @@ import qualified Data.ByteString.Lazy.Char8 as B
 import           Data.ByteString.Lazy.Char8 (ByteString)
 import           JPChar
 import           Doc
+import           Parser
 import qualified UTF8File as U8F
 
-parse :: String -> String -> [ArticleDoc]
-parse j r = []
-
 construct :: String -> String -> Doc
-construct j r = List $ Tex <$> [
-  DocClass "article",
+construct j r = DList $ Tex <$> [
+  DocumentClass "article",
   UsePackage "geometry" "a4paper",
   UsePackage "xeCJK" [],
   UsePackage "ruby" [],

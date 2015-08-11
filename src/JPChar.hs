@@ -1,17 +1,23 @@
 module JPChar (
   JPChar(..)
 , hiraganaLookup
+, isHiraganaSmall
 , katakanaLookup
+, isKatakanaSmall
 , hikaLookup
 , romanLookup
+, isHan
+, isChoonpu
+, isSokuon
 ) where
 
 import           Control.Monad (liftM, mplus)
+import           Data.Char (ord)
 import qualified Data.Map as M
 
 data JPChar = Kanji String String String  -- han jap roman
-            | Hiragana String String -- jap roman
-            | Katakana String String -- jap roman
+            | Hiragana String String      -- jap roman
+            | Katakana String String      -- jap roman
             deriving (Show, Eq)
 
 -- * Hiraganas
@@ -46,6 +52,9 @@ hiraganaMap = M.fromList hiraganaRaw
 hiraganaLookup :: String -> Maybe JPChar
 hiraganaLookup h = Hiragana h `liftM` M.lookup h hiraganaMap
 
+isHiraganaSmall :: Char -> Bool
+isHiraganaSmall c = (ord c) `elem` [0x3041, 0x3043, 0x3045, 0x3047, 0x3049, 0x3063, 0x3083, 0x3085, 0x3087, 0x308e, 0x3095, 0x3096] 
+
 -- * Katahanas
 
 katakanaRaw :: [(String, String)]
@@ -78,6 +87,9 @@ katakanaMap = M.fromList katakanaRaw
 katakanaLookup :: String -> Maybe JPChar
 katakanaLookup h = Katakana h `liftM` M.lookup h katakanaMap
 
+isKatakanaSmall :: Char -> Bool
+isKatakanaSmall c = (ord c) `elem` [0x30a1, 0x30a3, 0x30a5, 0x30a7, 0x30a9, 0x30c3, 0x30e3, 0x30e5, 0x30e7, 0x30ee, 0x30f5, 0x30f6]
+
 -- * Common helpers
 
 hikaLookup :: String -> Maybe JPChar
@@ -91,4 +103,13 @@ romanMap = M.fromList $ zipWith helper hiraganaRaw katakanaRaw
 
 romanLookup :: String -> Maybe (String, String)
 romanLookup r = M.lookup r romanMap
+
+isHan :: Char -> Bool      -- 漢字
+isHan = (\x -> x >= 0x4e00 && x <= 0x9fbf) . ord
+
+isChoonpu :: Char -> Bool  -- 長音符
+isChoonpu c = (ord c) == 0x30fc
+
+isSokuon :: Char -> Bool   -- 促音
+isSokuon c = (ord c) `elem` [0x3063, 0x30c3]
 
