@@ -7,10 +7,8 @@ import qualified Data.Text as T
 import           Data.Text (Text)
 import qualified Data.ByteString.Lazy.Char8 as B
 import           Data.ByteString.Lazy.Char8 (ByteString)
-import qualified JPToken as JT
 import qualified TexDoc as TD
 import           TexDoc ((<||>))
-import qualified ArticleDoc as Ad
 import           Parser (parseDoc)
 import qualified IO as IO
 

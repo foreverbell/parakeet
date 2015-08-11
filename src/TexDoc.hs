@@ -9,7 +9,7 @@ import qualified Data.ByteString.Lazy.Char8 as B
 import           Data.ByteString.Lazy.Char8 (ByteString)
 import           Text.Printf (printf)
 
-import qualified ArticleDoc as AD
+import qualified TexElem as E
 
 data CJKFontType = Main | Sans deriving (Show)
 
@@ -19,7 +19,7 @@ data TexDoc = Concat TexDoc TexDoc
             | UsePackage String String
             | RubySep String
             | CJKFont CJKFontType String
-            | Document AD.ArticleDoc
+            | Document [E.TexElem]
             deriving (Show)
 
 texify :: TexDoc -> ByteString
@@ -33,8 +33,7 @@ texify doc = case doc of
   RubySep sep     -> B.pack $ printf "\\renewcommand\\rubysep{%s}\n" sep
   CJKFont Main f  -> B.pack $ printf "\\setCJKmainfont{%s}\n" f
   CJKFont Sans f  -> B.pack $ printf "\\setCJKsansfont{%s}\n" f
-  Document d      -> B.concat [ B.pack "\\begin{document}\n\n", AD.texify d, B.pack "\n\\end{document}\n" ]
+  Document es     -> B.concat [ B.pack "\\begin{document}\n\n", B.concat (map E.texify es), B.pack "\n\\end{document}\n" ]
 
 (<||>) :: TexDoc -> TexDoc -> TexDoc
 d1 <||> d2 = Concat d1 d2
-

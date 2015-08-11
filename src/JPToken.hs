@@ -3,17 +3,19 @@ module JPToken (
 , hiraganaLookup
 , isHiraganaNormal
 , isHiraganaSmall
+, isHiraganaSokuon
+, isHiragana
 , katakanaLookup
 , isKatakanaNormal
 , isKatakanaSmall
+, isKatakanaSokuon
+, isKatakana
 , hikaLookup
 , romajiLookup
 , romajiGeminate
 , romajiLVowel
 , isKanji
 , isChoonpu
-, isHSokuon
-, isKSokuon
 ) where
 
 import           Control.Monad (liftM, mplus)
@@ -59,8 +61,8 @@ hiraganaMap = M.fromList hiraganaRaw
 
 hiraganaLookup :: String -> Maybe JPToken
 hiraganaLookup [] = Nothing
-hiraganaLookup h | isHSokuon (head h) = romajiGeminate `liftM` hiraganaLookup (tail h)
-                 | otherwise          = Romaji `liftM` M.lookup h hiraganaMap
+hiraganaLookup h | isHiraganaSokuon (head h) = romajiGeminate `liftM` hiraganaLookup (tail h)
+                 | otherwise                 = Romaji `liftM` M.lookup h hiraganaMap
 
 isHiraganaNormal :: Char -> Bool
 isHiraganaNormal = isJust . hiraganaLookup . return
@@ -69,6 +71,12 @@ isHiraganaSmall :: Char -> Bool
 isHiraganaSmall c = c `elem` ['ぁ', 'ぃ', 'ぅ', 'ぇ', 'ぉ', 'っ', 'ゃ', 'ゅ', 'ょ', 'ゎ']
     -- [0x3041, 0x3043, 0x3045, 0x3047, 0x3049, 0x3063, 0x3083, 0x3085, 0x3087, 0x308e, 0x3095, 0x3096] 
     -- last two (3095, 3096) aren't commonly used in modern Japanese
+
+isHiraganaSokuon :: Char -> Bool  -- 平仮名促音
+isHiraganaSokuon = (==) 'っ'
+
+isHiragana :: Char -> Bool
+isHiragana c = (isHiraganaNormal c) || (isHiraganaSmall c)
 
 -- * Katahanas
 
@@ -101,9 +109,9 @@ katakanaMap = M.fromList katakanaRaw
 
 katakanaLookup :: String -> Maybe JPToken
 katakanaLookup [] = Nothing
-katakanaLookup k | isKSokuon (head k) = romajiGeminate `liftM` katakanaLookup (tail k)
-                 | isChoonpu (last k) = romajiLVowel `liftM` katakanaLookup (init k)
-                 | otherwise          = Romaji `liftM` M.lookup k katakanaMap
+katakanaLookup k | isKatakanaSokuon (head k) = romajiGeminate `liftM` katakanaLookup (tail k)
+                 | isChoonpu (last k)        = romajiLVowel `liftM` katakanaLookup (init k)
+                 | otherwise                 = Romaji `liftM` M.lookup k katakanaMap
 
 isKatakanaNormal :: Char -> Bool
 isKatakanaNormal = isJust . katakanaLookup . return
@@ -111,6 +119,12 @@ isKatakanaNormal = isJust . katakanaLookup . return
 isKatakanaSmall :: Char -> Bool
 isKatakanaSmall c = c `elem` ['ァ', 'ィ', 'ゥ', 'ェ', 'ォ', 'ッ', 'ャ', 'ュ', 'ョ', 'ヮ', 'ヵ', 'ヶ']
     -- [0x30a1, 0x30a3, 0x30a5, 0x30a7, 0x30a9, 0x30c3, 0x30e3, 0x30e5, 0x30e7, 0x30ee, 0x30f5, 0x30f6]
+
+isKatakanaSokuon :: Char -> Bool  -- 片仮名促音
+isKatakanaSokuon = (==) 'ッ'
+
+isKatakana :: Char -> Bool
+isKatakana c = (isKatakanaNormal c) || (isKatakanaSmall c)
 
 -- * Common helpers
 
@@ -142,10 +156,3 @@ isKanji = (\x -> x >= 0x4e00 && x <= 0x9fbf) . ord
 
 isChoonpu :: Char -> Bool  -- 長音符
 isChoonpu = (==) 'ー'
-
-isHSokuon :: Char -> Bool  -- 平仮名促音
-isHSokuon = (==) 'っ'
-
-isKSokuon :: Char -> Bool  -- 片仮名促音
-isKSokuon = (==) 'ッ'
-
