@@ -7,7 +7,7 @@ module Token.Romaji (
 import qualified Data.Map as M
 import           Prelude hiding (lookup)
 
-import           Token.Token
+import           Token.Token (Token(..))
 import           Token.Internal (hRaw, kRaw)
 
 chmap :: M.Map String (String, String)

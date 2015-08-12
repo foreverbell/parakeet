@@ -7,12 +7,14 @@ import Text.Parsec.String
 import Text.Parsec.Combinator
 import Text.Parsec.Char
 import Control.Applicative ((<$>))
-import Control.Monad (liftM, liftM2, liftM3)
-import Data.Char (toLower)
+import Control.Monad (void, guard, mplus, liftM, liftM2, liftM3)
+import Data.Char (toLower, toUpper, isSpace)
+import Data.Maybe (isJust, fromJust)
 
 import qualified Token.Token as T
 import qualified Token.Hiragana as H
 import qualified Token.Katakana as K
+import qualified Token.Misc as M
 import qualified TexElem as E
 
 import Debug.Trace
@@ -39,24 +41,24 @@ hikaJ = do
     kSokuon  = option [] $ c2s <$> satisfy K.isSokuon 
     hirigana = parse2 H.isNormal (H.isSmall &. (not . H.isSokuon))
     katahana = parse2 K.isNormal (K.isSmall &. (not . K.isSokuon))
-    choonpu  = option [] $ c2s <$> satisfy T.isChoonpu
+    choonpu  = option [] $ c2s <$> satisfy M.isChoonpu
 
 kanjiJ :: ParserJ T.Token
-kanjiJ = T.Kanji <$> many1 (satisfy T.isKanji)
+kanjiJ = T.Kanji <$> many1 (satisfy M.isKanji)
 
 litJ :: ParserJ T.Token
-litJ = T.Lit <$> many1 (satisfy other)
+litJ = T.Lit <$> many1 (satisfy other) -- many1Till?
   where 
     other c | crlf c    = False
             | otherwise = not $ or $ map (\f -> f c) 
-                            [ T.isChoonpu
-                            , T.isKanji, H.isHiragana, K.isKatakana ]
+                            [ M.isChoonpu
+                            , M.isKanji, H.isHiragana, K.isKatakana ]
     crlf c = c == '\r' || c == '\n'
 
 parseLineJ :: ParserJ [T.Token]
 parseLineJ = do
   r <- many (choice [hikaJ, kanjiJ, litJ])
-  optional newline
+  void (endOfLine) <|> eof
   return $ r ++ [T.Lit "\n"]
 
 parseJap :: ParserJ [T.Token]
@@ -66,8 +68,45 @@ parseJap = concat <$> manyTill parseLineJ eof
 
 type ParserR = Parsec String [T.Token]
 
-hikaR :: ParserR [T.Token]
-hikaR = undefined
+removeSpace :: String -> String
+removeSpace = concat . map (\c -> if isSpace c then [] else [c])
+
+pureSpace :: String -> Bool
+pureSpace = all isSpace
+
+lowerCase :: String -> String
+lowerCase = map toLower
+
+hikaR :: ParserR [E.TexElem]
+hikaR = do
+  s <- getState
+  guard $ not (null s)
+  guard $ T.isHiraganaToken (head s) || T.isKatakanaToken (head s)
+  let hks = T.unwrapToken (head s)
+  let ro' = H.lookup hks `mplus` K.lookup hks
+  let ro  = fromJust ro'
+  guard $ isJust ro'
+  -- to do
+  return []
+
+litR :: ParserR [E.TexElem]
+litR = do
+  s <- getState
+  guard $ not (null s)
+  guard $ T.isLitToken (head s)
+  let ls = T.unwrapToken (head s) 
+  matchIgnoreSpace (removeSpace ls) 
+  modifyState tail
+  return $ [E.Lit ls]
+  where
+    matchIgnoreSpace []     = return ()
+    matchIgnoreSpace (x:xs) = do
+      spaces
+      oneOf [toLower x, toUpper x]
+      matchIgnoreSpace xs
+
+kanjiR :: ParserR [E.TexElem]
+kanjiR = undefined
 
 parseRoj :: ParserR [E.TexElem]
 parseRoj = undefined
@@ -80,10 +119,4 @@ parseDoc j r = evil `seq` fromEither $ runParser parseRoj wds [] r
     fromEither (Left err) = error $ show err
     fromEither (Right va) = va
     wds = fromEither (parse parseJap [] j)
-    evil = (unsafePerformIO . putStrLn . concatMap (\token -> (unwrap token) ++ " ")) wds
-
-unwrap (T.Kanji s) = s
-unwrap (T.Hiragana s) = s
-unwrap (T.Katakana s) = s
-unwrap (T.Romaji s) = s
-unwrap (T.Lit s) = s
+    evil = (unsafePerformIO . putStrLn . concatMap (\token -> (T.unwrapToken token) ++ " ")) wds

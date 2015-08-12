@@ -1,23 +1,43 @@
 module Token.Token (
   Token(..)
-, isKanji
-, isChoonpu
+, unwrapToken
+, isKanjiToken
+, isHiraganaToken
+, isKatakanaToken
+, isRomajiToken
+, isLitToken
 ) where
 
-import           Control.Monad (mplus)
-import           Data.Char (ord)
-import           Data.Maybe (isJust)
-import qualified Data.Map as M
-
-data Token = Kanji String 
+data Token = Kanji    String
            | Hiragana String
            | Katakana String
-           | Romaji String
-           | Lit String
+           | Romaji   String
+           | Lit      String
            deriving (Show, Eq)
 
-isKanji :: Char -> Bool    -- 漢字
-isKanji = (\x -> x >= 0x4e00 && x <= 0x9fbf) . ord
+unwrapToken :: Token -> String
+unwrapToken (Kanji k) = k
+unwrapToken (Hiragana h) = h
+unwrapToken (Katakana k) = k
+unwrapToken (Romaji r) = r
+unwrapToken (Lit l) = l
 
-isChoonpu :: Char -> Bool  -- 長音符
-isChoonpu = (==) 'ー'
+isKanjiToken :: Token -> Bool
+isKanjiToken (Kanji _) = True
+isKanjiToken _         = False
+
+isHiraganaToken :: Token -> Bool
+isHiraganaToken (Hiragana _) = True
+isHiraganaToken _            = False
+
+isKatakanaToken :: Token -> Bool
+isKatakanaToken (Katakana _) = True
+isKatakanaToken _            = False
+
+isRomajiToken :: Token -> Bool
+isRomajiToken (Romaji _) = True
+isRomajiToken _          = False
+
+isLitToken :: Token -> Bool
+isLitToken (Lit _) = True
+isLitToken _       = False

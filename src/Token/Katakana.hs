@@ -11,7 +11,8 @@ import           Data.Maybe (isJust)
 import qualified Data.Map as M
 import           Prelude hiding (lookup)
 
-import           Token.Token
+import           Token.Token (Token(..))
+import           Token.Misc (isChoonpu)
 import           Token.Romaji (geminate, longVowel)
 import           Token.Internal (kRaw)
 

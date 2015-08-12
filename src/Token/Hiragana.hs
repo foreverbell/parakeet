@@ -11,7 +11,7 @@ import           Data.Maybe (isJust)
 import qualified Data.Map as M
 import           Prelude hiding (lookup)
 
-import           Token.Token
+import           Token.Token (Token(..))
 import           Token.Romaji (geminate)
 import           Token.Internal (hRaw)
 
