@@ -128,7 +128,7 @@ litR = do
   guard $ T.isLitToken token
   let unwrapped = T.unwrapToken token
   if unwrapped == "\n"
-    then (:) E.Line `liftM` parseR
+    then spaces >> (:) E.Line `liftM` parseR
     else do
       matchIgnoreSpace (removeSpace unwrapped)
       (:) (E.Lit unwrapped) `liftM` parseR
@@ -156,7 +156,7 @@ kanjiR = do
   guard $ T.isKanjiToken token
   let unwrapped = T.unwrapToken token
   let len = length unwrapped
-  let tryRange = [1 .. len + len + 8]
+  let tryRange = [1 .. len * 3 + 4]
   choice $ flip map tryRange $ \n -> try $ do
     romajis <- skip n
     let flat = concatMap T.unwrapToken romajis
@@ -169,12 +169,19 @@ breakR = do
   many1 space
   (:) E.Break `liftM` parseR
 
-parseR :: ParserR [E.TexElem]
-parseR = hiraganaR <|> katakanaR <|> kanjiR <|> litR <|> breakR <|> (eof *> (return []))
+terminate :: ParserR ()
+terminate = do
+  eof
+  s <- getState
+  guard $ null s
+  return ()
 
-{-spaceR :: Parser T.Token-}
-{-spaceR = fmap T.Lit $ many1 $ satisfy (not . isAlpha)-}
-{-test = runParser (many1 (romajiR <|> spaceR)) () [] "gokigen na chou ni natte kirameku kaze ni notte"-}
+parseR :: ParserR [E.TexElem]
+parseR = hiraganaR <|> katakanaR <|> kanjiR <|> litR <|> breakR <|> (terminate *> (return []))
+
+{- spaceR :: Parser T.Token -}
+{- spaceR = fmap T.Lit $ many1 $ satisfy (not . isAlpha) -}
+{- test = runParser (many1 (romajiR <|> spaceR)) () [] "gokigen na chou ni natte kirameku kaze ni notte" -}
 
 -- * Document parsing
 

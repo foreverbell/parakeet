@@ -23,19 +23,20 @@ construct j r = TD.DocumentClass "article"
            <||> TD.UsePackage "ruby" []
            <||> TD.UsePackage "amsmath" []
            <||> TD.EmptyLine
-           <||> TD.RubySep "-0.1ex"
+           <||> TD.LineSpread "1.8"
+           <||> TD.RubySep "-1.5ex"
+           <||> TD.NoIndent
            <||> TD.EmptyLine
            <||> TD.CJKFont TD.Main "MS Mincho"
            <||> TD.CJKFont TD.Sans "MS Gothic"
            <||> TD.EmptyLine
            <||> TD.Document (parseDoc j r)
 
-render :: String -> String -> String
-render j r = B.unpack $ TD.texify $ construct j r
+render :: String -> String -> Text
+render j r = TD.texify $ construct j r
 
 renderFile :: FilePath -> FilePath -> FilePath -> IO ()
 renderFile jf rf output = do
   jpnese <- T.unpack `liftM` IO.readFile jf
   romaji <- T.unpack `liftM` IO.readFile rf
-  IO.writeFile output . T.pack $ render jpnese romaji
-
+  IO.writeFile output $ render jpnese romaji

@@ -3,8 +3,8 @@ module TexElem (
 , texify
 ) where
 
-import qualified Data.ByteString.Lazy.Char8 as B
-import           Data.ByteString.Lazy.Char8 (ByteString)
+import qualified Data.Text as T
+import           Data.Text (Text)
 import           Text.Printf (printf)
 
 build :: Int -> String -> String
@@ -23,11 +23,15 @@ data TexElem = Line
              | Katakana String String      -- katakana, romaji
              deriving (Show)
 
-texify :: TexElem -> ByteString
+texify :: TexElem -> Text
 texify doc = case doc of
-  Line         -> B.pack $ "\\\\ \n"
-  Break        -> B.pack $ "\\, "
-  Lit s        -> B.pack $ (build 0 s) ++ " "
-  Kanji k h r  -> B.pack $ printf "\\ruby{%s(%s)}{%s} " (build 0 k) (build 2 h) (build 5 r)
-  Hiragana h r -> B.pack $ printf "\\ruby{%s}{%s} " (build 0 h) (build 5 r)
-  Katakana k r -> B.pack $ printf "\\ruby{%s}{%s} " (build 0 k) (build 5 r)
+  Line         -> T.pack $ " \\\\ \n"
+  Break        -> T.pack $ "\\, "
+  Lit s        -> T.pack $ (build mainFont s) ++ " "
+  Kanji k h r  -> T.pack $ printf "\\ruby{%s %s}{%s} " (build mainFont k) (build rubyFont ("(" ++ h ++ ")")) (build romajiFont r)
+  Hiragana h r -> T.pack $ printf "\\ruby{%s}{%s} " (build mainFont h) (build romajiFont r)
+  Katakana k r -> T.pack $ printf "\\ruby{%s}{%s} " (build mainFont k) (build romajiFont r)
+  where 
+    mainFont = 4
+    rubyFont = 6
+    romajiFont = 5
