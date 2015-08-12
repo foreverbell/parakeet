@@ -20,7 +20,7 @@ Nani ga wow wow～ kono machi ni hibiku no darou
 Dakedo wow wow～ kitai shitetemo shikata nai 
 
 Mugendai na yume no ato no yarusenai yo no naka ja 
-Sou sa joushiki hazure mo waruku wa nai ka na 
+Sou sa joushiki hazure mo waruku nai ka na 
 Stay shisou na imeeji wo someta gikochinai tsubasa demo 
 Kitto toberu sa On my love 
 
@@ -30,6 +30,6 @@ Stay shigachi na imeeji darake no tayorinai tsubasa demo
 Kitto toberu sa Oh yeah 
 
 Mugendai na yume no ato no yarusenai yo no naka ja 
-Sou sa joushiki hazure mo waruku wa nai ka na 
+Sou sa joushiki hazure mo waruku nai ka na 
 Stay shisou na imeeji wo someta gikochinai tsubasa demo 
 Kitto toberu sa On my love
