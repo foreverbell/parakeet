@@ -23,8 +23,8 @@ construct j r = TD.DocumentClass "article"
            <||> TD.UsePackage "ruby" []
            <||> TD.UsePackage "amsmath" []
            <||> TD.EmptyLine
-           <||> TD.LineSpread "1.8"
-           <||> TD.RubySep "-1.5ex"
+           <||> TD.LineSpread "2.0"
+           <||> TD.RubySep "-1.7ex"
            <||> TD.NoIndent
            <||> TD.EmptyLine
            <||> TD.CJKFont TD.Main "MS Mincho"

@@ -32,7 +32,7 @@ many :: Token -> [Token]
 many r | isRomajiToken r = map Romaji $ many' $ unwrapToken r
   where
     -- Syllabic n
-    many' "n"  = ["n", "m", "nn", "n-"]
+    many' "n"  = ["n", "m", "nn", "n-", "n'"]
     -- Particles mutation
     many' "ha" = ["ha", "wa"]
     many' "he" = ["he", "e"]

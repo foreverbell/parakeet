@@ -110,7 +110,7 @@ hikaR checkToken lookupToken buildTexElem = do
           hasMacron r = do
               ch <- satisfy M.isMacron
               let no = M.noMacron ch
-              let vl | no == 'o' = ['o', 'u']  -- ambiguous ō
+              let vl | no == 'o' = ['o', 'u']  -- ambiguous 'ō'
                      | otherwise = [no]
               choice $ flip map vl $ \to -> try $ do
                 parserCons to
