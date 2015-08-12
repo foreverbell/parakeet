@@ -1,6 +1,8 @@
 module Token.Token (
   Token(..)
+, (<$.>)
 , unwrapToken
+, unwrapToken'
 , isKanjiToken
 , isHiraganaToken
 , isKatakanaToken
@@ -13,14 +15,21 @@ data Token = Kanji    String
            | Katakana String
            | Romaji   String
            | Lit      String
-           deriving (Show, Eq)
+           deriving (Show, Eq, Ord)
+
+(<$.>) :: (String -> String) -> Token -> Token 
+f <$.> t = c (f v)
+  where (v, c) = unwrapToken' t
+
+unwrapToken' :: Token -> (String, String -> Token)
+unwrapToken' (Kanji k) = (k, Kanji)
+unwrapToken' (Hiragana h) = (h, Hiragana)
+unwrapToken' (Katakana k) = (k, Katakana)
+unwrapToken' (Romaji r) = (r, Romaji)
+unwrapToken' (Lit l) = (l, Lit)
 
 unwrapToken :: Token -> String
-unwrapToken (Kanji k) = k
-unwrapToken (Hiragana h) = h
-unwrapToken (Katakana k) = k
-unwrapToken (Romaji r) = r
-unwrapToken (Lit l) = l
+unwrapToken = fst . unwrapToken'
 
 isKanjiToken :: Token -> Bool
 isKanjiToken (Kanji _) = True

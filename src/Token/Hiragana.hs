@@ -6,25 +6,29 @@ module Token.Hiragana (
 , isHiragana
 ) where
 
+import           Control.Applicative ((<$>))
 import           Control.Monad (liftM)
-import           Data.Maybe (isJust)
+import           Data.Maybe (isJust, maybeToList)
 import qualified Data.Map as M
 import           Prelude hiding (lookup)
 
-import           Token.Token (Token(..))
-import           Token.Romaji (geminate)
+import           Token.Token (Token(..), unwrapToken, isHiraganaToken)
+import           Token.Romaji (many, geminate)
 import           Token.Internal (hRaw)
 
 chmap :: M.Map String String
 chmap = M.fromList hRaw
 
-lookup :: String -> Maybe Token
-lookup [] = Nothing
-lookup h | isSokuon (head h) = geminate `liftM` lookup (tail h)
-         | otherwise         = Romaji `liftM` M.lookup h chmap
+lookup :: Token -> [Token]
+lookup h | isHiraganaToken h = lookup' (unwrapToken h)
+  where
+    lookup' [] = []
+    lookup' h@(x:xs) | isSokuon x = geminate <$> lookup' xs
+                     | otherwise  = concatMap many $ Romaji <$> maybeToList (M.lookup h chmap)
+lookup _ = error "Hiragana lookup: not hiragana token"
 
 isNormal :: Char -> Bool
-isNormal = isJust . lookup . return
+isNormal = isJust . flip M.lookup chmap . return
 
 isSmall :: Char -> Bool
 isSmall c = c `elem` ['ぁ', 'ぃ', 'ぅ', 'ぇ', 'ぉ', 'っ', 'ゃ', 'ゅ', 'ょ', 'ゎ']

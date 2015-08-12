@@ -18,9 +18,9 @@ build f s = printf "\\%s{%s}" (fonts !! f) s
 data TexElem = Line
              | Break
              | Lit String
-             | Kanji String String String
-             | Hiragana String String
-             | Katakana String String
+             | Kanji String String String  -- kanji, hiragana(?), romaji
+             | Hiragana String String      -- hiragana, romaji
+             | Katakana String String      -- katakana, romaji
              deriving (Show)
 
 texify :: TexElem -> ByteString
@@ -28,6 +28,6 @@ texify doc = case doc of
   Line         -> B.pack $ "\\\\ \n"
   Break        -> B.pack $ "\\, "
   Lit s        -> B.pack $ (build 0 s) ++ " "
-  Kanji h j r  -> B.pack $ printf "\\ruby{%s(%s)}{%s} " (build 0 h) (build 2 j) (build 5 r)
-  Hiragana j r -> B.pack $ printf "\\ruby{%s}{%s} " (build 0 j) (build 5 r)
-  Katakana j r -> B.pack $ printf "\\ruby{%s}{%s} " (build 0 j) (build 5 r)
+  Kanji k h r  -> B.pack $ printf "\\ruby{%s(%s)}{%s} " (build 0 k) (build 2 h) (build 5 r)
+  Hiragana h r -> B.pack $ printf "\\ruby{%s}{%s} " (build 0 h) (build 5 r)
+  Katakana k r -> B.pack $ printf "\\ruby{%s}{%s} " (build 0 k) (build 5 r)

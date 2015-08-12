@@ -6,27 +6,31 @@ module Token.Katakana (
 , isKatakana
 ) where
 
+import           Control.Applicative ((<$>))
 import           Control.Monad (liftM)
-import           Data.Maybe (isJust)
+import           Data.Maybe (isJust, maybeToList)
 import qualified Data.Map as M
 import           Prelude hiding (lookup)
 
-import           Token.Token (Token(..))
+import           Token.Token (Token(..), unwrapToken, isKatakanaToken)
 import           Token.Misc (isChoonpu)
-import           Token.Romaji (geminate, longVowel)
+import           Token.Romaji (many, geminate, longVowelize)
 import           Token.Internal (kRaw)
 
 chmap :: M.Map String String
 chmap = M.fromList kRaw
 
-lookup :: String -> Maybe Token
-lookup [] = Nothing
-lookup k | isSokuon (head k) = geminate `liftM` lookup (tail k)
-         | isChoonpu (last k) = longVowel `liftM` lookup (init k)
-         | otherwise = Romaji `liftM` M.lookup k chmap
+lookup :: Token -> [Token]
+lookup k | isKatakanaToken k = lookup' (unwrapToken k)
+  where
+    lookup' [] = []
+    lookup' k | isSokuon (head k) = geminate <$> lookup' (tail k)
+              | isChoonpu (last k) = longVowelize False <$> lookup' (init k)
+              | otherwise = concatMap many $ Romaji <$> maybeToList (M.lookup k chmap)
+lookup _ = error "Katakana lookup: not katakana token"
 
 isNormal :: Char -> Bool
-isNormal = isJust . lookup . return
+isNormal = isJust . flip M.lookup chmap . return
 
 isSmall :: Char -> Bool
 isSmall c = c `elem` ['ァ', 'ィ', 'ゥ', 'ェ', 'ォ', 'ッ', 'ャ', 'ュ', 'ョ', 'ヮ', 'ヵ', 'ヶ']

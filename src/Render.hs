@@ -12,6 +12,8 @@ import           TexDoc ((<||>))
 import           Parser (parseDoc)
 import qualified IO as IO
 
+import System.IO.Unsafe
+ 
 construct :: String -> String -> TD.TexDoc
 construct j r = TD.DocumentClass "article" 
            <||> TD.EmptyLine
@@ -29,7 +31,7 @@ construct j r = TD.DocumentClass "article"
            <||> TD.Document (parseDoc j r)
 
 render :: String -> String -> String
-render = ((B.unpack . TD.texify) .) . construct
+render j r = B.unpack $ TD.texify $ construct j r
 
 renderFile :: FilePath -> FilePath -> FilePath -> IO ()
 renderFile jf rf output = do
