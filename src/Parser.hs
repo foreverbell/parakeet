@@ -11,6 +11,7 @@ import Control.Monad (void, guard, liftM, liftM2, liftM3)
 import Data.Char (toLower, toUpper, isSpace, isAlpha)
 import Data.List (sortBy, nub)
 import Data.Function (on)
+import Data.Maybe (fromJust, isJust)
 
 import qualified Token.Token as T
 import qualified Token.Hiragana as H
@@ -109,7 +110,7 @@ hikaR checkToken lookupToken buildTexElem = do
             (:) (buildTexElem (T.unwrapToken token) r) `liftM` parseR
           hasMacron r = do
               ch <- satisfy M.isMacron
-              let no = M.noMacron ch
+              let no = M.unMacron ch
               let vl | no == 'o' = ['o', 'u']  -- ambiguous 'ō'
                      | otherwise = [no]
               choice $ flip map vl $ \to -> try $ do
@@ -117,10 +118,10 @@ hikaR checkToken lookupToken buildTexElem = do
                 (:) (buildTexElem (T.unwrapToken token) r) `liftM` parseR
 
 hiraganaR :: ParserR [E.TexElem]
-hiraganaR = hikaR T.isHiraganaToken H.lookup E.Hiragana
+hiraganaR = hikaR T.isHiraganaToken H.fromHiragana E.Hiragana
 
 katakanaR :: ParserR [E.TexElem]
-katakanaR = hikaR T.isKatakanaToken K.lookup E.Katakana
+katakanaR = hikaR T.isKatakanaToken K.fromKatakana E.Katakana
 
 litR :: ParserR [E.TexElem]
 litR = do
@@ -144,7 +145,7 @@ romajiR = fmap T.Romaji $ choice $ flip map romajis $ \tokens -> try (string tok
   where
     romajis = reverse $ nub $ sortBy (compare `on` length) $ map T.unwrapToken $ do 
       r <- R.chlst
-      g <- [R.geminate, id]
+      g <- [R.sokuonize, id]
       v <- [R.longVowelize True, id]
       if R.isSyllabicN r
         then return r
@@ -158,11 +159,13 @@ kanjiR = do
   let len = length unwrapped
   let tryRange = [1 .. len * 3 + 4]
   choice $ flip map tryRange $ \n -> try $ do
-    romajis <- skip n
-    let flat = concatMap T.unwrapToken romajis
-    (:) (E.Kanji unwrapped [] flat) `liftM` parseR
+    romajis <- map R.normalize <$> (skip n)
+    let hiraganas = sequence $ map H.toHiragana romajis
+    guard $ isJust hiraganas
+    (:) (E.Kanji unwrapped (flatten (fromJust hiraganas)) (flatten romajis)) `liftM` parseR
   where
     skip n = count n (spaces >> romajiR)
+    flatten = map T.unwrapToken . concat
 
 breakR :: ParserR [E.TexElem]
 breakR = do

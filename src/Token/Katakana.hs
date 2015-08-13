@@ -1,5 +1,5 @@
 module Token.Katakana (
-  lookup
+  fromKatakana
 , isNormal
 , isSmall
 , isSokuon
@@ -14,20 +14,20 @@ import           Prelude hiding (lookup)
 
 import           Token.Token (Token(..), unwrapToken, isKatakanaToken)
 import           Token.Misc (isChoonpu)
-import           Token.Romaji (many, geminate, longVowelize)
+import           Token.Romaji (many, sokuonize, longVowelize)
 import           Token.Internal (kRaw)
 
 chmap :: M.Map String String
 chmap = M.fromList kRaw
 
-lookup :: Token -> [Token]
-lookup k | isKatakanaToken k = lookup' (unwrapToken k)
+fromKatakana :: Token -> [Token]
+fromKatakana k | isKatakanaToken k = lookup (unwrapToken k)
   where
-    lookup' [] = []
-    lookup' k | isSokuon (head k) = geminate <$> lookup' (tail k)
-              | isChoonpu (last k) = longVowelize False <$> lookup' (init k)
-              | otherwise = concatMap many $ Romaji <$> maybeToList (M.lookup k chmap)
-lookup _ = error "Katakana lookup: not katakana token"
+    lookup [] = []
+    lookup k | isSokuon (head k) = sokuonize <$> lookup (tail k)
+             | isChoonpu (last k) = longVowelize False <$> lookup (init k)
+             | otherwise = concatMap many $ Romaji <$> maybeToList (M.lookup k chmap)
+fromKatakana _ = error "Katakana fromKatakana: not katakana token"
 
 isNormal :: Char -> Bool
 isNormal = isJust . flip M.lookup chmap . return

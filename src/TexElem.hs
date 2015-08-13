@@ -18,7 +18,7 @@ build f s = printf "\\%s{%s}" (fonts !! f) s
 data TexElem = Line
              | Break
              | Lit String
-             | Kanji String String String  -- kanji, hiragana(?), romaji
+             | Kanji String [String] [String]  -- kanji, hiragana(?), romaji
              | Hiragana String String      -- hiragana, romaji
              | Katakana String String      -- katakana, romaji
              deriving (Show)
@@ -28,7 +28,7 @@ texify doc = case doc of
   Line         -> T.pack $ " \\\\ \n"
   Break        -> T.pack $ "\\, "
   Lit s        -> T.pack $ (build mainFont s) ++ " "
-  Kanji k h r  -> T.pack $ printf "\\ruby{%s %s}{%s} " (build mainFont k) (build rubyFont ("(" ++ h ++ ")")) (build romajiFont r)
+  Kanji k h r  -> T.pack $ printf "\\ruby{%s%s}{%s} " (build mainFont k) (build rubyFont ("(" ++ (concat h) ++ ")")) (build romajiFont (concat r))
   Hiragana h r -> T.pack $ printf "\\ruby{%s}{%s} " (build mainFont h) (build romajiFont r)
   Katakana k r -> T.pack $ printf "\\ruby{%s}{%s} " (build mainFont k) (build romajiFont r)
   where 

@@ -2,7 +2,7 @@ module Token.Misc (
   isKanji
 , isChoonpu
 , isMacron
-, noMacron
+, unMacron
 , beMacron
 , isVowel
 ) where
@@ -21,8 +21,8 @@ macrons = [('ā', 'a'), ('ī', 'i'), ('ū', 'u'), ('ē', 'e'), ('ō', 'o')]
 isMacron :: Char -> Bool
 isMacron c = c `elem` (map fst macrons)
   
-noMacron :: Char -> Char
-noMacron c = case find (\(a, b) -> a == c) macrons of 
+unMacron :: Char -> Char
+unMacron c = case find (\(a, b) -> a == c) macrons of 
   Just (a, b) -> b
   Nothing -> c
 
@@ -33,4 +33,3 @@ beMacron c = case find (\(a, b) -> b == c) macrons of
 
 isVowel :: Char -> Bool
 isVowel c = c `elem` "aiueo"
-
