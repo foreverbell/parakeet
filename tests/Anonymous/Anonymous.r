@@ -5,3 +5,5 @@ ojiisan
 sūgaku 
 Ōsaka
 Tōkyō 
+Sūpāman
+kin'yōbi
