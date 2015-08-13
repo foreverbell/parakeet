@@ -1,5 +1,9 @@
 # obtuse-parakeet
 
+## Facts
+
+I know **nothing** about compiler theory. This repo is just for fun.
+
 ## Introduction
 
 Input:
