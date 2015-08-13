@@ -2,7 +2,7 @@
 
 ## Facts
 
-I know **nothing** about compiler theory. This repo is just for fun.
+I know **nothing** about Compiler Theory, Haskell and Japanese. This repo is just for fun.
 
 ## Introduction
 
@@ -13,7 +13,7 @@ Input:
 Output:
 ![](https://raw.githubusercontent.com/foreverbell/obtuse-parakeet/master/tests/Butter-fly/Butter-fly.png)
 
-Rōmaji should follow [Hepburn romanization](https://en.wikipedia.org/wiki/Hepburn_romanization), which is most commonly used in China.
+Rōmaji should follow [Hepburn romanization](https://en.wikipedia.org/wiki/Hepburn_romanization), which is the most commonly used in China.
 
 ## Installation
 
@@ -42,4 +42,4 @@ $ xelatex Butter-fly.tex
 * Kanji matching is based on the `try` combinators of Haskell library `Parsec`, enumerating every possible matching. So the program will get extremely slow when there is a mistake in a long line.
 * Ambiguity of long vowel `ō`, which can be interpreted to `ou` or `oo`, but we only pick the former one. For example, `東京(Tōkyō)` is correctly translated to `とうきょう`, while `大阪(Ōsaka)` is wrongly translated to `おうさか`.
 * Kana iteration mark `ゝ` and `ヽ` is not supported.
-* To be added.
+* .. and other things.
