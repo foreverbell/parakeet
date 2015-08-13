@@ -50,7 +50,7 @@ flatten xs = "[\n" ++ concatMap f (zip [1 .. ] xs) ++ "]"
               | otherwise      = ""
 
 main = do
-  writeUTF8 "hiragana.out" . work =<< readUTF8 "hiragana.html"
-  writeUTF8 "katakana.out" . work =<< readUTF8 "katakana.html"
+  writeUTF8 "hiragana.out" . work =<< readUTF8 "../res/hiragana.html.txt"
+  writeUTF8 "katakana.out" . work =<< readUTF8 "../res/katakana.html.txt"
     where work = T.pack . flatten . parse . encodeString . T.unpack
 

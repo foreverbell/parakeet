@@ -5,8 +5,6 @@ module Render (
 import           Control.Monad (liftM)
 import qualified Data.Text as T
 import           Data.Text (Text)
-import qualified Data.ByteString.Lazy.Char8 as B
-import           Data.ByteString.Lazy.Char8 (ByteString)
 import qualified TexDoc as TD
 import           TexDoc ((<||>))
 import           Parser.Parser (doParse)
