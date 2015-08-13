@@ -33,8 +33,10 @@ construct j r = TD.DocumentClass "article"
 render :: String -> String -> Text
 render j r = TD.texify $ construct j r
 
-renderFile :: FilePath -> FilePath -> FilePath -> IO ()
+renderFile :: FilePath -> FilePath -> Maybe FilePath -> IO ()
 renderFile jf rf output = do
   jpnese <- T.unpack `liftM` IO.readFile jf
   romaji <- T.unpack `liftM` IO.readFile rf
-  IO.writeFile output $ render jpnese romaji
+  case output of
+    Nothing -> IO.putStrLn $ render jpnese romaji
+    Just f  -> IO.writeFile f $ render jpnese romaji
