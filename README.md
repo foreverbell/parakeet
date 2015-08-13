@@ -13,6 +13,8 @@ Input:
 Output:
 ![](https://raw.githubusercontent.com/foreverbell/obtuse-parakeet/master/tests/Butter-fly/Butter-fly.png)
 
+Rōmaji should follow [Hepburn romanization](https://en.wikipedia.org/wiki/Hepburn_romanization), which is most commonly used in China.
+
 ## Installation
 
 ```bash
