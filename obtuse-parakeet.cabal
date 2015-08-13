@@ -16,6 +16,7 @@ build-type:          Simple
 cabal-version:       >=1.10
 
 executable obtuse-parakeet
+  ghc-options:         -O2
   main-is:             Main.hs
   -- other-modules:       
   build-depends: 

@@ -13,7 +13,7 @@ Input:
 Output:
 ![](https://raw.githubusercontent.com/foreverbell/obtuse-parakeet/master/tests/Butter-fly/Butter-fly.png)
 
-Rōmaji should follow [Hepburn romanization](https://en.wikipedia.org/wiki/Hepburn_romanization), which is the most commonly used in China.
+Rōmaji should follow [Hepburn romanization](https://en.wikipedia.org/wiki/Hepburn_romanization), which is the most commonly used rōmaji in China.
 
 ## Installation
 
@@ -39,7 +39,7 @@ $ xelatex Butter-fly.tex
 ## Limitations
 
 * Rōmaji macron (¯) is not fully supported. (I mean, there may be bugs)
-* Kanji matching is based on the `try` combinators of Haskell library `Parsec`, enumerating every possible matching. So the program will get extremely slow when there is a mistake in a long line.
-* Ambiguity of long vowel `ō`, which can be interpreted to `ou` or `oo`, but we only pick the former one. For example, `東京(Tōkyō)` is correctly translated to `とうきょう`, while `大阪(Ōsaka)` is wrongly translated to `おうさか`.
+* Kanji matching is based on the `try` combinator of Haskell library `Parsec`, enumerating every possible matching. So the program will get extremely slow when there is a mistake in a long line of rōmaji.
+* The long vowel `ō` is ambiguous in Hepburn romanization, which is interpreted to `ou` or `oo`. To resolve this, we always pick the former one. For example, `東京(Tōkyō)` is correctly translated to `とうきょう`, while `大阪(Ōsaka)` is wrongly translated to `おうさか`.
 * Kana iteration mark `ゝ` and `ヽ` is not supported.
 * .. and other things.
