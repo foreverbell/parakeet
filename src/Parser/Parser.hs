@@ -6,6 +6,7 @@ import Text.Parsec
 import Text.Parsec.String
 import Text.Parsec.Combinator
 import Text.Parsec.Char
+import Text.Parsec.Pos
 
 import Control.Applicative ((<$>), (*>))
 import Control.Monad (void, guard, liftM, liftM2, liftM3)
@@ -29,16 +30,19 @@ import qualified TexElem as E
 lowerCase :: String -> String
 lowerCase = map toLower
 
-parseLine :: String -> String -> Either ParseError [E.TexElem]
-parseLine j r = do
-  wds <- runParser stage0 () [] j 
-  runParser stage1 wds [] (lowerCase r)
+setLine l = do
+  pos <- getPosition
+  setPosition $ setSourceLine pos l
+
+parseLine :: Line -> String -> String -> Either ParseError [E.TexElem]
+parseLine l j r = do
+  wds <- runParser (setLine l >> stage0) () "Japanese" j 
+  runParser (setLine l >> stage1) wds "Romaji" (lowerCase r)
   -- where evil = (unsafePerformIO . putStrLn . concatMap (\token -> (T.unwrapToken token) ++ " ")) wds
 
 doParse :: String -> String -> [E.TexElem]
-doParse j r = fromEither $ fmap concat $ sequence $ zipWith parseLine (lines j) (lines r) 
+doParse j r = fromEither $ fmap concat $ sequence $ zipWith3 parseLine [1 .. ] (lines j) (lines r) 
   where
     fromEither (Left err) = error $ show err
     fromEither (Right va) = va
-
 
