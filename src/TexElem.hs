@@ -3,12 +3,12 @@ module TexElem (
 , texify
 ) where
 
-import qualified Data.Text as T
-import           Data.Text (Text)
+import qualified Data.Text.Lazy as T
+import           Data.Text.Lazy (Text)
 import           Text.Printf (printf)
 
 build :: Int -> String -> String
-build f s = printf "\\%s{%s}" (fonts !! f) s
+build f = printf "\\%s{%s}" (fonts !! f)
   where
     fonts = [ 
       "Huge", "huge", 
@@ -30,8 +30,8 @@ texify :: TexElem -> Text
 texify doc = case doc of
   Line         -> T.pack $ " \\\\ \n"
   Break        -> T.pack $ "\\, "
-  Lit s        -> T.pack $ (build mainFont s) ++ " "
-  Kanji k h r  -> T.pack $ printf "\\ruby{%s%s}{%s} " (build mainFont k) (build rubyFont ("(" ++ (concat h) ++ ")")) (build romajiFont (concat (map' ((:) '-') r)))
+  Lit s        -> T.pack $ build mainFont s ++ " "
+  Kanji k h r  -> T.pack $ printf "\\ruby{%s%s}{%s} " (build mainFont k) (build rubyFont ("(" ++ concat h ++ ")")) (build romajiFont (concat (map' ((:) '-') r)))
   Hiragana h r -> T.pack $ printf "\\ruby{%s}{%s} " (build mainFont h) (build romajiFont r)
   Katakana k r -> T.pack $ printf "\\ruby{%s}{%s} " (build mainFont k) (build romajiFont r)
   where 

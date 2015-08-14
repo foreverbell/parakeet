@@ -5,8 +5,8 @@ module TexDoc (
 , (<||>)
 ) where
 
-import qualified Data.Text as T
-import           Data.Text (Text)
+import qualified Data.Text.Lazy as T
+import           Data.Text.Lazy (Text)
 import           Text.Printf (printf)
 
 import qualified TexElem as E

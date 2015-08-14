@@ -2,21 +2,21 @@ module Parser.Parser (
   doParse
 ) where
 
-import Text.Parsec
-import Text.Parsec.String
-import Text.Parsec.Combinator
-import Text.Parsec.Char
-import Text.Parsec.Pos
+import           Text.Parsec
+import           Text.Parsec.String
+import           Text.Parsec.Combinator
+import           Text.Parsec.Char
+import           Text.Parsec.Pos
 
-import Control.Applicative ((<$>), (*>))
-import Control.Monad (void, guard, liftM, liftM2, liftM3)
-import Data.Char (toLower, toUpper, isSpace, isAlpha)
-import Data.List (sortBy, nub)
-import Data.Function (on)
-import Data.Maybe (fromJust, isJust)
+import           Control.Applicative ((<$>), (*>))
+import           Control.Monad (void, guard, liftM, liftM2, liftM3)
+import           Data.Char (toLower, toUpper, isSpace, isAlpha)
+import           Data.List (sortBy, nub)
+import           Data.Function (on)
+import           Data.Maybe (fromJust, isJust)
 
-import Parser.Stage0 (stage0)
-import Parser.Stage1 (stage1)
+import           Parser.Stage0 (stage0)
+import           Parser.Stage1 (stage1)
 
 import qualified Token.Token as T
 import qualified Token.Hiragana as H
@@ -45,4 +45,3 @@ doParse j r = fromEither $ fmap concat $ sequence $ zipWith3 parseLine [1 .. ] (
   where
     fromEither (Left err) = error $ show err
     fromEither (Right va) = va
-

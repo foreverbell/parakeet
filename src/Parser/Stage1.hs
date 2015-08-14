@@ -26,10 +26,7 @@ import Debug.Trace
 type Parser = Parsec String [T.Token]
 
 removeSpace :: String -> String
-removeSpace = concat . map (\c -> if isSpace c then [] else [c])
-
-pureSpace :: String -> Bool
-pureSpace = all isSpace
+removeSpace = concatMap (\c -> if isSpace c then [] else [c])
 
 parserCons :: Char -> Parser ()
 parserCons c = void $ do
@@ -110,7 +107,7 @@ kanji = do
   let len = length unwrapped
   let tryRange = [1 .. len * 3 + 4]
   choice $ flip map tryRange $ \n -> try $ do
-    romajis <- map R.normalize <$> (skip n)
+    romajis <- map R.normalize <$> skip n
     let hiraganas = sequence $ map H.toHiragana romajis
     guard $ isJust hiraganas
     (:) (E.Kanji unwrapped (flatten (fromJust hiraganas)) (flatten romajis)) `liftM` stage1
@@ -131,7 +128,7 @@ terminate = do
   return ()
 
 stage1 :: Parser [E.TexElem]
-stage1 = hiragana <|> katakana <|> kanji <|> lit <|> break <|> (terminate *> (return []))
+stage1 = hiragana <|> katakana <|> kanji <|> lit <|> break <|> (terminate *> return [])
 
 {- space' :: Parser T.Token -}
 {- space' = fmap T.Lit $ many1 $ satisfy (not . isAlpha) -}

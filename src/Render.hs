@@ -3,15 +3,14 @@ module Render (
 ) where
 
 import           Control.Monad (liftM)
-import qualified Data.Text as T
-import           Data.Text (Text)
+import qualified Data.Text.Lazy as T
+import           Data.Text.Lazy (Text)
+
 import qualified TexDoc as TD
 import           TexDoc ((<||>))
 import           Parser.Parser (doParse)
-import qualified IO as IO
+import qualified UTF8IO as IO
 
-import System.IO.Unsafe
- 
 construct :: String -> String -> TD.TexDoc
 construct j r = TD.DocumentClass "article" 
            <||> TD.EmptyLine
@@ -35,8 +34,9 @@ render j r = TD.texify $ construct j r
 
 renderFile :: FilePath -> FilePath -> Maybe FilePath -> IO ()
 renderFile jf rf output = do
-  jpnese <- T.unpack `liftM` IO.readFile jf
-  romaji <- T.unpack `liftM` IO.readFile rf
+  jpnese <- IO.readFile jf
+  romaji <- IO.readFile rf
+  let d = T.unpack $ render jpnese romaji
   case output of
-    Nothing -> IO.putStrLn $ render jpnese romaji
-    Just f  -> IO.writeFile f $ render jpnese romaji
+    Nothing -> putStrLn d
+    Just f  -> IO.writeFile f d

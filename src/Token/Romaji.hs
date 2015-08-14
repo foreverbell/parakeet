@@ -16,7 +16,7 @@ import           Token.Misc (isMacron, beMacron, unMacron, isVowel)
 import           Token.Internal (hRaw, kRaw)
 
 chlst :: [Token]
-chlst = nub $ sort $ concatMap (many . Romaji) $ map snd $ hRaw ++ kRaw
+chlst = nub $ sort $ concatMap (many . Romaji . snd) $ hRaw ++ kRaw
 
 chmap :: M.Map String (String, String)
 chmap = M.fromList $ zipWith helper hRaw kRaw
@@ -55,7 +55,7 @@ normalize r | isSyllabicN r = [r]
       where f ('t':'c':'h':_) = Romaji "t"
             f (c:_) = Romaji [c]
     unLongVowelize r = f (unwrapToken r)
-      where f r = if (isMacron l)
+      where f r = if isMacron l
                     then ([Romaji [k]], Romaji (b ++ [t]))
                     else ([], Romaji r)
                     where l = last r
@@ -87,4 +87,4 @@ longVowelize m r | isRomajiToken r = longVowelize' <$.> r
 longVowelize _ _ = error "Romaji longVowelize: not romaji"
 
 isSyllabicN :: Token -> Bool
-isSyllabicN n = n `elem` (many (Romaji "n"))
+isSyllabicN n = n `elem` many (Romaji "n")

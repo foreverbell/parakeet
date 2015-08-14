@@ -28,9 +28,9 @@ runOpts argv = case getOpt Permute options argv of
   (o, n, [])  -> let j = find ((==) 1 . optType) o
                      r = find ((==) 2 . optType) o
                      t = find ((==) 3 . optType) o
-                 in  if (isJust j) && (isJust r) 
-                       then return $ (fromJust j, fromJust r, t)
-                       else die $ "Missing inputs\n"
+                 in  if isJust j && isJust r
+                       then return (fromJust j, fromJust r, t)
+                       else die "Missing inputs\n"
   (_, _, err) -> die $ concat err
   where header = "Usage: "
         die e  = ioError (userError (e ++ usageInfo header options))

@@ -25,7 +25,7 @@ fromKatakana k | isKatakanaToken k = lookup (unwrapToken k)
   where
     lookup [] = []
     lookup k | isSokuon (head k) = sokuonize <$> lookup (tail k)
-             | isChoonpu (last k) = (flip concatMap) [True, False] $ \macron -> (longVowelize macron <$> lookup (init k))
+             | isChoonpu (last k) = flip concatMap [True, False] $ \macron -> longVowelize macron <$> lookup (init k)
              | otherwise = concatMap many $ Romaji <$> maybeToList (M.lookup k chmap)
 fromKatakana _ = error "Katakana fromKatakana: not katakana token"
 
@@ -40,4 +40,4 @@ isSokuon :: Char -> Bool  -- 片仮名促音
 isSokuon = (==) 'ッ'
 
 isKatakana :: Char -> Bool
-isKatakana c = (isNormal c) || (isSmall c)
+isKatakana c = isNormal c || isSmall c

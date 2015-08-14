@@ -19,7 +19,7 @@ isChoonpu = (==) 'ー'
 macrons = [('ā', 'a'), ('ī', 'i'), ('ū', 'u'), ('ē', 'e'), ('ō', 'o')]
 
 isMacron :: Char -> Bool
-isMacron c = c `elem` (map fst macrons)
+isMacron c = c `elem` map fst macrons
   
 unMacron :: Char -> Char
 unMacron c = case find (\(a, b) -> a == c) macrons of 

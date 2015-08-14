@@ -29,14 +29,14 @@ fromHiragana _ = error "Hiragana fromHiragana: not hiragana token"
 
 -- * assert already normalized
 toHiragana :: [Token] -> Maybe [Token]
-toHiragana h = if and (map isRomajiToken h)
+toHiragana h = if all isRomajiToken h
   then sequence $ convert h
   else error "Hiragana toHiragana: not romaji token"
   where
     convert :: [Token] -> [Maybe Token]
     convert [] = []
     convert (x:xs) = if isSyllabicN x
-                       then (Just (Hiragana "ん")) : convert xs
+                       then Just (Hiragana "ん") : convert xs
                        else (lookupNormal x `mplus` lookupChoonpu x xs) : convert xs
                          where
                            lookupNormal x = fst `liftM` fromRomaji x
@@ -61,4 +61,4 @@ isSokuon :: Char -> Bool  -- 平仮名促音
 isSokuon = (==) 'っ'
 
 isHiragana :: Char -> Bool
-isHiragana c = (isNormal c) || (isSmall c)
+isHiragana c = isNormal c || isSmall c
