@@ -21,6 +21,8 @@ import qualified Token.Romaji as R
 import qualified Token.Misc as M
 import qualified TexElem as E
 
+import Debug.Trace
+
 type Parser = Parsec String [T.Token]
 
 removeSpace :: String -> String
@@ -52,12 +54,12 @@ hika checkToken lookupToken buildTexElem = do
   guard $ not (null ros)
   choice $ map (genParser token) ros
     where 
-      genParser token r = string (init r) >> (noMacron r <|> hasMacron r)
+      genParser token r = try $ string (init r) >> (perfect r <|> withMacron r)
         where
-          noMacron r = do
+          perfect r = do
             char (last r)
             (:) (buildTexElem (T.unwrapToken token) r) `liftM` stage1
-          hasMacron r = do
+          withMacron r = do
               ch <- satisfy M.isMacron
               let no = M.unMacron ch
               let vl | no == 'o' = ['o', 'u']  -- ambiguous 'ō'
