@@ -13,7 +13,7 @@ import           Data.Maybe (isJust, maybeToList)
 import qualified Data.Map as M
 
 import           Token.Token (Token(..), unwrapToken, isHiraganaToken, isRomajiToken)
-import           Token.Romaji (many, sokuonize, isSyllabicN, fromRomaji)
+import           Token.Romaji (otherForms, sokuonize, isSyllabicN, fromRomaji)
 import           Token.Internal (hRaw)
 
 chmap :: M.Map String String
@@ -24,7 +24,7 @@ fromHiragana h | isHiraganaToken h = lookup (unwrapToken h)
   where
     lookup [] = []
     lookup h@(x:xs) | isSokuon x = sokuonize <$> lookup xs
-                    | otherwise  = concatMap many $ Romaji <$> maybeToList (M.lookup h chmap)
+                    | otherwise  = concatMap otherForms $ Romaji <$> maybeToList (M.lookup h chmap)
 fromHiragana _ = error "Hiragana fromHiragana: not hiragana token"
 
 -- * assert already normalized

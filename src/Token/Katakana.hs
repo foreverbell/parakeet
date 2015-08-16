@@ -14,7 +14,7 @@ import           Prelude hiding (lookup)
 
 import           Token.Token (Token(..), unwrapToken, isKatakanaToken)
 import           Token.Misc (isChoonpu)
-import           Token.Romaji (many, sokuonize, longVowelize)
+import           Token.Romaji (otherForms, sokuonize, longVowelize)
 import           Token.Internal (kRaw)
 
 chmap :: M.Map String String
@@ -26,7 +26,7 @@ fromKatakana k | isKatakanaToken k = lookup (unwrapToken k)
     lookup [] = []
     lookup k | isSokuon (head k) = sokuonize <$> lookup (tail k)
              | isChoonpu (last k) = flip concatMap [True, False] $ \macron -> longVowelize macron <$> lookup (init k)
-             | otherwise = concatMap many $ Romaji <$> maybeToList (M.lookup k chmap)
+             | otherwise = concatMap otherForms $ Romaji <$> maybeToList (M.lookup k chmap)
 fromKatakana _ = error "Katakana fromKatakana: not katakana token"
 
 isNormal :: Char -> Bool

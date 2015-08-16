@@ -1,7 +1,7 @@
 module Token.Romaji (
   chlst
 , fromRomaji
-, many
+, otherForms
 , normalize
 , sokuonize
 , longVowelize
@@ -12,11 +12,11 @@ import           Data.List (nub, sort)
 import qualified Data.Map as M
 
 import           Token.Token (Token(..), (<$.>), unwrapToken, isRomajiToken)
-import           Token.Misc (isMacron, beMacron, unMacron, isVowel)
+import           Token.Misc (isMacron, toMacron, unMacron, isVowel)
 import           Token.Internal (hRaw, kRaw)
 
 chlst :: [Token]
-chlst = nub $ sort $ concatMap (many . Romaji . snd) $ hRaw ++ kRaw
+chlst = nub $ sort $ concatMap (otherForms . Romaji . snd) $ hRaw ++ kRaw
 
 chmap :: M.Map String (String, String)
 chmap = M.fromList $ zipWith helper hRaw kRaw
@@ -28,18 +28,18 @@ fromRomaji :: Token -> Maybe (Token, Token)
 fromRomaji r | isRomajiToken r = (\(h, k) -> return (Hiragana h, Katakana k)) =<< M.lookup (unwrapToken r) chmap
 fromRomaji _ = error "Romaji fromRomaji: not romaji"
 
-many :: Token -> [Token]
-many r | isRomajiToken r = map Romaji $ many' $ unwrapToken r
+otherForms :: Token -> [Token]
+otherForms r | isRomajiToken r = map Romaji $ otherForms' $ unwrapToken r
   where
     -- Syllabic n
-    many' "n"  = ["n", "m", "nn", "n-", "n'"]
+    otherForms' "n"  = ["n", "m", "nn", "n-", "n'"]
     -- Particles mutation
-    many' "ha" = ["ha", "wa"]
-    many' "he" = ["he", "e"]
-    many' "wo" = ["wo", "o"]
+    otherForms' "ha" = ["ha", "wa"]
+    otherForms' "he" = ["he", "e"]
+    otherForms' "wo" = ["wo", "o"]
     -- default
-    many' r    = [r]
-many _ = error "Romaji many: not romaji"
+    otherForms' r    = [r]
+otherForms _ = error "Romaji otherForms: not romaji"
 
 -- tchī -> [t, chi, i]
 normalize :: Token -> [Token]
@@ -82,9 +82,9 @@ longVowelize m r | isRomajiToken r = longVowelize' <$.> r
   where
     longVowelize' [] = []
     longVowelize' s | not (isVowel (last s)) = s
-                    | m                      = init s ++ [beMacron (last s)]
+                    | m                      = init s ++ [toMacron (last s)]
                     | otherwise              = s ++ [last s]  
 longVowelize _ _ = error "Romaji longVowelize: not romaji"
 
 isSyllabicN :: Token -> Bool
-isSyllabicN n = n `elem` many (Romaji "n")
+isSyllabicN n = n `elem` otherForms (Romaji "n")

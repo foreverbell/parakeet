@@ -3,7 +3,7 @@ module Token.Misc (
 , isChoonpu
 , isMacron
 , unMacron
-, beMacron
+, toMacron
 , isVowel
 ) where
 
@@ -26,8 +26,8 @@ unMacron c = case find (\(a, b) -> a == c) macrons of
   Just (a, b) -> b
   Nothing -> c
 
-beMacron :: Char -> Char
-beMacron c = case find (\(a, b) -> b == c) macrons of 
+toMacron :: Char -> Char
+toMacron c = case find (\(a, b) -> b == c) macrons of 
   Just (a, b) -> a
   Nothing -> c
 
