@@ -20,13 +20,13 @@ import           Token.Internal (kRaw)
 chmap :: M.Map String String
 chmap = M.fromList kRaw
 
-fromKatakana :: Token -> [Token]
+fromKatakana :: Token -> [[Token]]
 fromKatakana k | isKatakanaToken k = lookup (unwrapToken k)
   where
     lookup [] = []
     lookup k | isSokuon (head k) = sokuonize <$> lookup (tail k)
-             | isChoonpu (last k) = flip concatMap [True, False] $ \macron -> longVowelize macron <$> lookup (init k)
-             | otherwise = concatMap otherForms $ Romaji <$> maybeToList (M.lookup k chmap)
+             | isChoonpu (last k) = longVowelize False <$> lookup (init k)
+             | otherwise = map return $ concatMap otherForms $ Romaji <$> maybeToList (M.lookup k chmap)
 fromKatakana _ = error "Katakana fromKatakana: not katakana token"
 
 isNormal :: Char -> Bool

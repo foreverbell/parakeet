@@ -8,10 +8,11 @@ module Token.Romaji (
 , isSyllabicN
 ) where
 
+import           Control.Applicative ((<$>))
 import           Data.List (nub, sort)
 import qualified Data.Map as M
 
-import           Token.Token (Token(..), (<$.>), unwrapToken, isRomajiToken)
+import           Token.Token (Token(..), (<$$>), unwrapToken, isRomajiToken)
 import           Token.Misc (isMacron, toMacron, unMacron, isVowel)
 import           Token.Internal (hRaw, kRaw)
 
@@ -44,46 +45,47 @@ otherForms _ = error "Romaji otherForms: not romaji"
 -- tchī -> [t, chi, i]
 normalize :: Token -> [Token]
 normalize r | isSyllabicN r = [r]
-            | isRomajiToken r = if null (unwrapToken r) then []
-                      else let (unS, next) = unSokuonize r
-                               (unL, norm) = unLongVowelize next
-                           in unS ++ [norm] ++ unL
+            | isRomajiToken r = let r' = unwrapToken r
+                                in  if null r'
+                                      then []
+                                      else let (unS, next) = unSokuonize r'
+                                               (unL, norm) = unLongVowelize next
+                                           in Romaji <$> unS ++ [norm] ++ unL
   where
-    unSokuonize r = if sokuonize (tail <$.> r) == r
-      then ([f (unwrapToken r)], tail <$.> r)
+    unSokuonize r = if r == concatMap unwrapToken (sokuonize [Romaji (tail r)])
+      then ([[head r]], tail r)
       else ([], r)
-      where f ('t':'c':'h':_) = Romaji "t"
-            f (c:_) = Romaji [c]
-    unLongVowelize r = f (unwrapToken r)
-      where f r = if isMacron l
-                    then ([Romaji [k]], Romaji (b ++ [t]))
-                    else ([], Romaji r)
-                    where l = last r
-                          b = init r
-                          t = unMacron l
-                          k | t == 'o' = 'u' -- ambiguous 'ō' -> ou 
-                            | otherwise = t
+    unLongVowelize r = if isMacron l
+                         then ([[k]], (b ++ [t]))
+                         else ([], r)
+                         where l = last r
+                               b = init r
+                               t = unMacron l
+                               k | t == 'o' = 'u' -- ambiguous 'ō' -> ou 
+                                 | otherwise = t
 normalize _ = error "Romaji normalize: not romaji"
 
 -- chi -> tchi, ka -> kka .. a -> a
-sokuonize :: Token -> Token
-sokuonize r | isRomajiToken r = sokuonize' <$.> r
+sokuonize :: [Token] -> [Token]
+sokuonize [] = []
+sokuonize r | all isRomajiToken r = (sokuonize' <$$> head r) ++ tail r
   where 
     sokuonize' [] = []
-    sokuonize' s@('c':'h':_) = 't':s
-    sokuonize' s@(c:_) | sokuonizable c = c:s
-                       | otherwise      = s
+    sokuonize' s@('c' : 'h' : _) = ["t", s]
+    sokuonize' s@(c : _) | sokuonizable c = [[c], s]
+                         | otherwise      = [s]
     sokuonizable c = c `notElem` "aiueonmrwy" -- ++ "gzdbh"
     -- https://en.wikipedia.org/wiki/Sokuon
 sokuonize _  = error "Romaji sokuonize: not romaji"
 
-longVowelize :: Bool -> Token -> Token
-longVowelize m r | isRomajiToken r = longVowelize' <$.> r 
+longVowelize :: Bool -> [Token] -> [Token]
+longVowelize _ [] = []
+longVowelize m r | all isRomajiToken r = init r ++ (longVowelize' <$$> (last r))
   where
     longVowelize' [] = []
-    longVowelize' s | not (isVowel (last s)) = s
-                    | m                      = init s ++ [toMacron (last s)]
-                    | otherwise              = s ++ [last s]  
+    longVowelize' s | not (isVowel (last s)) = [s]
+                    | m                      = [init s ++ [toMacron (last s)]]
+                    | otherwise              = [s, [last s]]  
 longVowelize _ _ = error "Romaji longVowelize: not romaji"
 
 isSyllabicN :: Token -> Bool

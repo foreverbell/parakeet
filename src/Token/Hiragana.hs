@@ -19,12 +19,12 @@ import           Token.Internal (hRaw)
 chmap :: M.Map String String
 chmap = M.fromList hRaw
 
-fromHiragana :: Token -> [Token]
+fromHiragana :: Token -> [[Token]]
 fromHiragana h | isHiraganaToken h = lookup (unwrapToken h)
   where
     lookup [] = []
     lookup h@(x:xs) | isSokuon x = sokuonize <$> lookup xs
-                    | otherwise  = concatMap otherForms $ Romaji <$> maybeToList (M.lookup h chmap)
+                    | otherwise  = map return $ concatMap otherForms $ Romaji <$> maybeToList (M.lookup h chmap)
 fromHiragana _ = error "Hiragana fromHiragana: not hiragana token"
 
 -- * assert already normalized
@@ -42,8 +42,9 @@ toHiragana h = if all isRomajiToken h
                            lookupNormal x = fst `liftM` fromRomaji x
                            lookupChoonpu x (y:_) = do
                              guard $ length x' == 1
-                             guard $ not $ null y'
-                             guard $ head x' == head y'
+                             guard $ case head x' of
+                                       't' -> (take 2 y') == "ch"
+                                       _   -> (take 1 y') == x'
                              return $ Hiragana "っ"
                              where x' = unwrapToken x
                                    y' = unwrapToken y

@@ -42,5 +42,5 @@ main = do
     Nothing         -> Nothing
 
 test = do
-  renderFile "../tests/Butter-fly/Butter-fly.j" "../tests/Butter-fly/Butter-fly.r" $ Just "Butter-fly.tex"
   renderFile "../tests/Anonymous/Anonymous.j" "../tests/Anonymous/Anonymous.r" $ Just "Anonymous.tex"
+  renderFile "../tests/Butter-fly/Butter-fly.j" "../tests/Butter-fly/Butter-fly.r" $ Just "Butter-fly.tex"

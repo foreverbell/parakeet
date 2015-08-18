@@ -21,8 +21,6 @@ import qualified Token.Romaji as R
 import qualified Token.Misc as M
 import qualified TexElem as E
 
-import Debug.Trace
-
 type Parser = Parsec String [T.Token]
 
 removeSpace :: String -> String
@@ -43,27 +41,39 @@ parserPopUserToken = do
   modifyState tail
   return token
 
-hika :: (T.Token -> Bool) -> (T.Token -> [T.Token]) -> (String -> String -> E.TexElem) -> Parser [E.TexElem]
-hika checkToken lookupToken buildTexElem = do
+hika :: (T.Token -> Bool) -> (T.Token -> [[T.Token]]) -> (String -> [String] -> E.TexElem) -> Parser [E.TexElem]
+hika checkTokenType lookupToken buildTexElem = do
   token <- parserPopUserToken
-  guard $ checkToken token
-  let ros = map T.unwrapToken $ lookupToken token
-  guard $ not (null ros)
-  choice $ map (genParser token) ros
+  guard $ checkTokenType token
+  let romajis = map (map T.unwrapToken) (lookupToken token)
+  guard $ not (null romajis)
+  choice $ map (genParser token) romajis
     where 
-      genParser token r = try $ string (init r) >> (perfect r <|> withMacron r)
+      genParser token r = perfect r <|> withMacron1 r <|> withMacron2 r
         where
-          perfect r = do
-            char (last r)
+          perfect r = try $ do
+            string $ concat r
             (:) (buildTexElem (T.unwrapToken token) r) `liftM` stage1
-          withMacron r = do
-              ch <- satisfy M.isMacron
-              let no = M.unMacron ch
-              let vl | no == 'o' = ['o', 'u']  -- ambiguous 'ō'
-                     | otherwise = [no]
-              choice $ flip map vl $ \to -> try $ do
-                parserCons to
-                (:) (buildTexElem (T.unwrapToken token) r) `liftM` stage1
+          withMacron1 r = try $ do -- (me, mē), split ē to ee
+            let cr = concat r
+            string $ init cr
+            ch <- satisfy M.isMacron
+            let un = M.unMacron ch
+            guard $ un == last cr
+            let vl | un == 'o' = ['o', 'u']  -- ambiguous 'ō'
+                   | otherwise = [un]
+            choice $ flip map vl $ \to -> try $ do
+              parserCons to
+              (:) (buildTexElem (T.unwrapToken token) r) `liftM` stage1
+          withMacron2 r = try $ do -- (mee, mē)
+            let cr = concat r
+            let l = length cr
+            guard $ l >= 2
+            string $ take (l - 2) cr
+            ch <- satisfy M.isMacron
+            let un = M.unMacron ch
+            guard $ replicate 2 un == drop (l - 2) cr
+            (:) (buildTexElem (T.unwrapToken token) r) `liftM` stage1
 
 hiragana :: Parser [E.TexElem]
 hiragana = hika T.isHiraganaToken H.fromHiragana E.Hiragana
@@ -91,13 +101,13 @@ lit = do
 romaji :: Parser T.Token
 romaji = fmap T.Romaji $ choice $ flip map romajis $ \tokens -> try (string tokens)
   where
-    romajis = reverse $ nub $ sortBy (compare `on` length) $ map T.unwrapToken $ do 
+    romajis = reverse $ nub $ sortBy (compare `on` length) $ map (concatMap T.unwrapToken) $ do 
       r <- R.chlst
       g <- [R.sokuonize, id]
       v <- [R.longVowelize True, id]
       if R.isSyllabicN r
-        then return r
-        else return $ g (v r)
+        then return [r]
+        else return $ g (v [r])
 
 kanji :: Parser [E.TexElem]
 kanji = do

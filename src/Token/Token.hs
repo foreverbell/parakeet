@@ -1,6 +1,6 @@
 module Token.Token (
   Token(..)
-, (<$.>)
+, (<$$>)
 , unwrapToken
 , unwrapToken'
 , isKanjiToken
@@ -10,6 +10,8 @@ module Token.Token (
 , isLitToken
 ) where
 
+import Control.Applicative ((<$>))
+
 data Token = Kanji    String
            | Hiragana String
            | Katakana String
@@ -17,8 +19,8 @@ data Token = Kanji    String
            | Lit      String
            deriving (Show, Eq, Ord)
 
-(<$.>) :: (String -> String) -> Token -> Token 
-f <$.> t = c (f v)
+(<$$>) :: (String -> [String]) -> Token -> [Token] 
+f <$$> t = c <$> (f v)
   where (v, c) = unwrapToken' t
 
 unwrapToken' :: Token -> (String, String -> Token)
