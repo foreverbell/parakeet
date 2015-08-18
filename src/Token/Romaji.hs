@@ -56,7 +56,7 @@ normalize r | isSyllabicN r = return $ Romaji $ return $ head $ unwrapToken r
       then ([[head r]], tail r)
       else ([], r)
     unLongVowelize r = if isMacron l
-                         then ([[k]], (b ++ [t]))
+                         then ([[k]], b ++ [t])
                          else ([], r)
                          where l = last r
                                b = init r
@@ -80,7 +80,7 @@ sokuonize _  = error "Romaji sokuonize: not romaji"
 
 longVowelize :: Bool -> [Token] -> [Token]
 longVowelize _ [] = []
-longVowelize m r | all isRomajiToken r = init r ++ (longVowelize' <$$> (last r))
+longVowelize m r | all isRomajiToken r = init r ++ (longVowelize' <$$> last r)
   where
     longVowelize' [] = []
     longVowelize' s | not (isVowel (last s)) = [s]

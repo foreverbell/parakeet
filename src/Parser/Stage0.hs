@@ -7,21 +7,21 @@ import           Text.Parsec.String
 import           Text.Parsec.Combinator
 import           Text.Parsec.Char
 import           Control.Applicative ((<$>), (<*>))
-import           Control.Monad (liftM2, liftM3)
+import           Control.Monad (liftM2)
 
 import qualified Token.Token as T
 import qualified Token.Hiragana as H
 import qualified Token.Katakana as K
 import qualified Token.Misc as M
 
-catM :: (Monad m) => m [a] -> m [a] -> m [a]
-catM = liftM2 (++)
+liftCat :: (Monad m) => m [a] -> m [a] -> m [a]
+liftCat = liftM2 (++)
 
 (&.) p1 p2 c = p1 c && p2 c
 
 hika :: Parser T.Token
-hika = T.Hiragana <$> hSokuon `catM` hirigana
-   <|> T.Katakana <$> kSokuon `catM` katahana `catM` choonpu
+hika = T.Hiragana <$> hSokuon `liftCat` hirigana
+   <|> T.Katakana <$> kSokuon `liftCat` katahana `liftCat` choonpu
   where
     parse2 n s = do
       first <- satisfy n

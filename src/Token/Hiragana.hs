@@ -39,7 +39,7 @@ toHiragana h = if all isRomajiToken h
       where
         checkSyllabicN x = do
           guard $ isSyllabicN x
-          return $ (Hiragana "ん")
+          return $ Hiragana "ん"
         lookupNormal x = fst `liftM` fromRomaji x
         checkChoonpu x = do
           guard $ length x' == 1

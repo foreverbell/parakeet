@@ -30,8 +30,8 @@ texify doc = case doc of
   EmptyLine       -> T.pack $ "\n"
   DocumentClass c -> T.pack $ printf "\\documentclass{%s}\n" c
   UsePackage p d  -> T.pack $ if null d
-    then printf "\\usepackage{%s}\n" p
-    else printf "\\usepackage[%s]{%s}\n" d p
+                         then printf "\\usepackage{%s}\n" p
+                         else printf "\\usepackage[%s]{%s}\n" d p
   LineSpread spr  -> T.pack $ printf "\\linespread{%s}\n" spr
   RubySep sep     -> T.pack $ printf "\\renewcommand\\rubysep{%s}\n" sep
   NoIndent        -> T.pack $ "\\setlength\\parindent{0.0pt}\n"

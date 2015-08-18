@@ -1,6 +1,6 @@
 # obtuse-parakeet
 
-## Facts
+## Disclaimer
 
 I know **nothing** about Compiler Theory, Haskell and Japanese. This repo is just for fun.
 

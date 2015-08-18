@@ -20,7 +20,7 @@ data Token = Kanji    String
            deriving (Show, Eq, Ord)
 
 (<$$>) :: (String -> [String]) -> Token -> [Token] 
-f <$$> t = c <$> (f v)
+f <$$> t = c <$> f v
   where (v, c) = unwrapToken' t
 
 unwrapToken' :: Token -> (String, String -> Token)

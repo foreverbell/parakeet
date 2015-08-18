@@ -7,7 +7,7 @@ import           Text.Parsec.String hiding (Parser)
 import           Text.Parsec.Combinator
 import           Text.Parsec.Char
 import           Control.Applicative ((<$>), (*>), (<*))
-import           Control.Monad (void, guard, replicateM, liftM, liftM2, liftM3)
+import           Control.Monad (void, guard, replicateM, liftM)
 import           Data.Char (toLower, toUpper, isSpace, isAlpha)
 import           Data.List (sortBy, nub)
 import           Data.Function (on)
@@ -25,13 +25,6 @@ type Parser = Parsec String [T.Token]
 
 removeSpace :: String -> String
 removeSpace = concatMap (\c -> if isSpace c then [] else [c])
-
-parserCons :: Char -> Parser ()
-parserCons c = void $ do
-  s <- getParserState
-  setParserState $ s {
-    stateInput = (:) c (stateInput s)
-  }
 
 parserPrepend :: String -> Parser ()
 parserPrepend a = void $ do
@@ -66,7 +59,7 @@ hika checkTokenType lookupToken buildTexElem = do
             guard $ un == last cr
             let vl | un == 'o' = ['o', 'u']  -- ambiguous 'ō'
                    | otherwise = [un]
-            choice $ flip map vl $ \to -> try $ parserCons to >> cont token r
+            choice $ flip map vl $ \to -> try $ parserPrepend [to] >> cont token r
           withMacron2 r = try $ do -- (mee, mē)
             let cr = concat r
             let l = length cr
@@ -130,7 +123,7 @@ kanji = do
     skip n = replicateM n $ do
       spaces
       r <- R.normalize <$> (spaces >> romaji)
-      parserPrepend $ concat $ map T.unwrapToken $ tail r
+      parserPrepend $ concatMap T.unwrapToken (tail r)
       return $ head r
     flatten = map T.unwrapToken
 
