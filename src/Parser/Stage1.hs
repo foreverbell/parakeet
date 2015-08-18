@@ -46,14 +46,11 @@ hika checkTokenType lookupToken buildTexElem = do
   token <- parserPopUserToken
   guard $ checkTokenType token
   let romajis = map (map T.unwrapToken) (lookupToken token)
-  guard $ not (null romajis)
-  choice $ map (genParser token) romajis
+  choice $ map (gen token) romajis
     where 
-      genParser token r = perfect r <|> withMacron1 r <|> withMacron2 r
+      gen token r = perfect r <|> withMacron1 r <|> withMacron2 r
         where
-          perfect r = try $ do
-            string $ concat r
-            (:) (buildTexElem (T.unwrapToken token) r) `liftM` stage1
+          perfect r = try $ string (concat r) >> cont token r
           withMacron1 r = try $ do -- (me, mē), split ē to ee
             let cr = concat r
             string $ init cr
@@ -62,9 +59,7 @@ hika checkTokenType lookupToken buildTexElem = do
             guard $ un == last cr
             let vl | un == 'o' = ['o', 'u']  -- ambiguous 'ō'
                    | otherwise = [un]
-            choice $ flip map vl $ \to -> try $ do
-              parserCons to
-              (:) (buildTexElem (T.unwrapToken token) r) `liftM` stage1
+            choice $ flip map vl $ \to -> try $ parserCons to >> cont token r
           withMacron2 r = try $ do -- (mee, mē)
             let cr = concat r
             let l = length cr
@@ -73,7 +68,10 @@ hika checkTokenType lookupToken buildTexElem = do
             ch <- satisfy M.isMacron
             let un = M.unMacron ch
             guard $ replicate 2 un == drop (l - 2) cr
-            (:) (buildTexElem (T.unwrapToken token) r) `liftM` stage1
+            cont token r
+      cont token r = do
+        let r' = map T.unwrapToken $ concatMap (R.normalize . T.Romaji) r
+        (:) (buildTexElem (T.unwrapToken token) r') `liftM` stage1
 
 hiragana :: Parser [E.TexElem]
 hiragana = hika T.isHiraganaToken H.fromHiragana E.Hiragana
@@ -95,7 +93,7 @@ lit = do
         matchIgnoreSpace []     = return ()
         matchIgnoreSpace (x:xs) = do
           spaces
-          char $ toLower x -- already lowercased
+          char $ toLower x -- Romaji input is already lower-cased
           matchIgnoreSpace xs
 
 romaji :: Parser T.Token

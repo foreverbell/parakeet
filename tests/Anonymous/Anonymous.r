@@ -7,6 +7,7 @@ sūgaku
 Ōsaka
 Tōkyō 
 Sūpāman
+mē
 mee
 matcha 
 matcha 

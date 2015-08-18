@@ -44,7 +44,7 @@ otherForms _ = error "Romaji otherForms: not romaji"
 
 -- tchī -> [t, chi, i]
 normalize :: Token -> [Token]
-normalize r | isSyllabicN r = [r]
+normalize r | isSyllabicN r = return $ Romaji $ return $ head $ unwrapToken r
             | isRomajiToken r = let r' = unwrapToken r
                                 in  if null r'
                                       then []
