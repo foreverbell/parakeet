@@ -16,3 +16,4 @@ kin'yōbi
 kin'yōbi
 kin-yōbi
 kin-yōbi
+mittsu

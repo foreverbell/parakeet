@@ -7,7 +7,7 @@ import           Text.Parsec.String hiding (Parser)
 import           Text.Parsec.Combinator
 import           Text.Parsec.Char
 import           Control.Applicative ((<$>), (*>), (<*))
-import           Control.Monad (void, guard, liftM, liftM2, liftM3)
+import           Control.Monad (void, guard, replicateM, liftM, liftM2, liftM3)
 import           Data.Char (toLower, toUpper, isSpace, isAlpha)
 import           Data.List (sortBy, nub)
 import           Data.Function (on)
@@ -31,6 +31,13 @@ parserCons c = void $ do
   s <- getParserState
   setParserState $ s {
     stateInput = (:) c (stateInput s)
+  }
+
+parserPrepend :: String -> Parser ()
+parserPrepend a = void $ do
+  s <- getParserState
+  setParserState $ s {
+    stateInput = (++) a (stateInput s)
   }
 
 parserPopUserToken :: Parser T.Token
@@ -113,15 +120,19 @@ kanji = do
   guard $ T.isKanjiToken token
   let unwrapped = T.unwrapToken token
   let len = length unwrapped
-  let tryRange = [1 .. len * 3 + 4]
+  let tryRange = [1 .. len * 3 + 8]
   choice $ flip map tryRange $ \n -> try $ do
-    romajis <- map R.normalize <$> skip n
-    let hiraganas = sequence $ map H.toHiragana romajis
+    romajis <- skip n
+    let hiraganas = H.toHiragana romajis
     guard $ isJust hiraganas
     (:) (E.Kanji unwrapped (flatten (fromJust hiraganas)) (flatten romajis)) `liftM` stage1
   where
-    skip n = count n (spaces >> romaji)
-    flatten = map T.unwrapToken . concat
+    skip n = replicateM n $ do
+      spaces
+      r <- R.normalize <$> (spaces >> romaji)
+      parserPrepend $ concat $ map T.unwrapToken $ tail r
+      return $ head r
+    flatten = map T.unwrapToken
 
 break :: Parser [E.TexElem]
 break = do

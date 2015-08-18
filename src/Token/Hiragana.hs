@@ -8,7 +8,7 @@ module Token.Hiragana (
 ) where
 
 import           Control.Applicative ((<$>))
-import           Control.Monad (liftM, guard, mplus)
+import           Control.Monad (liftM, guard, msum)
 import           Data.Maybe (isJust, maybeToList)
 import qualified Data.Map as M
 
@@ -35,20 +35,16 @@ toHiragana h = if all isRomajiToken h
   where
     convert :: [Token] -> [Maybe Token]
     convert [] = []
-    convert (x:xs) = if isSyllabicN x
-                       then Just (Hiragana "ん") : convert xs
-                       else (lookupNormal x `mplus` lookupChoonpu x xs) : convert xs
-                         where
-                           lookupNormal x = fst `liftM` fromRomaji x
-                           lookupChoonpu x (y:_) = do
-                             guard $ length x' == 1
-                             guard $ case head x' of
-                                       't' -> (take 2 y') == "ch"
-                                       _   -> (take 1 y') == x'
-                             return $ Hiragana "っ"
-                             where x' = unwrapToken x
-                                   y' = unwrapToken y
-                           lookupChoonpu _ _ = Nothing
+    convert (x:xs) = msum (map (\f -> f x) [checkSyllabicN, lookupNormal, checkChoonpu]) : convert xs
+      where
+        checkSyllabicN x = do
+          guard $ isSyllabicN x
+          return $ (Hiragana "ん")
+        lookupNormal x = fst `liftM` fromRomaji x
+        checkChoonpu x = do
+          guard $ length x' == 1
+          return $ Hiragana "っ"
+          where x' = unwrapToken x
 
 isNormal :: Char -> Bool
 isNormal = isJust . flip M.lookup chmap . return
