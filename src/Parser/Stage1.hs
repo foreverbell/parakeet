@@ -19,7 +19,7 @@ import qualified Token.Hiragana as H
 import qualified Token.Katakana as K
 import qualified Token.Romaji as R
 import qualified Token.Misc as M
-import qualified TexElem as E
+import qualified Element as E
 
 type Parser = Parsec String [T.Token]
 
@@ -41,8 +41,8 @@ parserPopUserToken = do
   modifyState tail
   return token
 
-hika :: (T.Token -> Bool) -> (T.Token -> [[T.Token]]) -> (String -> [String] -> E.TexElem) -> Parser [E.TexElem]
-hika checkTokenType lookupToken buildTexElem = do
+hika :: (T.Token -> Bool) -> (T.Token -> [[T.Token]]) -> (String -> [String] -> E.Element) -> Parser [E.Element]
+hika checkTokenType lookupToken buildElement = do
   token <- parserPopUserToken
   guard $ checkTokenType token
   let romajis = map (map T.unwrapToken) (lookupToken token)
@@ -71,15 +71,15 @@ hika checkTokenType lookupToken buildTexElem = do
             cont token r
       cont token r = do
         let r' = map T.unwrapToken $ concatMap (R.normalize . T.Romaji) r
-        (:) (buildTexElem (T.unwrapToken token) r') `liftM` stage1
+        (:) (buildElement (T.unwrapToken token) r') `liftM` stage1
 
-hiragana :: Parser [E.TexElem]
+hiragana :: Parser [E.Element]
 hiragana = hika T.isHiraganaToken H.fromHiragana E.Hiragana
 
-katakana :: Parser [E.TexElem]
+katakana :: Parser [E.Element]
 katakana = hika T.isKatakanaToken K.fromKatakana E.Katakana
 
-lit :: Parser [E.TexElem]
+lit :: Parser [E.Element]
 lit = do
   token <- parserPopUserToken
   guard $ T.isLitToken token
@@ -107,7 +107,7 @@ romaji = fmap T.Romaji $ choice $ flip map romajis $ \tokens -> try (string toke
         then return [r]
         else return $ g (v [r])
 
-kanji :: Parser [E.TexElem]
+kanji :: Parser [E.Element]
 kanji = do
   token <- parserPopUserToken
   guard $ T.isKanjiToken token
@@ -127,7 +127,7 @@ kanji = do
       return $ head r
     flatten = map T.unwrapToken
 
-break :: Parser [E.TexElem]
+break :: Parser [E.Element]
 break = do
   many1 space
   (:) E.Break `liftM` stage1
@@ -139,7 +139,7 @@ terminate = do
   guard $ null s
   return ()
 
-stage1 :: Parser [E.TexElem]
+stage1 :: Parser [E.Element]
 stage1 = hiragana <|> katakana <|> kanji <|> lit <|> break <|> (terminate *> return [])
 
 {- space' :: Parser T.Token -}

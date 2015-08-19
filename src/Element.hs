@@ -1,5 +1,5 @@
-module TexElem (
-  TexElem(..)
+module Element (
+  Element(..)
 , texify
 ) where
 
@@ -10,13 +10,19 @@ import           Data.List (intercalate)
 
 build :: Int -> String -> String
 build f = printf "\\%s{%s}" (fonts !! f)
-  where
-    fonts = [ 
-      "Huge", "huge", 
-      "LARGE", "Large", "large", 
-      "normalsize", "small", "footnotesize", "scriptsize", "tiny" ]
+  where fonts = [ "Huge"
+                , "huge"
+                , "LARGE"
+                , "Large"
+                , "large"
+                , "normalsize"
+                , "small"
+                , "footnotesize"
+                , "scriptsize"
+                , "tiny" 
+                ]
 
-data TexElem = Line
+data Element = Line
              | Break
              | Lit String
              | Kanji String [String] [String]  -- kanji, hiragana(?), romaji
@@ -24,7 +30,7 @@ data TexElem = Line
              | Katakana String [String]        -- katakana, romaji
              deriving (Show)
 
-texify :: TexElem -> Text
+texify :: Element -> Text
 texify doc = case doc of
   Line         -> T.pack $ " \\\\ \n"
   Break        -> T.pack $ "\\, "

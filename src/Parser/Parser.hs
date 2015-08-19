@@ -23,7 +23,7 @@ import qualified Token.Hiragana as H
 import qualified Token.Katakana as K
 import qualified Token.Romaji as R
 import qualified Token.Misc as M
-import qualified TexElem as E
+import qualified Element as E
 
 -- import System.IO.Unsafe
 
@@ -34,13 +34,13 @@ setLine l = do
   pos <- getPosition
   setPosition $ setSourceLine pos l
 
-parseLine :: Line -> String -> String -> Either ParseError [E.TexElem]
+parseLine :: Line -> String -> String -> Either ParseError [E.Element]
 parseLine l j r = do
   wds <- runParser (setLine l >> stage0) () "Japanese" j 
   runParser (setLine l >> stage1) wds "Romaji" (lowerCase r)
   -- where evil = (unsafePerformIO . putStrLn . concatMap (\token -> (T.unwrapToken token) ++ " ")) wds
 
-doParse :: String -> String -> [E.TexElem]
+doParse :: String -> String -> [E.Element]
 doParse j r = fromEither $ fmap concat $ sequence $ zipWith3 parseLine [1 .. ] (lines j) (lines r) 
   where
     fromEither (Left err) = error $ show err
