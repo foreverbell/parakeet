@@ -25,20 +25,22 @@ build f = printf "\\%s{%s}" (fonts !! f)
 data Element = Line
              | Break
              | Lit String
-             | Kanji String [String] [String]  -- kanji, hiragana(?), romaji
+             | Kanji String [String] [String]  -- kanji, hiragana, romaji
              | Hiragana String [String]        -- hiragana, romaji
              | Katakana String [String]        -- katakana, romaji
              deriving (Show)
 
-texify :: Element -> Text
-texify doc = case doc of
-  Line         -> T.pack $ " \\\\ \n"
-  Break        -> T.pack $ "\\, "
-  Lit s        -> T.pack $ build mainFont s ++ " "
-  Kanji k h r  -> T.pack $ printf "\\ruby{%s%s}{%s} " (build mainFont k) (build rubyFont ("(" ++ concat h ++ ")")) (build romajiFont (intercalate " " r))
-  Hiragana h r -> T.pack $ printf "\\ruby{%s}{%s} " (build mainFont h) (build romajiFont (intercalate " " r))
-  Katakana k r -> T.pack $ printf "\\ruby{%s}{%s} " (build mainFont k) (build romajiFont (intercalate " " r))
-  where 
+texify :: [Element] -> Text
+texify ds = T.concat $ map singleTexify ds
+  where
     mainFont = 4
     rubyFont = 6
     romajiFont = 5
+    singleTexify d = case d of
+      Line         -> T.pack $ " \\\\ \n"
+      Break        -> T.pack $ "\\, "
+      Lit s        -> T.pack $ build mainFont s ++ " "
+      Kanji k h r  -> T.pack $ printf "\\ruby{%s%s}{%s} " (build mainFont k) (build rubyFont ("(" ++ concat h ++ ")")) (build romajiFont (intercalate " " r))
+      Hiragana h r -> T.pack $ printf "\\ruby{%s}{%s} " (build mainFont h) (build romajiFont (intercalate " " r))
+      Katakana k r -> T.pack $ printf "\\ruby{%s}{%s} " (build mainFont k) (build romajiFont (intercalate " " r))
+
