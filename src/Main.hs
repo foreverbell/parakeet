@@ -54,7 +54,7 @@ main = do
 testPrettyPrint jf rf output = do
   j <- IO.readFile jf
   r <- IO.readFile rf
-  writeFile output $ prettyPrint j r
+  IO.writeFile output $ prettyPrint j r
 
 test = do
   testPrettyPrint "../tests/Anonymous/Anonymous.j" "../tests/Anonymous/Anonymous.r" "Anonymous.tex"
