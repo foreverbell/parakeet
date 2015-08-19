@@ -22,13 +22,13 @@ isMacron :: Char -> Bool
 isMacron c = c `elem` map fst macrons
   
 unMacron :: Char -> Char
-unMacron c = case find (\(a, b) -> a == c) macrons of 
-  Just (a, b) -> b
+unMacron c = case find (\(a, _) -> a == c) macrons of 
+  Just (_, b) -> b
   Nothing -> c
 
 toMacron :: Char -> Char
-toMacron c = case find (\(a, b) -> b == c) macrons of 
-  Just (a, b) -> a
+toMacron c = case find (\(_, b) -> b == c) macrons of 
+  Just (a, _) -> a
   Nothing -> c
 
 isVowel :: Char -> Bool

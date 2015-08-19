@@ -4,9 +4,7 @@ module Parser.Stage0 (
 
 import           Text.Parsec
 import           Text.Parsec.String
-import           Text.Parsec.Combinator
-import           Text.Parsec.Char
-import           Control.Applicative ((<$>), (<*>))
+import           Control.Applicative ((<$>))
 import           Control.Monad (liftM2)
 
 import qualified Token.Token as T

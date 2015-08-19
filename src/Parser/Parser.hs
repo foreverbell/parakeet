@@ -3,26 +3,11 @@ module Parser.Parser (
 ) where
 
 import           Text.Parsec
-import           Text.Parsec.String
-import           Text.Parsec.Combinator
-import           Text.Parsec.Char
-import           Text.Parsec.Pos
-
-import           Control.Applicative ((<$>), (*>))
-import           Control.Monad (void, guard, liftM, liftM2, liftM3)
-import           Data.Char (toLower, toUpper, isSpace, isAlpha)
-import           Data.List (sortBy, nub)
-import           Data.Function (on)
-import           Data.Maybe (fromJust, isJust)
+import           Data.Char (toLower)
 
 import           Parser.Stage0 (stage0)
 import           Parser.Stage1 (stage1)
 
-import qualified Token.Token as T
-import qualified Token.Hiragana as H
-import qualified Token.Katakana as K
-import qualified Token.Romaji as R
-import qualified Token.Misc as M
 import qualified Element as E
 
 -- import System.IO.Unsafe

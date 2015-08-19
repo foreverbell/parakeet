@@ -7,7 +7,6 @@ module Token.Katakana (
 ) where
 
 import           Control.Applicative ((<$>))
-import           Control.Monad (liftM)
 import           Data.Maybe (isJust, maybeToList)
 import qualified Data.Map as M
 import           Prelude hiding (lookup)

@@ -3,12 +3,9 @@ module Parser.Stage1 (
 ) where
 
 import           Text.Parsec
-import           Text.Parsec.String hiding (Parser)
-import           Text.Parsec.Combinator
-import           Text.Parsec.Char
 import           Control.Applicative ((<$>), (*>), (<*))
 import           Control.Monad (void, guard, replicateM, liftM)
-import           Data.Char (toLower, toUpper, isSpace, isAlpha)
+import           Data.Char (toLower, isSpace)
 import           Data.List (sortBy, nub)
 import           Data.Function (on)
 import           Data.Maybe (fromJust, isJust)

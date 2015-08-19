@@ -5,7 +5,7 @@ module UTF8IO (
 
 import           System.IO (openFile, hClose, hSetEncoding, IOMode(..), utf8)
 import qualified Data.Text.IO as T
-import           Data.Text (Text, pack, unpack)
+import           Data.Text (pack, unpack)
 import           Control.Exception (bracket)
 import           Control.Monad (liftM)
 import           Prelude hiding (readFile, writeFile)

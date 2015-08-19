@@ -4,7 +4,6 @@ module Options (
 ) where
 
 import           System.Console.GetOpt (getOpt, usageInfo, ArgOrder(..), OptDescr(..), ArgDescr(..))
-import           System.IO.Error (ioError, userError)
 import           Control.Monad (when)
 
 import qualified UTF8IO as IO
@@ -40,7 +39,7 @@ options =
 
 runOpts :: [String] -> IO Options
 runOpts argv = case getOpt Permute options argv of
-  (a, n, [])  -> do
+  (a, _, [])  -> do
      opts <- foldl (>>=) (return initOptions) a
      when (null (optJInputFile opts) || null (optRInputFile opts)) $ do
        die "Missing inputs\n"
