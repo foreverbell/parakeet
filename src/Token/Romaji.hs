@@ -8,11 +8,10 @@ module Token.Romaji (
 , isSyllabicN
 ) where
 
-import           Control.Applicative ((<$>))
 import           Data.List (nub, sort)
 import qualified Data.Map as M
 
-import           Token.Token (Token, wrap, unwrap, Hiragana, Katakana, Romaji, (<**>), (<$$>))
+import           Token.Token (wrap, unwrap, Hiragana, Katakana, Romaji, (<**>), (<$$>))
 import           Token.Misc (isMacron, toMacron, unMacron, isVowel)
 import           Token.Internal (hRaw, kRaw)
 

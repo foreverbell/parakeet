@@ -11,7 +11,7 @@ import           Data.Maybe (isJust, maybeToList)
 import qualified Data.Map as M
 import           Prelude hiding (lookup)
 
-import           Token.Token (Token, wrap, unwrap, Katakana, Romaji)
+import           Token.Token (wrap, unwrap, Katakana, Romaji)
 import           Token.Misc (isChoonpu)
 import           Token.Romaji (otherForms, sokuonize, longVowelize)
 import           Token.Internal (kRaw)

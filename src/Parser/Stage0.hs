@@ -5,7 +5,7 @@ module Parser.Stage0 (
 import           Text.Parsec
 import           Text.Parsec.String
 import           Control.Applicative (Applicative, (<$>))
-import           Control.Monad (liftM, liftM2)
+import           Control.Monad (liftM2)
 
 import           Parser.Stage1 (AnyToken(..), TokenWrap)
 import qualified Token.Token as T
@@ -23,7 +23,7 @@ parseTwo n s = do
   option [first] $ do 
     second <- satisfy s
     return [first, second]
-		
+
 hiragana :: Parser T.Hiragana
 hiragana = T.wrap <$> hSokuon `concatM` hMain
   where
