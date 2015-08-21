@@ -18,7 +18,7 @@ cabal-version:       >=1.10
 executable obtuse-parakeet
   ghc-options:         -O2 -W -fwarn-tabs
   main-is:             Main.hs
-  other-extensions:    OverloadedStrings, QuasiQuotes
+  other-extensions:    OverloadedStrings, QuasiQuotes, ExistentialQuantification
   -- other-modules:       
   build-depends: 
     base           >= 4.6  && <4.8,

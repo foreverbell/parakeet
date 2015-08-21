@@ -11,7 +11,7 @@ import           Data.Maybe (isJust, maybeToList)
 import qualified Data.Map as M
 import           Prelude hiding (lookup)
 
-import           Token.Token (Token(..), unwrapToken, isKatakanaToken)
+import           Token.Token (Token, wrap, unwrap, Katakana, Romaji)
 import           Token.Misc (isChoonpu)
 import           Token.Romaji (otherForms, sokuonize, longVowelize)
 import           Token.Internal (kRaw)
@@ -19,14 +19,13 @@ import           Token.Internal (kRaw)
 chmap :: M.Map String String
 chmap = M.fromList kRaw
 
-fromKatakana :: Token -> [[Token]]
-fromKatakana k | isKatakanaToken k = lookup (unwrapToken k)
+fromKatakana :: Katakana -> [[Romaji]]
+fromKatakana k = lookup (unwrap k)
   where
     lookup [] = []
     lookup k | isSokuon (head k) = sokuonize <$> lookup (tail k)
              | isChoonpu (last k) = longVowelize False <$> lookup (init k)
-             | otherwise = map return $ concatMap otherForms $ Romaji <$> maybeToList (M.lookup k chmap)
-fromKatakana _ = error "Katakana fromKatakana: not katakana token"
+             | otherwise = map return $ concatMap otherForms $ wrap <$> maybeToList (M.lookup k chmap)
 
 isNormal :: Char -> Bool
 isNormal = isJust . flip M.lookup chmap . return
@@ -40,3 +39,4 @@ isSokuon = (==) 'ッ'
 
 isKatakana :: Char -> Bool
 isKatakana c = isNormal c || isSmall c
+

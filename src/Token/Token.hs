@@ -1,54 +1,51 @@
 module Token.Token (
-  Token(..)
+  Token
+, unwrap
+, wrap
+, Kanji
+, Hiragana
+, Katakana
+, Romaji
+, Lit
+, (<**>)
 , (<$$>)
-, unwrapToken
-, unwrapToken'
-, isKanjiToken
-, isHiraganaToken
-, isKatakanaToken
-, isRomajiToken
-, isLitToken
 ) where
 
 import Control.Applicative ((<$>))
 
-data Token = Kanji    String
-           | Hiragana String
-           | Katakana String
-           | Romaji   String
-           | Lit      String
-           deriving (Show, Eq, Ord)
+class Token t where
+  unwrap :: t -> String
+  wrap   :: String -> t
 
-(<$$>) :: (String -> [String]) -> Token -> [Token] 
-f <$$> t = c <$> f v
-  where (v, c) = unwrapToken' t
+data Kanji = Kanji String deriving (Show, Eq, Ord)
+instance Token Kanji where
+  unwrap (Kanji t) = t
+  wrap = Kanji
 
-unwrapToken' :: Token -> (String, String -> Token)
-unwrapToken' (Kanji k) = (k, Kanji)
-unwrapToken' (Hiragana h) = (h, Hiragana)
-unwrapToken' (Katakana k) = (k, Katakana)
-unwrapToken' (Romaji r) = (r, Romaji)
-unwrapToken' (Lit l) = (l, Lit)
+data Hiragana = Hiragana String deriving (Show, Eq, Ord)
+instance Token Hiragana where
+  unwrap (Hiragana t) = t
+  wrap = Hiragana
 
-unwrapToken :: Token -> String
-unwrapToken = fst . unwrapToken'
+data Katakana = Katakana String deriving (Show, Eq, Ord)
+instance Token Katakana where
+  unwrap (Katakana t) = t
+  wrap = Katakana
 
-isKanjiToken :: Token -> Bool
-isKanjiToken (Kanji _) = True
-isKanjiToken _         = False
+data Romaji = Romaji String deriving (Show, Eq, Ord)
+instance Token Romaji where
+  unwrap (Romaji t) = t
+  wrap = Romaji
 
-isHiraganaToken :: Token -> Bool
-isHiraganaToken (Hiragana _) = True
-isHiraganaToken _            = False
+data Lit = Lit String deriving (Show, Eq, Ord)
+instance Token Lit where
+  unwrap (Lit t) = t
+  wrap = Lit
 
-isKatakanaToken :: Token -> Bool
-isKatakanaToken (Katakana _) = True
-isKatakanaToken _            = False
+{-# INLINE (<**>) #-}
+(<**>) :: Token t => (String -> String) -> t -> t
+f <**> t = wrap $ f (unwrap t)
 
-isRomajiToken :: Token -> Bool
-isRomajiToken (Romaji _) = True
-isRomajiToken _          = False
-
-isLitToken :: Token -> Bool
-isLitToken (Lit _) = True
-isLitToken _       = False
+{-# INLINE (<$$>) #-}
+(<$$>) :: Token t => (String -> [String]) -> t -> [t] 
+f <$$> t = wrap <$> f (unwrap t)

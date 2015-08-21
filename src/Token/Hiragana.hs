@@ -12,39 +12,35 @@ import           Control.Monad (liftM, guard, msum)
 import           Data.Maybe (isJust, maybeToList)
 import qualified Data.Map as M
 
-import           Token.Token (Token(..), unwrapToken, isHiraganaToken, isRomajiToken)
+import           Token.Token (Token, unwrap, wrap, Hiragana, Romaji)
 import           Token.Romaji (otherForms, sokuonize, isSyllabicN, fromRomaji)
 import           Token.Internal (hRaw)
 
 chmap :: M.Map String String
 chmap = M.fromList hRaw
 
-fromHiragana :: Token -> [[Token]]
-fromHiragana h | isHiraganaToken h = lookup (unwrapToken h)
+fromHiragana :: Hiragana -> [[Romaji]]
+fromHiragana h = lookup (unwrap h)
   where
     lookup [] = []
     lookup h@(x:xs) | isSokuon x = sokuonize <$> lookup xs
-                    | otherwise  = map return $ concatMap otherForms $ Romaji <$> maybeToList (M.lookup h chmap)
-fromHiragana _ = error "Hiragana fromHiragana: not hiragana token"
+                    | otherwise  = map return $ concatMap otherForms $ wrap <$> maybeToList (M.lookup h chmap)
 
 -- * assert already normalized
-toHiragana :: [Token] -> Maybe [Token]
-toHiragana h = if all isRomajiToken h
-  then sequence $ convert h
-  else error "Hiragana toHiragana: not romaji token"
+toHiragana :: [Romaji] -> Maybe [Hiragana]
+toHiragana h = sequence $ convert h
   where
-    convert :: [Token] -> [Maybe Token]
     convert [] = []
     convert (x:xs) = msum (map (\f -> f x) [checkSyllabicN, lookupNormal, checkChoonpu]) : convert xs
       where
         checkSyllabicN x = do
           guard $ isSyllabicN x
-          return $ Hiragana "ん"
+          return $ wrap "ん"
         lookupNormal x = fst `liftM` fromRomaji x
         checkChoonpu x = do
           guard $ length x' == 1
-          return $ Hiragana "っ"
-          where x' = unwrapToken x
+          return $ wrap "っ"
+          where x' = unwrap x
 
 isNormal :: Char -> Bool
 isNormal = isJust . flip M.lookup chmap . return
@@ -59,3 +55,4 @@ isSokuon = (==) 'っ'
 
 isHiragana :: Char -> Bool
 isHiragana c = isNormal c || isSmall c
+

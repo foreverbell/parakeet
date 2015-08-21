@@ -1,5 +1,9 @@
+{-# LANGUAGE ExistentialQuantification #-}
+
 module Parser.Stage1 (
   stage1
+, AnyToken(..)
+, TokenWrap
 ) where
 
 import           Text.Parsec
@@ -18,74 +22,94 @@ import qualified Token.Romaji as R
 import qualified Token.Misc as M
 import qualified Element as E
 
-type Parser = Parsec String [T.Token]
+type Parser = Parsec String [AnyToken]
+
+class T.Token t => TokenWrap t where
+  match :: t -> Parser [E.Element]
+ 
+data AnyToken = forall t. TokenWrap t => AnyToken t
+
+instance TokenWrap T.Hiragana where
+  match = hiragana
+  
+instance TokenWrap T.Katakana where
+  match = katakana
+
+instance TokenWrap T.Kanji where
+  match = kanji
+
+instance TokenWrap T.Lit where
+  match = lit
 
 removeSpace :: String -> String
-removeSpace = concatMap (\c -> if isSpace c then [] else [c])
+removeSpace = filter (not . isSpace)
 
-parserPrepend :: String -> Parser ()
-parserPrepend a = void $ do
+prepend :: String -> Parser ()
+prepend a = void $ do
   s <- getParserState
   setParserState $ s {
     stateInput = (++) a (stateInput s)
   }
 
-parserPopUserToken :: Parser T.Token
-parserPopUserToken = do
+popUserToken :: Parser AnyToken
+popUserToken = do
   s <- getState
   guard $ not $ null s
   let token = head s
   modifyState tail
   return token
 
-hika :: (T.Token -> Bool) -> (T.Token -> [[T.Token]]) -> (String -> [String] -> E.Element) -> Parser [E.Element]
-hika checkTokenType lookupToken buildElement = do
-  token <- parserPopUserToken
-  guard $ checkTokenType token
-  let romajis = map (map T.unwrapToken) (lookupToken token)
-  choice $ map (gen token) romajis
+continue :: E.Element -> Parser [E.Element]
+continue e = (:) e `liftM` stage1
+
+hika :: (T.Token t) => t -> (t -> [[T.Romaji]]) -> (String -> [String] -> E.Element) -> Parser [E.Element]
+hika token lookupToken buildElement = do
+  let romajis = lookupToken token
+  choice $ map (generate token) romajis
     where 
-      gen token r = perfect r <|> withMacron1 r <|> withMacron2 r
+      generate token romaji = perfect 
+                          <|> withMacron1
+                          <|> withMacron2
         where
-          perfect r = try $ string (concat r) >> cont token r
-          withMacron1 r = try $ do -- (me, mē), split ē to ee
-            let cr = concat r
-            string $ init cr
+          catRomaji = concat $ map T.unwrap romaji
+          lenRomaji = length catRomaji
+          plnRomaji = map T.unwrap $ concatMap R.normalize romaji
+          curElement = buildElement (T.unwrap token) plnRomaji 
+          perfect = try $ do
+            string catRomaji
+            continue curElement
+          withMacron1 = try $ do -- (me, mē), split ē to ee
+            string $ init catRomaji
             ch <- satisfy M.isMacron
             let un = M.unMacron ch
-            guard $ un == last cr
+            guard $ un == last catRomaji
             let vl | un == 'o' = ['o', 'u']  -- ambiguous 'ō'
                    | otherwise = [un]
-            choice $ flip map vl $ \to -> try $ parserPrepend [to] >> cont token r
-          withMacron2 r = try $ do -- (mee, mē)
-            let cr = concat r
-            let l = length cr
-            guard $ l >= 2
-            string $ take (l - 2) cr
+            choice $ flip map vl $ \to -> try $ do
+              prepend [to]
+              continue curElement
+          withMacron2 = try $ do -- (mee, mē)
+            guard $ lenRomaji >= 2
+            string $ take (lenRomaji - 2) catRomaji
             ch <- satisfy M.isMacron
             let un = M.unMacron ch
-            guard $ replicate 2 un == drop (l - 2) cr
-            cont token r
-      cont token r = do
-        let r' = map T.unwrapToken $ concatMap (R.normalize . T.Romaji) r
-        (:) (buildElement (T.unwrapToken token) r') `liftM` stage1
+            guard $ replicate 2 un == drop (lenRomaji - 2) catRomaji
+            continue curElement
 
-hiragana :: Parser [E.Element]
-hiragana = hika T.isHiraganaToken H.fromHiragana E.Hiragana
+hiragana :: T.Hiragana -> Parser [E.Element]
+hiragana token = hika token H.fromHiragana E.Hiragana
 
-katakana :: Parser [E.Element]
-katakana = hika T.isKatakanaToken K.fromKatakana E.Katakana
+katakana :: T.Katakana -> Parser [E.Element]
+katakana token = hika token K.fromKatakana E.Katakana
 
-lit :: Parser [E.Element]
-lit = do
-  token <- parserPopUserToken
-  guard $ T.isLitToken token
-  let unwrapped = T.unwrapToken token
+lit :: T.Lit -> Parser [E.Element]
+lit token = do
+  let unwrapped = T.unwrap token
   if unwrapped == "\n"
     then return [E.Line] <* (spaces >> eof)
     else do
-      matchIgnoreSpace (removeSpace unwrapped)
-      (:) (E.Lit unwrapped) `liftM` stage1
+      matchIgnoreSpace $ removeSpace unwrapped
+      continue $ E.Lit unwrapped
       where
         matchIgnoreSpace []     = return ()
         matchIgnoreSpace (x:xs) = do
@@ -93,36 +117,36 @@ lit = do
           char $ toLower x -- Romaji input is already lower-cased
           matchIgnoreSpace xs
 
-romaji :: Parser T.Token
-romaji = fmap T.Romaji $ choice $ flip map romajis $ \tokens -> try (string tokens)
-  where
-    romajis = reverse $ nub $ sortBy (compare `on` length) $ map (concatMap T.unwrapToken) $ do 
-      r <- R.chlst
-      g <- [R.sokuonize, id]
-      v <- [R.longVowelize True, id]
-      if R.isSyllabicN r
-        then return [r]
-        else return $ g (v [r])
+expectRomajis :: [String]
+expectRomajis = reverse $ nub $ sortBy (compare `on` length) $ map (concatMap T.unwrap) $ do 
+  r <- R.chlst
+  g <- [R.sokuonize, id]
+  v <- [R.longVowelize True, id]
+  if R.isSyllabicN r
+    then return [r]
+    else return $ g (v [r])
 
-kanji :: Parser [E.Element]
-kanji = do
-  token <- parserPopUserToken
-  guard $ T.isKanjiToken token
-  let unwrapped = T.unwrapToken token
+romaji :: Parser T.Romaji
+romaji = fmap T.wrap $ choice $ map (\token -> try (string token)) expectRomajis
+
+kanji :: T.Kanji -> Parser [E.Element]
+kanji token = do
+  let unwrapped = T.unwrap token
   let len = length unwrapped
   let tryRange = [1 .. len * 3 + 8]
   choice $ flip map tryRange $ \n -> try $ do
     romajis <- skip n
     let hiraganas = H.toHiragana romajis
     guard $ isJust hiraganas
-    (:) (E.Kanji unwrapped (flatten (fromJust hiraganas)) (flatten romajis)) `liftM` stage1
+    let unwrappedH = map T.unwrap $ fromJust hiraganas
+    let unwrappedR = map T.unwrap romajis  
+    continue $ E.Kanji unwrapped unwrappedH unwrappedR
   where
     skip n = replicateM n $ do
       spaces
       r <- R.normalize <$> (spaces >> romaji)
-      parserPrepend $ concatMap T.unwrapToken (tail r)
+      prepend $ concatMap T.unwrap (tail r)
       return $ head r
-    flatten = map T.unwrapToken
 
 break :: Parser [E.Element]
 break = do
@@ -137,8 +161,9 @@ terminate = do
   return ()
 
 stage1 :: Parser [E.Element]
-stage1 = hiragana <|> katakana <|> kanji <|> lit <|> break <|> (terminate *> return [])
-
-{- space' :: Parser T.Token -}
-{- space' = fmap T.Lit $ many1 $ satisfy (not . isAlpha) -}
-{- test = runParser (many1 (romaji <|> space')) () [] "gokigen na chou ni natte kirameku kaze ni notte" -}
+stage1 = (terminate *> return [])
+     <|> break
+     <|> do
+           AnyToken token <- popUserToken
+           match token
+  
