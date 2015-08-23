@@ -3,7 +3,7 @@
 
 name:                obtuse-parakeet
 version:             0.1.0.0
-synopsis:            (Hepburn) Rōmaji + Furigana lexical analysis & formatting.
+synopsis:            (Hepburn) Rōmaji + Japanese lexical analysis & formatting.
 -- description:         
 homepage:            https://github.com/foreverbell/obtuse-parakeet
 license:             MIT

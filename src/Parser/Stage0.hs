@@ -16,6 +16,7 @@ import qualified Token.Misc as M
 concatM :: (Monad m) => m [a] -> m [a] -> m [a]
 concatM = liftM2 (++)
 
+(<&&>) :: (Char -> Bool) -> (Char -> Bool) -> (Char -> Bool)
 (<&&>) p1 p2 c = p1 c && p2 c
 
 parseTwo n s = do
@@ -47,13 +48,15 @@ lit = T.wrap <$> many1 (satisfy other)
                 [ M.isChoonpu
                 , M.isKanji, H.isHiragana, K.isKatakana ]
 
-wrapAny  = AnyToken
-
-wrapAnyA :: (Applicative f, TokenWrap t) => f t -> f AnyToken
-wrapAnyA = fmap AnyToken
-
 stage0 :: Parser [AnyToken]
 stage0 = do
   r <- many $ choice $ [wrapAnyA hiragana, wrapAnyA katakana, wrapAnyA kanji, wrapAnyA lit]
   eof
   return $ r ++ [wrapAny (T.wrap "\n" :: T.Lit)]
+
+wrapAny :: (TokenWrap t) => t -> AnyToken
+wrapAny = AnyToken
+
+wrapAnyA :: (Applicative f, TokenWrap t) => f t -> f AnyToken
+wrapAnyA = fmap wrapAny
+

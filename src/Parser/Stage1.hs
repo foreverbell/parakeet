@@ -151,7 +151,7 @@ kanji token = do
 break :: Parser [E.Element]
 break = do
   many1 space
-  (:) E.Break `liftM` stage1
+  continue E.Break
 
 terminate :: Parser ()
 terminate = do
