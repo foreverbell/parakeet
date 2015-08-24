@@ -9,6 +9,7 @@ import           Control.Monad (when)
 import qualified UTF8IO as IO
 
 data Options = Options {
+  optContent  :: (String, String),
   optJInputFile :: FilePath,
   optRInputFile :: FilePath,
   optOutput     :: String -> IO (),
@@ -17,6 +18,7 @@ data Options = Options {
 
 initOptions :: Options 
 initOptions = Options {
+  optContent    = ([], []),
   optJInputFile = [],
   optRInputFile = [],
   optOutput     = putStr,
@@ -37,12 +39,23 @@ options =
   , Option ['w'] ["no-wrap"]  (NoArg  setNoWrap            ) "disable wrapped tex output" 
   ]
 
+die :: String -> IO a
+die e = fail $ e ++ usageInfo "Usage: " options
+
+setFileContent :: Options -> IO Options
+setFileContent opts = do
+  when (null jf || null rf) $ do
+    die "Missing inputs\n"
+  j <- IO.readFile jf
+  r <- IO.readFile rf
+  return opts { optContent = (j, r) }
+  where jf = optJInputFile opts
+        rf = optRInputFile opts
+
 runOpts :: [String] -> IO Options
 runOpts argv = case getOpt Permute options argv of
   (a, _, [])  -> do
      opts <- foldl (>>=) (return initOptions) a
-     when (null (optJInputFile opts) || null (optRInputFile opts)) $ do
-       die "Missing inputs\n"
-     return opts  
-  (_, _, err) -> die $ unlines err
-  where die e  = ioError (userError (e ++ usageInfo "Usage: " options))
+     setFileContent opts  
+  (_, _, err) -> die $ concat err
+

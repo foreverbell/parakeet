@@ -8,6 +8,8 @@ import           Data.Text.Lazy (Text)
 import           Text.Printf (printf)
 import           Data.List (intercalate)
 
+import           Eval (Eval)
+
 build :: Int -> String -> String
 build f = printf "\\%s{%s}" (fonts !! f)
   where fonts = [ "Huge"
@@ -30,8 +32,8 @@ data Element = Line
              | Katakana String [String]        -- katakana, romaji
              deriving (Show)
 
-texify :: [Element] -> Text
-texify ds = T.concat $ map singleTexify ds
+texify :: [Element] -> Eval Text
+texify ds = return $ T.concat $ map singleTexify ds
   where
     mainFont = 4
     rubyFont = 6

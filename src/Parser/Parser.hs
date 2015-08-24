@@ -1,33 +1,36 @@
 module Parser.Parser (
-  doParse
+  parse
 ) where
 
-import           Text.Parsec
+import           Text.Parsec hiding (parse)
+import           Control.Monad.Reader (asks)
+import           Control.Monad.Error (throwError)
+import           Control.Applicative ((<$>))
 import           Data.Char (toLower)
 
+import           Eval (Eval)
+import           Options (Options(..))
 import           Parser.Stage0 (stage0)
 import           Parser.Stage1 (stage1)
-
-import           Options (Options(..))
 import qualified Element as E
-
--- import System.IO.Unsafe
-
-lowerCase :: String -> String
-lowerCase = map toLower
 
 setLine l = do
   pos <- getPosition
   setPosition $ setSourceLine pos l
 
-parseLine :: Options -> Line -> String -> String -> Either ParseError [E.Element]
-parseLine opts l j r = do
-  wds <- runParser (setLine l >> stage0) () (optJInputFile opts) j 
-  runParser (setLine l >> stage1) wds (optRInputFile opts) (lowerCase r)
-  -- where evil = (unsafePerformIO . putStrLn . concatMap (\token -> (T.unwrapToken token) ++ " ")) wds
-
-doParse :: Options -> String -> String -> [E.Element]
-doParse opts j r = fromEither $ fmap concat $ sequence $ zipWith3 (parseLine opts) [1 .. ] (lines j) (lines r) 
+parseLine :: Line -> String -> String -> Eval [E.Element]
+parseLine l j r = do
+  jf <- asks optJInputFile
+  rf <- asks optRInputFile
+  case p jf rf of
+    Left err -> throwError (show err)
+    Right es -> return es
   where
-    fromEither (Left err) = error $ show err
-    fromEither (Right va) = va
+    p jf rf = do wd <- runParser (setLine l >> stage0) () jf j 
+                 runParser (setLine l >> stage1) wd rf (map toLower r)
+
+parse :: Eval [E.Element]
+parse = do
+  (j, r) <- asks optContent
+  concat <$> sequence (zipWith3 parseLine [1 .. ] (lines j) (lines r))
+
