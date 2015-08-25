@@ -19,7 +19,7 @@ newtype Eval a = Eval (ReaderT Options (ErrorT String Identity) a)
            , Applicative
            , Monad
            , MonadReader Options
-           , MonadError String)
+           , MonadError String )
 
 runEval :: Options -> Eval a -> Either String a
 runEval opts (Eval e) = runIdentity $ runErrorT $ runReaderT e opts
