@@ -2,7 +2,7 @@
 
 ## Disclaimer
 
-I know **nothing** about Compiler Theory, Haskell and Japanese. This repo is just for fun.
+I know **nothing** about Compiler Theory, Haskell and Japanese. This repository is just for fun, and also a testbed for some Haskell experiments.
 
 ## Introduction
 
