@@ -41,7 +41,7 @@ $ xelatex Butter-fly.tex
 
 ## Limitations
 
-* Kanji matching is based on the `try` combinator of Haskell library `Parsec`, enumerating every possible matching. So the program will get extremely slow when there is a mistake in a long line of rōmaji.
+* Kanji matching is based on the `try` combinator of Haskell library `Parsec`, enumerating every possible matching (an exponential algorithm of course). So the program will get extremely slow when there is a mistake in a long line of rōmaji.
 * The long vowel `ō` is ambiguous in Hepburn romanization, which is interpreted to `ou` or `oo`. To resolve this, we always pick the former one. For example, `東京(Tōkyō)` is correctly translated to `とうきょう`, while `大阪(Ōsaka)` is wrongly translated to `おうさか`.
 * Kana iteration mark `ゝ` and `ヽ` is not supported.
 * .. and other things.

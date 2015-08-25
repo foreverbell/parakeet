@@ -16,8 +16,8 @@ import qualified Token.Misc as M
 concatM :: (Monad m) => m [a] -> m [a] -> m [a]
 concatM = liftM2 (++)
 
-(<&&>) :: (Char -> Bool) -> (Char -> Bool) -> (Char -> Bool)
-(<&&>) p1 p2 c = p1 c && p2 c
+but :: (Char -> Bool) -> (Char -> Bool) -> (Char -> Bool)
+but p1 p2 c = p1 c && not (p2 c)
 
 parseTwo n s = do
   first <- satisfy n
@@ -28,14 +28,14 @@ parseTwo n s = do
 hiragana :: Parser T.Hiragana
 hiragana = T.wrap <$> hSokuon `concatM` hMain
   where
-    hSokuon  = option [] $ return <$> satisfy H.isSokuon
-    hMain = parseTwo H.isNormal (H.isSmall <&&> (not . H.isSokuon))
+    hSokuon = option [] $ return <$> satisfy H.isSokuon
+    hMain = parseTwo H.isNormal (H.isSmall `but` H.isSokuon)
 
 katakana :: Parser T.Katakana
 katakana = T.wrap <$> kSokuon `concatM` kMain `concatM` kChoonpu
   where
-    kSokuon  = option [] $ return <$> satisfy K.isSokuon 
-    kMain = parseTwo K.isNormal (K.isSmall <&&> (not . K.isSokuon))
+    kSokuon = option [] $ return <$> satisfy K.isSokuon 
+    kMain = parseTwo K.isNormal (K.isSmall `but` K.isSokuon)
     kChoonpu  = option [] $ return <$> satisfy M.isChoonpu
 
 kanji :: Parser T.Kanji

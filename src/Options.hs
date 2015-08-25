@@ -9,34 +9,38 @@ import           Control.Monad (when)
 import qualified UTF8IO as IO
 
 data Options = Options {
-  optContent  :: (String, String),
-  optJInputFile :: FilePath,
-  optRInputFile :: FilePath,
-  optOutput     :: String -> IO (),
-  optNoWrap     :: Bool
+  optContent    :: (String, String)
+, optJInputFile :: FilePath
+, optRInputFile :: FilePath
+, optOutput     :: String -> IO ()
+, optNoWrap     :: Bool 
+, optShowBreak  :: Bool
 }
 
 initOptions :: Options 
 initOptions = Options {
-  optContent    = ([], []),
-  optJInputFile = [],
-  optRInputFile = [],
-  optOutput     = putStr,
-  optNoWrap     = False
+  optContent    = ([], [])
+, optJInputFile = []
+, optRInputFile = []
+, optOutput     = putStr
+, optNoWrap     = False
+, optShowBreak  = False
 }
 
 bindJInputFile a o = return o { optJInputFile = a }
 bindRInputFile a o = return o { optRInputFile = a }
 bindOutput     a o = return o { optOutput     = IO.writeFile a }
 
-setNoWrap o = return o { optNoWrap = True }
+setNoWrap    o = return o { optNoWrap    = True }
+setShowBreak o = return o { optShowBreak = True }
 
 options :: [OptDescr (Options -> IO Options)]
 options = 
-  [ Option ['j'] ["japanese"] (ReqArg bindJInputFile "FILE") "japanese input file"
-  , Option ['r'] ["romaji"]   (ReqArg bindRInputFile "FILE") "romaji input file"
-  , Option ['o'] ["output"]   (ReqArg bindOutput     "FILE") "output file (default stdout)"
-  , Option ['w'] ["no-wrap"]  (NoArg  setNoWrap            ) "disable wrapped tex output" 
+  [ Option ['j'] ["japanese"]   (ReqArg bindJInputFile "FILE") "japanese input file"
+  , Option ['r'] ["romaji"]     (ReqArg bindRInputFile "FILE") "romaji input file"
+  , Option ['o'] ["output"]     (ReqArg bindOutput     "FILE") "output file (default stdout)"
+  , Option ['w'] ["no-wrap"]    (NoArg  setNoWrap            ) "disable wrapped tex output" 
+  , Option ['b'] ["show-break"] (NoArg  setShowBreak         ) "show break in romaji file"
   ]
 
 die :: String -> IO a

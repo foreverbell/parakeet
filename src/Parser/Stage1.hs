@@ -8,7 +8,7 @@ module Parser.Stage1 (
 
 import           Text.Parsec
 import           Control.Applicative ((<$>), (*>), (<*))
-import           Control.Monad (void, guard, replicateM, liftM)
+import           Control.Monad (void, guard, replicateM)
 import           Data.Char (toLower, isSpace)
 import           Data.List (sortBy, nub)
 import           Data.Function (on)
@@ -60,7 +60,9 @@ popUserToken = do
   return token
 
 continue :: E.Element -> Parser [E.Element]
-continue e = (:) e `liftM` stage1
+continue e = do
+  rest <- stage1
+  return $ e : rest
 
 hika :: (T.Token t) => t -> (t -> [[T.Romaji]]) -> (String -> [String] -> E.Element) -> Parser [E.Element]
 hika token lookupToken buildElement = do

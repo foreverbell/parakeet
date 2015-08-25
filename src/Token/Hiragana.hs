@@ -8,11 +8,11 @@ module Token.Hiragana (
 ) where
 
 import           Control.Applicative ((<$>))
-import           Control.Monad (liftM, guard, msum)
+import           Control.Monad (guard, msum)
 import           Data.Maybe (isJust, maybeToList)
 import qualified Data.Map as M
 
-import           Token.Token (Token, unwrap, wrap, Hiragana, Romaji)
+import           Token.Token (unwrap, wrap, Hiragana, Romaji)
 import           Token.Romaji (otherForms, sokuonize, isSyllabicN, fromRomaji)
 import           Token.Internal (hRaw)
 
@@ -36,7 +36,7 @@ toHiragana h = sequence $ convert h
         checkSyllabicN x = do
           guard $ isSyllabicN x
           return $ wrap "ん"
-        lookupNormal x = fst `liftM` fromRomaji x
+        lookupNormal x = fst <$> fromRomaji x
         checkChoonpu x = do
           guard $ length x' == 1
           return $ wrap "っ"

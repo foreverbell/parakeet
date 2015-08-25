@@ -3,15 +3,15 @@ module UTF8IO (
 , writeFile
 ) where
 
+import           Control.Exception (bracket)
+import           Control.Applicative ((<$>))
 import           System.IO (openFile, hClose, hSetEncoding, IOMode(..), utf8)
 import qualified Data.Text.IO as T
 import           Data.Text (pack, unpack)
-import           Control.Exception (bracket)
-import           Control.Monad (liftM)
 import           Prelude hiding (readFile, writeFile)
 
 readFile :: FilePath -> IO String
-readFile path = unpack `liftM` bracket open hClose T.hGetContents
+readFile path = unpack <$> bracket open hClose T.hGetContents
   where
     open = do
       h <- openFile path ReadMode
