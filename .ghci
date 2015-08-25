@@ -1,0 +1,18 @@
+:set -fwarn-incomplete-patterns
+:set -fwarn-unused-binds -fwarn-unused-imports
+:set -isrc
+:load src\Main.hs
+
+import Data.List (intercalate)
+
+let buildInvoke j r t = intercalate " " [":main", "-j", j, "-r", r, "-o", t]
+let invoke1 = buildInvoke "tests/Anonymous/Anonymous.j" "tests/Anonymous/Anonymous.r" "Anonymous.tex"
+let invoke2 = buildInvoke "tests/Butter-fly/Butter-fly.j" "tests/Butter-fly/Butter-fly.r" "Butter-fly.tex"
+
+:{
+:def test \cmd -> return $ unlines $ case cmd of
+        [ ] -> [invoke1, invoke2]
+        "1" -> [invoke1]
+        "2" -> [invoke2]
+        _   -> error "Invalid test"
+:}
