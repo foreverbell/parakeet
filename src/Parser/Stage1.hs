@@ -2,8 +2,7 @@
 
 module Parser.Stage1 (
   stage1
-, AnyToken(..)
-, TokenWrap
+, TokenBox(..)
 ) where
 
 import           Text.Parsec
@@ -16,33 +15,30 @@ import           Data.Maybe (fromJust, isJust)
 import           Prelude hiding (break)
 
 import qualified Token.Token as T
-import qualified Token.Hiragana as H
-import qualified Token.Katakana as K
+import qualified Token.Compound as C
+import           Token.Hiragana ()
+import           Token.Katakana ()
 import qualified Token.Romaji as R
 import qualified Token.Misc as M
-import qualified Element as E
 
-type Parser = Parsec String [AnyToken]
+type Parser = Parsec String [TokenBox]
 
-class T.Token t => TokenWrap t where
-  match :: t -> Parser [E.Element]
+class T.Token t => TokenCompoundable t where
+  match :: t -> Parser [C.Compound]
  
-data AnyToken = forall t. TokenWrap t => AnyToken t
+data TokenBox = forall t. TokenCompoundable t => TokenBox t
 
-instance TokenWrap T.Hiragana where
+instance TokenCompoundable T.Hiragana where
   match = hiragana
   
-instance TokenWrap T.Katakana where
+instance TokenCompoundable T.Katakana where
   match = katakana
 
-instance TokenWrap T.Kanji where
+instance TokenCompoundable T.Kanji where
   match = kanji
 
-instance TokenWrap T.Lit where
+instance TokenCompoundable T.Lit where
   match = lit
-
-removeSpace :: String -> String
-removeSpace = filter (not . isSpace)
 
 prepend :: String -> Parser ()
 prepend a = void $ do
@@ -51,7 +47,7 @@ prepend a = void $ do
     stateInput = (++) a (stateInput s)
   }
 
-popUserToken :: Parser AnyToken
+popUserToken :: Parser TokenBox
 popUserToken = do
   s <- getState
   guard $ not $ null s
@@ -59,14 +55,14 @@ popUserToken = do
   modifyState tail
   return token
 
-continue :: E.Element -> Parser [E.Element]
+continue :: C.Compound -> Parser [C.Compound]
 continue e = do
   rest <- stage1
   return $ e : rest
 
-hika :: (T.Token t) => t -> (t -> [[T.Romaji]]) -> (String -> [String] -> E.Element) -> Parser [E.Element]
-hika token lookupToken buildElement = do
-  let romajis = lookupToken token
+kana :: (T.TokenKana k) => k -> Parser [C.Compound]
+kana token = do
+  let romajis = T.toRomaji token
   choice $ map (generate token) romajis
     where 
       generate token romaji = perfect 
@@ -75,8 +71,7 @@ hika token lookupToken buildElement = do
         where
           catRomaji = concat $ map T.unwrap romaji
           lenRomaji = length catRomaji
-          plnRomaji = map T.unwrap $ concatMap R.normalize romaji
-          curElement = buildElement (T.unwrap token) plnRomaji 
+          curElement = T.buildCompound token $ concatMap R.normalize romaji 
           perfect = try $ do
             string catRomaji
             continue curElement
@@ -98,26 +93,27 @@ hika token lookupToken buildElement = do
             guard $ replicate 2 un == drop (lenRomaji - 2) catRomaji
             continue curElement
 
-hiragana :: T.Hiragana -> Parser [E.Element]
-hiragana token = hika token H.fromHiragana E.Hiragana
+hiragana :: T.Hiragana -> Parser [C.Compound]
+hiragana token = kana token
 
-katakana :: T.Katakana -> Parser [E.Element]
-katakana token = hika token K.fromKatakana E.Katakana
+katakana :: T.Katakana -> Parser [C.Compound]
+katakana token = kana token
 
-lit :: T.Lit -> Parser [E.Element]
+lit :: T.Lit -> Parser [C.Compound]
 lit token = do
   let unwrapped = T.unwrap token
   if unwrapped == "\n"
-    then return [E.Line] <* (spaces >> eof)
+    then return [C.Line] <* (spaces >> eof)
     else do
       matchIgnoreSpace $ removeSpace unwrapped
-      continue $ E.Lit unwrapped
+      continue $ C.Lit unwrapped
       where
         matchIgnoreSpace []     = return ()
         matchIgnoreSpace (x:xs) = do
           spaces
           char $ toLower x -- Romaji input is already lower-cased
           matchIgnoreSpace xs
+        removeSpace = filter (not . isSpace)
 
 expectRomajis :: [String]
 expectRomajis = reverse $ nub $ sortBy (compare `on` length) $ map (concatMap T.unwrap) $ do 
@@ -131,18 +127,18 @@ expectRomajis = reverse $ nub $ sortBy (compare `on` length) $ map (concatMap T.
 romaji :: Parser T.Romaji
 romaji = fmap T.wrap $ choice $ map (\token -> try (string token)) expectRomajis
 
-kanji :: T.Kanji -> Parser [E.Element]
+kanji :: T.Kanji -> Parser [C.Compound]
 kanji token = do
   let unwrapped = T.unwrap token
   let len = length unwrapped
   let tryRange = [1 .. len * 3 + 8]
   choice $ flip map tryRange $ \n -> try $ do
     romajis <- skip n
-    let hiraganas = H.toHiragana romajis
+    let hiraganas = T.fromNRomaji romajis :: Maybe [T.Hiragana]
     guard $ isJust hiraganas
     let unwrappedH = map T.unwrap $ fromJust hiraganas
     let unwrappedR = map T.unwrap romajis  
-    continue $ E.Kanji unwrapped unwrappedH unwrappedR
+    continue $ C.Kanji unwrapped unwrappedH unwrappedR
   where
     skip n = replicateM n $ do
       spaces
@@ -150,10 +146,10 @@ kanji token = do
       prepend $ concatMap T.unwrap (tail r)
       return $ head r
 
-break :: Parser [E.Element]
+break :: Parser [C.Compound]
 break = do
   many1 space
-  continue E.Break
+  continue C.Break
 
 terminate :: Parser ()
 terminate = do
@@ -162,10 +158,10 @@ terminate = do
   guard $ null s
   return ()
 
-stage1 :: Parser [E.Element]
+stage1 :: Parser [C.Compound]
 stage1 = (terminate *> return [])
      <|> break
      <|> do
-           AnyToken token <- popUserToken
+           TokenBox token <- popUserToken
            match token
-  
+

@@ -4,10 +4,10 @@ module Parser.Stage0 (
 
 import           Text.Parsec
 import           Text.Parsec.String
-import           Control.Applicative (Applicative, (<$>))
+import           Control.Applicative ((<$>))
 import           Control.Monad (liftM2)
 
-import           Parser.Stage1 (AnyToken(..), TokenWrap)
+import           Parser.Stage1 (TokenBox(..))
 import qualified Token.Token as T
 import qualified Token.Hiragana as H
 import qualified Token.Katakana as K
@@ -48,15 +48,8 @@ lit = T.wrap <$> many1 (satisfy other)
                 [ M.isChoonpu
                 , M.isKanji, H.isHiragana, K.isKatakana ]
 
-stage0 :: Parser [AnyToken]
+stage0 :: Parser [TokenBox]
 stage0 = do
-  r <- many $ choice $ [wrapAnyA hiragana, wrapAnyA katakana, wrapAnyA kanji, wrapAnyA lit]
+  r <- many $ choice $ [TokenBox <$> hiragana, TokenBox <$> katakana, TokenBox <$> kanji, TokenBox <$> lit]
   eof
-  return $ r ++ [wrapAny (T.wrap "\n" :: T.Lit)]
-
-wrapAny :: (TokenWrap t) => t -> AnyToken
-wrapAny = AnyToken
-
-wrapAnyA :: (Applicative f, TokenWrap t) => f t -> f AnyToken
-wrapAnyA = fmap wrapAny
-
+  return $ r ++ [TokenBox (T.wrap "\n" :: T.Lit)]

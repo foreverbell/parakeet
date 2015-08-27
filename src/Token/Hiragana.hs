@@ -1,7 +1,5 @@
 module Token.Hiragana (
-  fromHiragana
-, toHiragana
-, isNormal
+  isNormal
 , isSmall
 , isSokuon
 , isHiragana
@@ -12,35 +10,36 @@ import           Control.Monad (guard, msum)
 import           Data.Maybe (isJust, maybeToList)
 import qualified Data.Map as M
 
-import           Token.Token (unwrap, wrap, Hiragana, Romaji)
+import           Token.Token (TokenKana(..), unwrap, wrap, Hiragana)
+import qualified Token.Compound as C
 import           Token.Romaji (otherForms, sokuonize, isSyllabicN, fromRomaji)
 import           Token.Internal (hRaw)
 
 chmap :: M.Map String String
 chmap = M.fromList hRaw
 
-fromHiragana :: Hiragana -> [[Romaji]]
-fromHiragana h = lookup (unwrap h)
-  where
-    lookup [] = []
-    lookup h@(x:xs) | isSokuon x = sokuonize <$> lookup xs
-                    | otherwise  = map return $ concatMap otherForms $ wrap <$> maybeToList (M.lookup h chmap)
+instance TokenKana Hiragana where
+  buildCompound k r = C.Hiragana (unwrap k) (map unwrap r)
 
--- * assert already normalized
-toHiragana :: [Romaji] -> Maybe [Hiragana]
-toHiragana h = sequence $ convert h
-  where
-    convert [] = []
-    convert (x:xs) = msum (map (\f -> f x) [checkSyllabicN, lookupNormal, checkChoonpu]) : convert xs
-      where
-        checkSyllabicN x = do
-          guard $ isSyllabicN x
-          return $ wrap "ん"
-        lookupNormal x = fst <$> fromRomaji x
-        checkChoonpu x = do
-          guard $ length x' == 1
-          return $ wrap "っ"
-          where x' = unwrap x
+  toRomaji h = lookup (unwrap h)
+    where
+      lookup [] = []
+      lookup h@(x:xs) | isSokuon x = sokuonize <$> lookup xs
+                      | otherwise  = map return $ concatMap otherForms $ wrap <$> maybeToList (M.lookup h chmap)
+  
+  fromNRomaji r = sequence $ convert r
+    where
+      convert [] = []
+      convert (x:xs) = msum (map (\f -> f x) [checkSyllabicN, lookupNormal, checkChoonpu]) : convert xs
+        where
+          checkSyllabicN x = do
+            guard $ isSyllabicN x
+            return $ wrap "ん"
+          lookupNormal x = fst <$> fromRomaji x
+          checkChoonpu x = do
+            guard $ length x' == 1
+            return $ wrap "っ"
+            where x' = unwrap x
 
 isNormal :: Char -> Bool
 isNormal = isJust . flip M.lookup chmap . return

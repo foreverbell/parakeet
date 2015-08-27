@@ -1,6 +1,5 @@
 module Token.Katakana (
-  fromKatakana
-, isNormal
+  isNormal
 , isSmall
 , isSokuon
 , isKatakana
@@ -9,23 +8,27 @@ module Token.Katakana (
 import           Control.Applicative ((<$>))
 import           Data.Maybe (isJust, maybeToList)
 import qualified Data.Map as M
-import           Prelude hiding (lookup)
 
-import           Token.Token (wrap, unwrap, Katakana, Romaji)
-import           Token.Misc (isChoonpu)
+import           Token.Token (TokenKana(..), wrap, unwrap, Katakana)
+import qualified Token.Compound as C
 import           Token.Romaji (otherForms, sokuonize, longVowelize)
+import           Token.Misc (isChoonpu)
 import           Token.Internal (kRaw)
 
 chmap :: M.Map String String
 chmap = M.fromList kRaw
 
-fromKatakana :: Katakana -> [[Romaji]]
-fromKatakana k = lookup (unwrap k)
-  where
-    lookup [] = []
-    lookup k | isSokuon (head k) = sokuonize <$> lookup (tail k)
-             | isChoonpu (last k) = longVowelize False <$> lookup (init k)
-             | otherwise = map return $ concatMap otherForms $ wrap <$> maybeToList (M.lookup k chmap)
+instance TokenKana Katakana where
+  buildCompound k r = C.Katakana (unwrap k) (map unwrap r)
+
+  toRomaji k =  lookup (unwrap k)
+    where
+      lookup [] = []
+      lookup k | isSokuon (head k) = sokuonize <$> lookup (tail k)
+               | isChoonpu (last k) = longVowelize False <$> lookup (init k)
+               | otherwise = map return $ concatMap otherForms $ wrap <$> maybeToList (M.lookup k chmap)
+  
+  fromNRomaji = undefined -- TODO: define it
 
 isNormal :: Char -> Bool
 isNormal = isJust . flip M.lookup chmap . return
