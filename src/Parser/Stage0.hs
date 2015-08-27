@@ -3,7 +3,6 @@ module Parser.Stage0 (
 ) where
 
 import           Text.Parsec
-import           Text.Parsec.String
 import           Control.Applicative ((<$>))
 import           Control.Monad (liftM2)
 
@@ -12,6 +11,9 @@ import qualified Token.Token as T
 import qualified Token.Hiragana as H
 import qualified Token.Katakana as K
 import qualified Token.Misc as M
+import           Eval 
+
+type Parser = ParsecT String () Eval
 
 concatM :: (Monad m) => m [a] -> m [a] -> m [a]
 concatM = liftM2 (++)

@@ -10,7 +10,7 @@ import           Control.Monad (guard, msum)
 import           Data.Maybe (isJust, maybeToList)
 import qualified Data.Map as M
 
-import           Token.Token (TokenKana(..), unwrap, wrap, Hiragana)
+import           Token.Token (TokenKana(..), wrap, unwrap, Hiragana)
 import qualified Token.Compound as C
 import           Token.Romaji (otherForms, sokuonize, isSyllabicN, fromRomaji)
 import           Token.Internal (hRaw)
@@ -34,7 +34,7 @@ instance TokenKana Hiragana where
         where
           checkSyllabicN x = do
             guard $ isSyllabicN x
-            return $ wrap "ん"
+            fst <$> fromRomaji (wrap "n")
           lookupNormal x = fst <$> fromRomaji x
           checkChoonpu x = do
             guard $ length x' == 1

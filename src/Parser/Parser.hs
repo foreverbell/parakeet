@@ -22,12 +22,11 @@ parseLine :: Line -> String -> String -> Eval [Compound]
 parseLine l j r = do
   jf <- asks optJInputFile
   rf <- asks optRInputFile
-  case p jf rf of
-    Left err -> throwError (show err)
-    Right es -> return es
-  where
-    p jf rf = do wd <- runParser (setLine l >> stage0) () jf j 
-                 runParser (setLine l >> stage1) wd rf (map toLower r)
+  wd <- test =<< runParserT (setLine l >> stage0) () jf j
+  test =<< runParserT (setLine l >> stage1) wd rf (map toLower r)
+  where test either = case either of
+          Left err -> throwError (show err)
+          Right es -> return $ es
 
 parse :: Eval [Compound]
 parse = do

@@ -7,11 +7,12 @@ module Parser.Stage1 (
 
 import           Text.Parsec
 import           Control.Applicative ((<$>), (*>), (<*))
-import           Control.Monad (void, guard, replicateM)
+import           Control.Monad (void, guard, mzero, replicateM)
+import           Control.Monad.Trans (lift)
+import           Control.Monad.Reader (asks)
 import           Data.Char (toLower, isSpace)
 import           Data.List (sortBy, nub)
 import           Data.Function (on)
-import           Data.Maybe (fromJust, isJust)
 import           Prelude hiding (break)
 
 import qualified Token.Token as T
@@ -20,8 +21,10 @@ import           Token.Hiragana ()
 import           Token.Katakana ()
 import qualified Token.Romaji as R
 import qualified Token.Misc as M
+import           Eval
+import           Options (Options(..), FuriganaFormat(..))
 
-type Parser = Parsec String [TokenBox]
+type Parser = ParsecT String [TokenBox] Eval
 
 class T.Token t => TokenCompoundable t where
   match :: t -> Parser [C.Compound]
@@ -133,13 +136,15 @@ kanji token = do
   let len = length unwrapped
   let tryRange = [1 .. len * 3 + 8]
   choice $ flip map tryRange $ \n -> try $ do
-    romajis <- skip n
-    let hiraganas = T.fromNRomaji romajis :: Maybe [T.Hiragana]
-    guard $ isJust hiraganas
-    let unwrappedH = map T.unwrap $ fromJust hiraganas
-    let unwrappedR = map T.unwrap romajis  
-    continue $ C.Kanji unwrapped unwrappedH unwrappedR
+    furigana <- lift $ asks optFurigana
+    romajis <- fmap T.unwrap <$> skip n
+    kanas <- case furigana of
+               InKatakana -> maybe mzero kFlatten $ T.fromNRomaji (T.wrap <$> romajis)
+               otherwise  -> maybe mzero hFlatten $ T.fromNRomaji (T.wrap <$> romajis)
+    continue $ C.Kanji unwrapped kanas romajis
   where
+    hFlatten hs = return $ map T.unwrap (hs :: [T.Hiragana])
+    kFlatten ks = return $ map T.unwrap (ks :: [T.Katakana])
     skip n = replicateM n $ do
       spaces
       r <- R.normalize <$> (spaces >> romaji)

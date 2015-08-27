@@ -6,11 +6,10 @@ module Eval (
 ) where
 
 import Control.Applicative (Applicative(..))
-import Control.Monad.Error (ErrorT(..), runErrorT)
+import Control.Monad.Error (ErrorT(..), runErrorT, MonadError(..))
 import Control.Monad.Reader (ReaderT(..), runReaderT)
 import Control.Monad.Identity (Identity, runIdentity)
 import Control.Monad.Reader.Class (MonadReader(..))
-import Control.Monad.Error (MonadError(..))
 
 import Options (Options(..))
 
