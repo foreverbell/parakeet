@@ -1,8 +1,8 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
-module Eval (
-  Eval
-, runEval
+module Monad.Parakeet (
+  Parakeet
+, runParakeet
 ) where
 
 import Control.Applicative (Applicative(..))
@@ -13,13 +13,12 @@ import Control.Monad.Reader.Class (MonadReader(..))
 
 import Options (Options(..))
 
-newtype Eval a = Eval (ReaderT Options (ErrorT String Identity) a) 
+newtype Parakeet a = Parakeet (ReaderT Options (ErrorT String Identity) a) 
   deriving ( Functor
            , Applicative
            , Monad
            , MonadReader Options
            , MonadError String )
 
-runEval :: Options -> Eval a -> Either String a
-runEval opts (Eval e) = runIdentity $ runErrorT $ runReaderT e opts
-
+runParakeet :: Options -> Parakeet a -> Either String a
+runParakeet opts (Parakeet e) = runIdentity $ runErrorT $ runReaderT e opts

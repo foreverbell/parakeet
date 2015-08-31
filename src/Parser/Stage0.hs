@@ -11,9 +11,9 @@ import qualified Token.Token as T
 import qualified Token.Hiragana as H
 import qualified Token.Katakana as K
 import qualified Token.Misc as M
-import           Eval 
+import           Monad.Parakeet 
 
-type Parser = ParsecT String () Eval
+type Parser = ParsecT String () Parakeet
 
 concatM :: (Monad m) => m [a] -> m [a] -> m [a]
 concatM = liftM2 (++)

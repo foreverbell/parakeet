@@ -10,6 +10,7 @@ import           Control.Applicative ((<$>), (*>), (<*))
 import           Control.Monad (void, guard, mzero, replicateM)
 import           Control.Monad.Trans (lift)
 import           Control.Monad.Reader (asks)
+import           Data.Monoid (mconcat)
 import           Data.Char (toLower, isSpace)
 import           Data.List (sortBy, nub)
 import           Data.Function (on)
@@ -20,11 +21,11 @@ import qualified Token.Compound as C
 import           Token.Hiragana ()
 import           Token.Katakana ()
 import qualified Token.Romaji as R
-import qualified Token.Misc as M
-import           Eval
+import           Monad.Choice (foremost, toList, strip)
+import           Monad.Parakeet
 import           Options (Options(..), FuriganaFormat(..))
 
-type Parser = ParsecT String [TokenBox] Eval
+type Parser = ParsecT String [TokenBox] Parakeet
 
 class T.Token t => TokenCompoundable t where
   match :: t -> Parser [C.Compound]
@@ -33,7 +34,7 @@ data TokenBox = forall t. TokenCompoundable t => TokenBox t
 
 instance TokenCompoundable T.Hiragana where
   match = hiragana
-  
+
 instance TokenCompoundable T.Katakana where
   match = katakana
 
@@ -44,7 +45,7 @@ instance TokenCompoundable T.Lit where
   match = lit
 
 prepend :: String -> Parser ()
-prepend a = void $ do
+prepend a = void $ do -- TODO: Fix the parser position
   s <- getParserState
   setParserState $ s {
     stateInput = (++) a (stateInput s)
@@ -63,38 +64,37 @@ continue e = do
   rest <- stage1
   return $ e : rest
 
+vary :: Bool -> Bool -> [T.Romaji] -> [T.Romaji]
+vary sokuonize longVowelize from = reverse $ sortBy (compare `on` length . T.unwrap) $ nub $ map mconcat $ do 
+  r <- from
+  g <- set sokuonize [R.sokuonize, id]
+  v <- set longVowelize [R.longVowelize True, id]
+  return $ if R.isSyllabicN r
+    then [r]
+    else g (v [r])
+  where set True xs  = xs
+        set False xs = drop 1 xs
+
+varities :: [T.Romaji]
+varities = vary True True R.chlst
+
+romaji :: [T.Romaji] -> Parser T.Romaji
+romaji = fmap T.wrap . choice . map (try . string) . map T.unwrap
+
 kana :: (T.TokenKana k) => k -> Parser [C.Compound]
-kana token = do
-  let romajis = T.toRomaji token
-  choice $ map (generate token) romajis
-    where 
-      generate token romaji = perfect 
-                          <|> withMacron1
-                          <|> withMacron2
-        where
-          catRomaji = concat $ map T.unwrap romaji
-          lenRomaji = length catRomaji
-          curElement = T.buildCompound token $ concatMap R.normalize romaji 
-          perfect = try $ do
-            string catRomaji
-            continue curElement
-          withMacron1 = try $ do -- (me, mē), split ē to ee
-            string $ init catRomaji
-            ch <- satisfy M.isMacron
-            let un = M.unMacron ch
-            guard $ un == last catRomaji
-            let vl | un == 'o' = ['o', 'u']  -- ambiguous 'ō'
-                   | otherwise = [un]
-            choice $ flip map vl $ \to -> try $ do
-              prepend [to]
-              continue curElement
-          withMacron2 = try $ do -- (mee, mē)
-            guard $ lenRomaji >= 2
-            string $ take (lenRomaji - 2) catRomaji
-            ch <- satisfy M.isMacron
-            let un = M.unMacron ch
-            guard $ replicate 2 un == drop (lenRomaji - 2) catRomaji
-            continue curElement
+kana token = choice $ map (match token) (toList $ T.toRomaji token)
+  where
+    match token romajis = try $ go romajis
+      where
+        curElement = T.buildCompound token $ map R.normalizeSyllabicN romajis
+        go :: [T.Romaji] -> Parser [C.Compound]
+        go [] = continue curElement
+        go (r:rs) = do
+          next <- toList . strip . R.normalize <$> romaji (vary False True $ toList (R.otherForms r))
+          choice $ flip map next $ \rlist -> try $ do
+            prepend $ concatMap T.unwrap (tail rlist)
+            guard $ (head rlist) == r
+            go rs
 
 hiragana :: T.Hiragana -> Parser [C.Compound]
 hiragana token = kana token
@@ -118,38 +118,27 @@ lit token = do
           matchIgnoreSpace xs
         removeSpace = filter (not . isSpace)
 
-expectRomajis :: [String]
-expectRomajis = reverse $ nub $ sortBy (compare `on` length) $ map (concatMap T.unwrap) $ do 
-  r <- R.chlst
-  g <- [R.sokuonize, id]
-  v <- [R.longVowelize True, id]
-  if R.isSyllabicN r
-    then return [r]
-    else return $ g (v [r])
-
-romaji :: Parser T.Romaji
-romaji = fmap T.wrap $ choice $ map (\token -> try (string token)) expectRomajis
-
 kanji :: T.Kanji -> Parser [C.Compound]
 kanji token = do
   let unwrapped = T.unwrap token
   let len = length unwrapped
   let tryRange = [1 .. len * 3 + 8]
-  choice $ flip map tryRange $ \n -> try $ do
-    furigana <- lift $ asks optFurigana
+  furigana <- lift $ asks optFurigana
+  choice $ flip map tryRange $ \n -> try $ do  
     romajis <- fmap T.unwrap <$> skip n
     kanas <- case furigana of
                InKatakana -> maybe mzero kFlatten $ T.fromNRomaji (T.wrap <$> romajis)
-               otherwise  -> maybe mzero hFlatten $ T.fromNRomaji (T.wrap <$> romajis)
+               _          -> maybe mzero hFlatten $ T.fromNRomaji (T.wrap <$> romajis)
     continue $ C.Kanji unwrapped kanas romajis
   where
     hFlatten hs = return $ map T.unwrap (hs :: [T.Hiragana])
     kFlatten ks = return $ map T.unwrap (ks :: [T.Katakana])
     skip n = replicateM n $ do
       spaces
-      r <- R.normalize <$> (spaces >> romaji)
-      prepend $ concatMap T.unwrap (tail r)
-      return $ head r
+      next <- strip . R.normalize <$> romaji varities
+      let (r:rs) = foremost next
+      prepend $ concatMap T.unwrap rs
+      return r
 
 break :: Parser [C.Compound]
 break = do
@@ -166,7 +155,5 @@ terminate = do
 stage1 :: Parser [C.Compound]
 stage1 = (terminate *> return [])
      <|> break
-     <|> do
-           TokenBox token <- popUserToken
-           match token
-
+     <|> do TokenBox token <- popUserToken
+            match token

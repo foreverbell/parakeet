@@ -14,7 +14,7 @@ import           Prelude hiding (print)
 
 import           Parser.Parser (parse)
 import           Token.Compound (Compound(..))
-import           Eval (Eval, runEval)
+import           Monad.Parakeet (Parakeet, runParakeet)
 import           Options (Options(..))
 import           Template (template, header)
 
@@ -32,7 +32,7 @@ build f = printf "\\%s{%s}" (fonts !! f)
                 , "tiny" 
                 ] :: [String]
 
-texify :: [Compound] -> Eval Text
+texify :: [Compound] -> Parakeet Text
 texify ds = T.concat <$> mapM singleTexify ds
   where
     mainFont = 4
@@ -50,10 +50,10 @@ texify ds = T.concat <$> mapM singleTexify ds
       Hiragana h r -> return $ T.pack $ printf "\\ruby{%s}{%s} " (build mainFont h) (build romajiFont (intercalate " " r))
       Katakana k r -> return $ T.pack $ printf "\\ruby{%s}{%s} " (build mainFont k) (build romajiFont (intercalate " " r))
 
-body :: Eval Text
+body :: Parakeet Text
 body = texify =<< parse
  
-wrap :: Text -> Text -> Eval Text
+wrap :: Text -> Text -> Parakeet Text
 wrap hder body = do
   noWrap <- asks optNoWrap
   return $ if (noWrap)
@@ -65,8 +65,8 @@ wrap hder body = do
     where
       tmpl = hder : map (T.filter (/= '\r')) (T.lines template)
 
-print :: Eval Text
+print :: Parakeet Text
 print = wrap header =<< body
 
 prettyPrint :: Options -> Either String String
-prettyPrint opts = T.unpack <$> runEval opts print
+prettyPrint opts = T.unpack <$> runParakeet opts print

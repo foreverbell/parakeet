@@ -6,8 +6,8 @@ module Token.Katakana (
 ) where
 
 import           Control.Applicative ((<$>))
-import           Control.Monad (guard, msum)
-import           Data.Maybe (isJust, maybeToList)
+import           Control.Monad (guard, msum, mzero, join)
+import           Data.Maybe (isJust)
 import qualified Data.Map as M
 
 import           Token.Token (TokenKana(..), wrap, unwrap, Katakana)
@@ -15,6 +15,7 @@ import qualified Token.Compound as C
 import           Token.Romaji (otherForms, sokuonize, longVowelize, isSyllabicN, fromRomaji)
 import           Token.Misc (isChoonpu)
 import           Token.Internal (kRaw)
+import           Monad.Choice (fromMaybe)
 
 chmap :: M.Map String String
 chmap = M.fromList kRaw
@@ -24,10 +25,10 @@ instance TokenKana Katakana where
 
   toRomaji k =  lookup (unwrap k)
     where
-      lookup [] = []
+      lookup [] = mzero
       lookup k | isSokuon (head k) = sokuonize <$> lookup (tail k)
                | isChoonpu (last k) = longVowelize False <$> lookup (init k)
-               | otherwise = map return $ concatMap otherForms $ wrap <$> maybeToList (M.lookup k chmap)
+               | otherwise = return <$> join (otherForms . wrap <$> fromMaybe (M.lookup k chmap))
   
   fromNRomaji r = sequence $ convert r
     where

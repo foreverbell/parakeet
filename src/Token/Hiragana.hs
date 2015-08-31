@@ -6,14 +6,15 @@ module Token.Hiragana (
 ) where
 
 import           Control.Applicative ((<$>))
-import           Control.Monad (guard, msum)
-import           Data.Maybe (isJust, maybeToList)
+import           Control.Monad (guard, msum, mzero, join)
+import           Data.Maybe (isJust)
 import qualified Data.Map as M
 
 import           Token.Token (TokenKana(..), wrap, unwrap, Hiragana)
 import qualified Token.Compound as C
 import           Token.Romaji (otherForms, sokuonize, isSyllabicN, fromRomaji)
 import           Token.Internal (hRaw)
+import           Monad.Choice (fromMaybe)
 
 chmap :: M.Map String String
 chmap = M.fromList hRaw
@@ -23,9 +24,9 @@ instance TokenKana Hiragana where
 
   toRomaji h = lookup (unwrap h)
     where
-      lookup [] = []
+      lookup [] = mzero
       lookup h@(x:xs) | isSokuon x = sokuonize <$> lookup xs
-                      | otherwise  = map return $ concatMap otherForms $ wrap <$> maybeToList (M.lookup h chmap)
+                      | otherwise  = return <$> join (otherForms . wrap <$> fromMaybe (M.lookup h chmap))
   
   fromNRomaji r = sequence $ convert r
     where

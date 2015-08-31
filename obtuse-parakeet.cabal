@@ -19,7 +19,12 @@ tested-with:         GHC==7.8.4
 executable obtuse-parakeet
   ghc-options:         -O2 -W -fwarn-tabs
   main-is:             Main.hs
-  other-extensions:    OverloadedStrings, QuasiQuotes, ExistentialQuantification, GeneralizedNewtypeDeriving
+  other-extensions:    OverloadedStrings, 
+                       QuasiQuotes, 
+                       ExistentialQuantification, 
+                       GeneralizedNewtypeDeriving,
+                       FlexibleInstances,
+                       UndecidableInstances
   -- other-modules:       
   build-depends: 
     base           >= 4.6  && <4.8,

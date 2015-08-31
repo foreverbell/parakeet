@@ -2,21 +2,27 @@ module Token.Romaji (
   chlst
 , fromRomaji
 , otherForms
+, normalizeSyllabicN
+, unSokuonize
+, unLongVowelize
 , normalize
 , sokuonize
 , longVowelize
 , isSyllabicN
 ) where
 
+import           Data.Monoid (mconcat)
 import           Data.List (nub, sort)
 import qualified Data.Map as M
+import           Data.Maybe (maybeToList)
 
 import           Token.Token (wrap, unwrap, Hiragana, Katakana, Romaji, (<**>), (<$$>))
 import           Token.Misc (isMacron, toMacron, unMacron, isVowel)
 import           Token.Internal (hRaw, kRaw)
+import           Monad.Choice (Choice, fromList, toList)
 
 chlst :: [Romaji]
-chlst = nub $ sort $ concatMap (otherForms . wrap . snd) $ hRaw ++ kRaw
+chlst = nub $ sort $ concatMap (toList . otherForms . wrap . snd) $ hRaw ++ kRaw
 
 chmap :: M.Map String (String, String)
 chmap = M.fromList $ zipWith helper hRaw kRaw
@@ -27,39 +33,53 @@ chmap = M.fromList $ zipWith helper hRaw kRaw
 fromRomaji :: Romaji -> Maybe (Hiragana, Katakana)
 fromRomaji r = (\(h, k) -> return (wrap h, wrap k)) =<< M.lookup (unwrap r) chmap
 
-otherForms :: Romaji -> [Romaji]
+otherForms :: Romaji -> Choice Romaji
 otherForms r = otherForms' <$$> r
   where
     -- Syllabic n
-    otherForms' "n"  = ["n", "m", "nn", "n-", "n'"]
+    otherForms' "n"  = fromList ["n", "m", "nn", "n-", "n'"]
     -- Particles mutation
-    otherForms' "ha" = ["ha", "wa"]
-    otherForms' "he" = ["he", "e"]
-    otherForms' "wo" = ["wo", "o"]
-    -- default
-    otherForms' r    = [r]
+    otherForms' "ha" = fromList ["ha", "wa"]
+    otherForms' "he" = fromList ["he", "e"]
+    otherForms' "wo" = fromList ["wo", "o"]
+    -- Otherwise
+    otherForms' r    = return r
+
+normalizeSyllabicN :: Romaji -> Romaji
+normalizeSyllabicN r = if isSyllabicN r
+    then return . head <**> r
+    else r
+
+unSokuonize :: Romaji -> Choice (Maybe Romaji, Romaji)
+unSokuonize r
+  | null (unwrap r) = return (Nothing, r)
+  | mconcat (sokuonize [tail <**> r]) == r
+      = return (Just (return . head <**> r), tail <**> r)
+  | otherwise = return (Nothing, r)
+
+unLongVowelize :: Romaji -> Choice (Maybe Romaji, Romaji)
+unLongVowelize r 
+  | null (unwrap r) = return (Nothing, r)
+  | isMacron lastOne = do
+      to <- lastTo
+      return (Just (wrap [to]), wrap $ exceptLast ++ [lastDesugar])
+--  | length (unwrap r) >= 2 && isVowel lastOne && isVowel sndLast = return (Just (wrap [lastOne]), wrap exceptLast)
+  | otherwise = return (Nothing, r)
+  where
+    lastOne = last $ unwrap r
+    -- sndLast = last $ exceptLast
+    exceptLast = init $ unwrap r
+    lastDesugar = unMacron lastOne
+    lastTo | lastDesugar == 'o' = fromList ['u', 'o']  -- ambiguous 'ō' -> ou
+           | otherwise          = return lastDesugar
 
 -- tchī -> [t, chi, i]
-normalize :: Romaji -> [Romaji]
+normalize :: Romaji -> Choice [Romaji]
 normalize r = if isSyllabicN r
-                then [(return . head) <**> r]
-                else normalize' <$$> r 
-                where 
-                  normalize' [] = []
-                  normalize' r  = let (unS, next) = unSokuonize r
-                                      (unL, norm) = unLongVowelize next
-                                   in unS ++ [norm] ++ unL
-                  unSokuonize r = if r == concatMap unwrap (sokuonize [wrap (tail r)])
-                                    then ([[head r]], tail r)
-                                    else ([], r)
-                  unLongVowelize r = if isMacron l
-                                       then ([[k]], b ++ [t])
-                                       else ([], r)
-                                       where l = last r
-                                             b = init r
-                                             t = unMacron l
-                                             k | t == 'o' = 'u' -- ambiguous 'ō' -> ou 
-                                               | otherwise = t
+  then return $ [normalizeSyllabicN r]
+  else do (sokuonPart, next) <- unSokuonize r
+          (longVowelPart, normalized) <- unLongVowelize next
+          return $ maybeToList sokuonPart ++ [normalized] ++ maybeToList longVowelPart
 
 -- chi -> tchi, ka -> kka .. a -> a
 sokuonize :: [Romaji] -> [Romaji]
@@ -83,4 +103,4 @@ longVowelize m r = init r ++ (longVowelize' <$$> last r)
                     | otherwise              = [s, [last s]] 
 
 isSyllabicN :: Romaji -> Bool
-isSyllabicN n = n `elem` otherForms (wrap "n")
+isSyllabicN n = n `elem` toList (otherForms (wrap "n"))

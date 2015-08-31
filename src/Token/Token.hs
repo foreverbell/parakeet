@@ -1,3 +1,5 @@
+{-# LANGUAGE FlexibleInstances, UndecidableInstances #-}
+
 module Token.Token (
   Token(..)
 , TokenKana(..)
@@ -6,11 +8,12 @@ module Token.Token (
 , Katakana
 , Romaji
 , Lit
-
 ) where
 
 import           Control.Applicative ((<$>))
+import           Data.Monoid (Monoid(..))
 
+import           Monad.Choice (Choice)
 import qualified Token.Compound as C
 
 data Kanji = Kanji String deriving (Show, Eq, Ord)
@@ -19,17 +22,19 @@ data Katakana = Katakana String deriving (Show, Eq, Ord)
 data Romaji = Romaji String deriving (Show, Eq, Ord)
 data Lit = Lit String deriving (Show, Eq, Ord)
 
+infixl 4 <**>, <$$>
+
 class Token t where
   unwrap :: t -> String
   wrap   :: String -> t
   (<**>) :: (String -> String) -> t -> t
   f <**> t = wrap $ f (unwrap t)
-  (<$$>) :: (String -> [String]) -> t -> [t] 
+  (<$$>) :: Functor f => (String -> f String) -> t -> f t 
   f <$$> t = wrap <$> f (unwrap t)
 
 class (Token k) => TokenKana k where
   buildCompound :: k -> [Romaji] -> C.Compound
-  toRomaji :: k -> [[Romaji]] 
+  toRomaji :: k -> Choice [Romaji] 
   fromNRomaji :: [Romaji] -> Maybe [k]
 
 instance Token Kanji where
@@ -51,3 +56,7 @@ instance Token Romaji where
 instance Token Lit where
   unwrap (Lit t) = t
   wrap = Lit
+
+instance Token t => Monoid t where
+  mempty = wrap []
+  mappend a b = wrap $ unwrap a ++ unwrap b
