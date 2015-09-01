@@ -4,7 +4,6 @@ module Print (
   prettyPrint
 ) where
 
-import           Control.Applicative ((<$>))
 import           Control.Monad.Reader (asks)
 import qualified Data.Text.Lazy as T
 import           Data.Text.Lazy (Text)
@@ -38,6 +37,7 @@ texify ds = T.concat <$> mapM singleTexify ds
     mainFont = 4
     rubyFont = 6
     romajiFont = 5
+    singleTexify :: Compound -> Parakeet Text
     singleTexify d = case d of
       Line         -> return $ T.pack $ " \\\\ \n"
       Break        -> do

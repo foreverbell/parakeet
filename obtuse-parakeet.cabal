@@ -14,7 +14,7 @@ maintainer:          dql.foreverbell@gmail.com
 -- category:            
 build-type:          Simple
 cabal-version:       >=1.10
-tested-with:         GHC==7.8.4
+tested-with:         GHC==7.10.2
 
 executable obtuse-parakeet
   ghc-options:         -O2 -W -fwarn-tabs
@@ -27,11 +27,11 @@ executable obtuse-parakeet
                        UndecidableInstances
   -- other-modules:       
   build-depends: 
-    base           >= 4.6  && <4.8,
+    base           == 4.8.*,
     text           == 1.2.*, 
     containers     == 0.5.*, 
     parsec         == 3.1.*,
-    raw-strings-qq >= 1.0  && <1.1,
-    mtl            == 2.1.*
+    raw-strings-qq >= 1.0  && < 1.1,
+    mtl            >= 2.2.1
   default-language:    Haskell2010
   Hs-source-dirs:      src

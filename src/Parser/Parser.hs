@@ -3,9 +3,8 @@ module Parser.Parser (
 ) where
 
 import Text.Parsec hiding (parse)
-import Control.Applicative ((<$>))
 import Control.Monad.Reader (asks)
-import Control.Monad.Error (throwError)
+import Control.Monad.Except (throwError)
 import Data.Char (toLower)
 
 import Monad.Parakeet (Parakeet)

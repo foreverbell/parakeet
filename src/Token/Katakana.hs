@@ -5,7 +5,6 @@ module Token.Katakana (
 , isKatakana
 ) where
 
-import           Control.Applicative ((<$>))
 import           Control.Monad (guard, msum, mzero, join)
 import           Data.Maybe (isJust)
 import qualified Data.Map as M

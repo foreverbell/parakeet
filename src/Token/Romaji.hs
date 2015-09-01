@@ -11,7 +11,6 @@ module Token.Romaji (
 , isSyllabicN
 ) where
 
-import           Data.Monoid (mconcat)
 import           Data.List (nub, sort)
 import qualified Data.Map as M
 import           Data.Maybe (maybeToList)

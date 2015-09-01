@@ -10,8 +10,8 @@ module Monad.Choice (
 , ambiguous
 ) where
 
-import Control.Applicative (Applicative(..), Alternative(..))
 import Control.Monad (liftM, ap, MonadPlus(..))
+import Control.Applicative (Alternative(..))
 import Data.List (nub)
 
 data Choice a = Choice a [a] | NoChoice

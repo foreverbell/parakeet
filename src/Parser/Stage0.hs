@@ -3,7 +3,6 @@ module Parser.Stage0 (
 ) where
 
 import           Text.Parsec
-import           Control.Applicative ((<$>))
 import           Control.Monad (liftM2)
 
 import           Parser.Stage1 (TokenBox(..))
@@ -21,6 +20,7 @@ concatM = liftM2 (++)
 but :: (Char -> Bool) -> (Char -> Bool) -> (Char -> Bool)
 but p1 p2 c = p1 c && not (p2 c)
 
+parseTwo :: (Char -> Bool) -> (Char -> Bool) -> Parser String
 parseTwo n s = do
   first <- satisfy n
   option [first] $ do 

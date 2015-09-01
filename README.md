@@ -2,7 +2,7 @@
 
 ## Disclaimer
 
-I know **nothing** about Compiler Theory, Haskell and Japanese. This repository is just for fun, and also a testbed for some Haskell experiments.
+I know **nothing** about Compiler Theory, Haskell and Japanese. This repository is purely for fun, and serving for a test-bed for some Haskell experiments.
 
 ## Introduction
 
@@ -16,6 +16,8 @@ Output:
 Rōmaji should follow [Hepburn romanization](https://en.wikipedia.org/wiki/Hepburn_romanization), which is the most commonly used rōmaji in China.
 
 ## Installation
+
+To build, at least ghc **7.10.2** is required.
 
 ```bash
 $ cabal install obtuse-parakeet.cabal

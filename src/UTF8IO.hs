@@ -4,7 +4,6 @@ module UTF8IO (
 ) where
 
 import           Control.Exception (bracket)
-import           Control.Applicative ((<$>))
 import           System.IO (openFile, hClose, hSetEncoding, IOMode(..), utf8)
 import qualified Data.Text.IO as T
 import           Data.Text (pack, unpack)

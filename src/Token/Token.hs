@@ -10,9 +10,6 @@ module Token.Token (
 , Lit
 ) where
 
-import           Control.Applicative ((<$>))
-import           Data.Monoid (Monoid(..))
-
 import           Monad.Choice (Choice)
 import qualified Token.Compound as C
 

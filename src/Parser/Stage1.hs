@@ -6,11 +6,9 @@ module Parser.Stage1 (
 ) where
 
 import           Text.Parsec
-import           Control.Applicative ((<$>), (*>), (<*))
 import           Control.Monad (void, guard, mzero, replicateM)
 import           Control.Monad.Trans (lift)
 import           Control.Monad.Reader (asks)
-import           Data.Monoid (mconcat)
 import           Data.Char (toLower, isSpace)
 import           Data.List (sortBy, nub)
 import           Data.Function (on)
@@ -113,6 +111,7 @@ lit token = do
       matchIgnoreSpace $ removeSpace unwrapped
       continue $ C.Lit unwrapped
       where
+        matchIgnoreSpace :: String -> Parser ()
         matchIgnoreSpace []     = return ()
         matchIgnoreSpace (x:xs) = do
           spaces
