@@ -45,11 +45,13 @@ instance TokenCompoundable T.Lit where
   match = lit
 
 prepend :: String -> Parser ()
-prepend a = void $ do -- TODO: Fix the parser position
+prepend a = void $ do
   s <- getParserState
+  p <- getPosition
   setParserState $ s {
     stateInput = (++) a (stateInput s)
   }
+  setPosition $ incSourceColumn p (negate $ length a)
 
 popUserToken :: Parser TokenBox
 popUserToken = do
