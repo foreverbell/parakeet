@@ -8,11 +8,13 @@ import Data.List (intercalate)
 let buildInvoke j r t = intercalate " " [":main", "-j", j, "-r", r, "-o", t]
 let invoke1 = buildInvoke "tests/Anonymous/Anonymous.j" "tests/Anonymous/Anonymous.r" "Anonymous.tex"
 let invoke2 = buildInvoke "tests/Butter-fly/Butter-fly.j" "tests/Butter-fly/Butter-fly.r" "Butter-fly.tex"
+let invoke3 = buildInvoke "tests/Typhoon/Typhoon.j" "tests/Typhoon/Typhoon.r" "Typhoon.tex"
 
 :{
 :def test \cmd -> return $ unlines $ case cmd of
-        [ ] -> [invoke1, invoke2]
+        [ ] -> [invoke1, invoke2, invoke3]
         "1" -> [invoke1]
         "2" -> [invoke2]
+        "3" -> [invoke3]
         _   -> error "Invalid test"
 :}

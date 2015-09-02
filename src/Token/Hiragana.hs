@@ -47,9 +47,9 @@ isNormal = isJust . flip M.lookup chmap . return
 isSmall :: Char -> Bool
 isSmall c = c `elem` ['ぁ', 'ぃ', 'ぅ', 'ぇ', 'ぉ', 'っ', 'ゃ', 'ゅ', 'ょ', 'ゎ']
     -- [0x3041, 0x3043, 0x3045, 0x3047, 0x3049, 0x3063, 0x3083, 0x3085, 0x3087, 0x308e, 0x3095, 0x3096] 
-    -- last two (3095, 3096) aren't commonly used in modern Japanese (not displayable).
+    -- last two (3095, 3096) aren't commonly used in modern Japanese.
 
-isSokuon :: Char -> Bool  -- 平仮名促音
+isSokuon :: Char -> Bool
 isSokuon = (==) 'っ'
 
 isHiragana :: Char -> Bool

@@ -50,7 +50,7 @@ isSmall :: Char -> Bool
 isSmall c = c `elem` ['ァ', 'ィ', 'ゥ', 'ェ', 'ォ', 'ッ', 'ャ', 'ュ', 'ョ', 'ヮ', 'ヵ', 'ヶ']
     -- [0x30a1, 0x30a3, 0x30a5, 0x30a7, 0x30a9, 0x30c3, 0x30e3, 0x30e5, 0x30e7, 0x30ee, 0x30f5, 0x30f6]
 
-isSokuon :: Char -> Bool  -- 片仮名促音
+isSokuon :: Char -> Bool
 isSokuon = (==) 'ッ'
 
 isKatakana :: Char -> Bool

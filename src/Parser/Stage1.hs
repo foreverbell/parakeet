@@ -22,6 +22,7 @@ import qualified Token.Romaji as R
 import           Monad.Choice (foremost, toList, strip)
 import           Monad.Parakeet
 import           Options (Options(..), FuriganaFormat(..))
+import           FuzzyChar (fuzzyEq)
 
 type Parser = ParsecT String [TokenBox] Parakeet
 
@@ -115,9 +116,11 @@ lit token = do
         matchIgnoreSpace []     = return ()
         matchIgnoreSpace (x:xs) = do
           spaces
-          char $ toLower x -- Romaji input is already lower-cased
+          char' $ toLower x -- Romaji input is already lower-cased
           matchIgnoreSpace xs
         removeSpace = filter (not . isSpace)
+        char' :: Char -> Parser Char
+        char' ch = satisfy (fuzzyEq ch)
 
 kanji :: T.Kanji -> Parser [C.Compound]
 kanji token = do
@@ -135,7 +138,7 @@ kanji token = do
     hFlatten hs = return $ map T.unwrap (hs :: [T.Hiragana])
     kFlatten ks = return $ map T.unwrap (ks :: [T.Katakana])
     skip n = replicateM n $ do
-      spaces
+      void (char '-') <|> void spaces -- eat possible breaks
       next <- strip . R.normalize <$> romaji varities
       let (r:rs) = foremost next
       prepend $ concatMap T.unwrap rs

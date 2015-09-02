@@ -2,7 +2,7 @@
 
 ## Disclaimer
 
-I know **nothing** about Compiler Theory, Haskell and Japanese. This repository is purely for fun, and serving for a test-bed for some Haskell experiments.
+I know **nothing** about Compiler Theory, Haskell and Japanese. This repository is purely for fun, and serving as a test-bed for some Haskell experiments.
 
 ## Introduction
 
@@ -13,7 +13,7 @@ Input:
 Output:
 ![](https://raw.githubusercontent.com/foreverbell/obtuse-parakeet/master/tests/Butter-fly/Butter-fly.png)
 
-Rōmaji should follow [Hepburn romanization](https://en.wikipedia.org/wiki/Hepburn_romanization), which is the most commonly used rōmaji in China.
+Rōmaji should follow [Hepburn romanization](https://en.wikipedia.org/wiki/Hepburn_romanization), which is used by Google translate. And also it is the most commonly used rōmaji in China.
 
 ## Installation
 

@@ -10,10 +10,11 @@ module Token.Misc (
 import Data.Char (ord)
 import Data.List (find)
 
-isKanji :: Char -> Bool    -- 漢字
-isKanji = (\x -> x >= 0x4e00 && x <= 0x9fbf) . ord
+isKanji :: Char -> Bool
+isKanji = (\x -> (x >= 0x4e00 && x <= 0x9fbf) || x ==  0x3005) . ord
+-- 0x3005 is kanji iteration mark
 
-isChoonpu :: Char -> Bool  -- 長音符
+isChoonpu :: Char -> Bool 
 isChoonpu = (==) 'ー'
 
 macrons = [('ā', 'a'), ('ī', 'i'), ('ū', 'u'), ('ē', 'e'), ('ō', 'o')]
