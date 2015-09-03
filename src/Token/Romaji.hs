@@ -2,10 +2,10 @@ module Token.Romaji (
   chlst
 , fromRomaji
 , otherForms
-, normalizeSyllabicN
+, normSyllabicN
 , unSokuonize
 , unLongVowelize
-, normalize
+, cut
 , sokuonize
 , longVowelize
 , isSyllabicN
@@ -44,8 +44,8 @@ otherForms r = otherForms' <$$> r
     -- Otherwise
     otherForms' r    = return r
 
-normalizeSyllabicN :: Romaji -> Romaji
-normalizeSyllabicN r = if isSyllabicN r
+normSyllabicN :: Romaji -> Romaji
+normSyllabicN r = if isSyllabicN r
     then return . head <**> r
     else r
 
@@ -72,13 +72,12 @@ unLongVowelize r
     lastTo | lastDesugar == 'o' = fromList ['u', 'o']  -- ambiguous 'ō' -> ou
            | otherwise          = return lastDesugar
 
--- tchī -> [t, chi, i]
-normalize :: Romaji -> Choice [Romaji]
-normalize r = if isSyllabicN r
-  then return $ [normalizeSyllabicN r]
-  else do (sokuonPart, next) <- unSokuonize r
-          (longVowelPart, normalized) <- unLongVowelize next
-          return $ maybeToList sokuonPart ++ [normalized] ++ maybeToList longVowelPart
+-- divide a Romaji into different parts, e.g. tchī -> [t, chi, i]
+cut :: Romaji -> Choice [Romaji]
+cut r = do 
+  (sokuonPart, next) <- unSokuonize r
+  (longVowelPart, normalized) <- unLongVowelize next
+  return $ maybeToList sokuonPart ++ [normalized] ++ maybeToList longVowelPart
 
 -- chi -> tchi, ka -> kka .. a -> a
 sokuonize :: [Romaji] -> [Romaji]
@@ -98,7 +97,7 @@ longVowelize m r = init r ++ (longVowelize' <$$> last r)
   where
     longVowelize' [] = []
     longVowelize' s | not (isVowel (last s)) = [s]
-                    | m                      = [init s ++ [toMacron (last s)]]
+                    | m                      = [init s ++ [fst $ toMacron (last s)]]
                     | otherwise              = [s, [last s]] 
 
 isSyllabicN :: Romaji -> Bool

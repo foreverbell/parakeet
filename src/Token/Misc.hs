@@ -17,20 +17,26 @@ isKanji = (\x -> (x >= 0x4e00 && x <= 0x9fbf) || x ==  0x3005) . ord
 isChoonpu :: Char -> Bool 
 isChoonpu = (==) 'ー'
 
-macrons = [('ā', 'a'), ('ī', 'i'), ('ū', 'u'), ('ē', 'e'), ('ō', 'o')]
+macrons = [ ("āâ", 'a')
+          , ("īî", 'i')
+          , ("ūû", 'u')
+          , ("ēê", 'e')
+          , ("ōô", 'o')
+          ]
 
 isMacron :: Char -> Bool
-isMacron c = c `elem` map fst macrons
-  
+isMacron c = c `elem` concatMap fst macrons
+
 unMacron :: Char -> Char
-unMacron c = case find (\(a, _) -> a == c) macrons of 
+unMacron c = case find (\(a, _) -> c `elem` a) macrons of 
   Just (_, b) -> b
   Nothing -> c
 
-toMacron :: Char -> Char
+toMacron :: Char -> (Char, Char)
 toMacron c = case find (\(_, b) -> b == c) macrons of 
-  Just (a, _) -> a
-  Nothing -> c
+  Just ([a1, a2], _) -> (a1, a2)
+  Nothing -> (c, c)
+  _ -> undefined -- never be here
 
 isVowel :: Char -> Bool
 isVowel c = c `elem` "aiueo"
