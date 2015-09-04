@@ -1,6 +1,6 @@
 module Token.Romaji (
   chlst
-, fromRomaji
+, toKana
 , otherForms
 , normSyllabicN
 , unSokuonize
@@ -29,8 +29,8 @@ chmap = M.fromList $ zipWith helper hRaw kRaw
     helper (h, hr) (k, kr) | hr /= kr  = error "bad data" -- never be here
                            | otherwise = (hr, (h, k))
 
-fromRomaji :: Romaji -> Maybe (Hiragana, Katakana)
-fromRomaji r = (\(h, k) -> return (wrap h, wrap k)) =<< M.lookup (unwrap r) chmap
+toKana :: Romaji -> Maybe (Hiragana, Katakana)
+toKana r = (\(h, k) -> return (wrap h, wrap k)) =<< M.lookup (unwrap r) chmap
 
 otherForms :: Romaji -> Choice Romaji
 otherForms r = otherForms' <$$> r

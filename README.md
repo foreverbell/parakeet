@@ -41,6 +41,8 @@ $ obtuse-parakeet -j Butter-fly.j -r Butter-fly.r -o Butter-fly.tex
 $ xelatex Butter-fly.tex
 ```
 
+You should guarantee that the two input files are encoded in UTF-8.
+
 ## Limitations
 
 * Kanji matching is based on the `try` combinator of Haskell library `Parsec`, enumerating every possible matching (an exponential algorithm of course). So the program will get extremely slow when there is a mistake in a long line of rōmaji.

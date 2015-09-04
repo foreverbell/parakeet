@@ -11,7 +11,7 @@ import qualified Data.Map as M
 
 import           Token.Token (TokenKana(..), wrap, unwrap, Hiragana)
 import qualified Token.Compound as C
-import           Token.Romaji (otherForms, sokuonize, isSyllabicN, fromRomaji)
+import           Token.Romaji (otherForms, sokuonize, isSyllabicN, toKana)
 import           Token.Internal (hRaw)
 import           Monad.Choice (fromMaybe)
 
@@ -27,15 +27,15 @@ instance TokenKana Hiragana where
       lookup h@(x:xs) | isSokuon x = sokuonize <$> lookup xs
                       | otherwise  = return <$> join (otherForms . wrap <$> fromMaybe (M.lookup h chmap))
   
-  fromNRomaji r = sequence $ convert r
+  fromRomaji r = sequence $ convert r
     where
       convert [] = []
       convert (x:xs) = msum (map (\f -> f x) [checkSyllabicN, lookupNormal, checkChoonpu]) : convert xs
         where
           checkSyllabicN x = do
             guard $ isSyllabicN x
-            fst <$> fromRomaji (wrap "n")
-          lookupNormal x = fst <$> fromRomaji x
+            fst <$> toKana (wrap "n")
+          lookupNormal x = fst <$> toKana x
           checkChoonpu x = do
             guard $ length x' == 1
             return $ wrap "っ"
@@ -54,4 +54,3 @@ isSokuon = (==) 'っ'
 
 isHiragana :: Char -> Bool
 isHiragana c = isNormal c || isSmall c
-

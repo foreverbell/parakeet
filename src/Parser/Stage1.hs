@@ -130,7 +130,7 @@ lit token = do
           matchIgnoreSpace xs
         removeSpace = filter (not . isSpace)
         char' :: Char -> Parser Char
-        char' ch = satisfy (fuzzyEq ch)
+        char' ch = satisfy (fuzzyEq ch) <?> "character likely \'" ++ [ch, '\''] 
 
 kanji :: T.Kanji -> Parser [C.Compound]
 kanji token = do
@@ -141,8 +141,8 @@ kanji token = do
   choice $ flip map tryRange $ \n -> try $ do  
     romajis <- fmap T.unwrap <$> skip n
     kanas <- case furigana of
-               InKatakana -> maybe mzero kFlatten $ T.fromNRomaji (T.wrap <$> romajis)
-               _          -> maybe mzero hFlatten $ T.fromNRomaji (T.wrap <$> romajis)
+               InKatakana -> maybe mzero kFlatten $ T.fromRomaji (T.wrap <$> romajis)
+               _          -> maybe mzero hFlatten $ T.fromRomaji (T.wrap <$> romajis)
     continue $ C.Kanji unwrapped kanas romajis
   where
     hFlatten hs = return $ map T.unwrap (hs :: [T.Hiragana])

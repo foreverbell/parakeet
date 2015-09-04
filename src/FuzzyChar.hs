@@ -23,6 +23,7 @@ or p q c = p c || q c
 
 (==>) a b = (a, b)
 
+-- if two rules overlap, always obey the first rule
 rules :: [(Int -> Bool, Int -> Int)]
 rules = [ elem [0x60, 0xff40]      ==> const 0x27              -- ` -> '
         , inside 0xff01 0xff5e     ==> \c -> c - 0xff01 + 0x21 -- Full width char to half width

@@ -11,7 +11,7 @@ import qualified Data.Map as M
 
 import           Token.Token (TokenKana(..), wrap, unwrap, Katakana)
 import qualified Token.Compound as C
-import           Token.Romaji (otherForms, sokuonize, longVowelize, isSyllabicN, fromRomaji)
+import           Token.Romaji (otherForms, sokuonize, longVowelize, isSyllabicN, toKana)
 import           Token.Misc (isChoonpu)
 import           Token.Internal (kRaw)
 import           Monad.Choice (fromMaybe)
@@ -29,15 +29,15 @@ instance TokenKana Katakana where
                | isChoonpu (last k) = longVowelize False <$> lookup (init k)
                | otherwise = return <$> join (otherForms . wrap <$> fromMaybe (M.lookup k chmap))
   
-  fromNRomaji r = sequence $ convert r
+  fromRomaji r = sequence $ convert r
     where
       convert [] = []
       convert (x:xs) = msum (map (\f -> f x) [checkSyllabicN, lookupNormal, checkChoonpu]) : convert xs
         where
           checkSyllabicN x = do
             guard $ isSyllabicN x
-            snd <$> fromRomaji (wrap "n")
-          lookupNormal x = snd <$> fromRomaji x
+            snd <$> toKana (wrap "n")
+          lookupNormal x = snd <$> toKana x
           checkChoonpu x = do
             guard $ length x' == 1
             return $ wrap "ッ"
@@ -55,4 +55,3 @@ isSokuon = (==) 'ッ'
 
 isKatakana :: Char -> Bool
 isKatakana c = isNormal c || isSmall c
-

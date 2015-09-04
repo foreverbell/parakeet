@@ -1,9 +1,9 @@
 module Main (main) where
 
-import           System.Environment (getArgs)
+import System.Environment (getArgs)
 
-import           Options (Options(..), runOpts)
-import           Print (prettyPrint)
+import Options (Options(..), runOpts)
+import Print (prettyPrint)
 
 main = do
   opts <- runOpts =<< getArgs
