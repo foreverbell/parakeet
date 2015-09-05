@@ -17,8 +17,10 @@ import           Monad.Parakeet (Parakeet, runParakeet)
 import           Options (Options(..))
 import           Template (template, header)
 
-build :: Int -> String -> String
-build f = printf "\\%s{%s}" (fonts !! f)
+build' :: Bool -> Int -> String -> String
+build' verb f
+  | verb      = printf "\\%s{\\verb|%s|}" (fonts !! f)
+  | otherwise = printf "\\%s{%s}" (fonts !! f)
   where fonts = [ "Huge"
                 , "huge"
                 , "LARGE"
@@ -30,6 +32,8 @@ build f = printf "\\%s{%s}" (fonts !! f)
                 , "scriptsize"
                 , "tiny" 
                 ] :: [String]
+
+build = build' False
 
 texify :: [Compound] -> Parakeet Text
 texify ds = T.concat <$> mapM singleTexify ds
@@ -45,7 +49,7 @@ texify ds = T.concat <$> mapM singleTexify ds
         return $ if showBreak
           then T.pack $ "\\, "
           else T.empty
-      Lit s        -> return $ T.pack $ build mainFont s ++ " "
+      Lit s        -> return $ T.pack $ build' True mainFont s ++ " "
       Kanji k h r  -> return $ T.pack $ printf "\\ruby{%s%s}{%s} " (build mainFont k) (build rubyFont ("(" ++ concat h ++ ")")) (build romajiFont (intercalate " " r))
       Hiragana h r -> return $ T.pack $ printf "\\ruby{%s}{%s} " (build mainFont h) (build romajiFont (intercalate " " r))
       Katakana k r -> return $ T.pack $ printf "\\ruby{%s}{%s} " (build mainFont k) (build romajiFont (intercalate " " r))
