@@ -5,6 +5,8 @@ module Token.Misc (
 , unMacron
 , toMacron
 , isVowel
+, separator
+, isSeparator
 ) where
 
 import Data.Char (ord)
@@ -40,3 +42,9 @@ toMacron c = case find (\(_, b) -> b == c) macrons of
 
 isVowel :: Char -> Bool
 isVowel c = c `elem` "aiueo"
+
+separator :: Char
+separator = '$'
+
+isSeparator :: Char -> Bool
+isSeparator = (==) separator

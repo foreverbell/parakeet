@@ -22,8 +22,8 @@ import qualified Token.Romaji as R
 import qualified Token.Misc as M
 import           Monad.Choice (foremost, toList, strip)
 import           Monad.Parakeet
+import           Parser.FuzzyChar (fuzzyEq)
 import           Options (Options(..), FuriganaFormat(..))
-import           FuzzyChar (fuzzyEq)
 
 type Parser = ParsecT String [TokenBox] Parakeet
 
@@ -43,6 +43,9 @@ instance TokenCompoundable T.Kanji where
 
 instance TokenCompoundable T.Lit where
   match = lit
+
+instance TokenCompoundable T.Separator where
+  match = separator
 
 prepend :: String -> Parser ()
 prepend a = void $ do
@@ -126,7 +129,9 @@ lit token = do
         matchIgnoreSpace []     = return ()
         matchIgnoreSpace (x:xs) = do
           spaces
-          char' $ toLower x -- Romaji input is already lower-cased
+          if M.isSeparator x
+            then return M.separator <* string (replicate 2 M.separator)
+            else char' $ toLower x -- Romaji input is already lower-cased
           matchIgnoreSpace xs
         removeSpace = filter (not . isSpace)
         char' :: Char -> Parser Char
@@ -148,11 +153,17 @@ kanji token = do
     hFlatten hs = return $ map T.unwrap (hs :: [T.Hiragana])
     kFlatten ks = return $ map T.unwrap (ks :: [T.Katakana])
     skip n = replicateM n $ do
-      void (char '-') <|> void spaces <?> "separator" -- eat possible separators
+      void (char '-') <|> void spaces <?> "delimiter, likely \'-\' or spaces" -- eat possible delimiters
       next <- strip . R.cut <$> romaji varities
       let (r:rs) = foremost next
       prepend $ concatMap T.unwrap rs
       return $ R.normSyllabicN r
+
+separator :: T.Separator -> Parser [C.Compound]
+separator = const $ do
+  spaces
+  char M.separator
+  stage1
 
 break :: Parser [C.Compound]
 break = do

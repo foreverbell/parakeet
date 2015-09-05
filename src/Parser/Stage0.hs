@@ -44,14 +44,30 @@ kanji :: Parser T.Kanji
 kanji = T.wrap <$> many1 (satisfy M.isKanji)
 
 lit :: Parser T.Lit
-lit = T.wrap <$> many1 (satisfy other) 
+lit = T.wrap <$> many1 (satisfy other <|> dsep) 
   where 
     other c = not $ any (\f -> f c) 
                 [ M.isChoonpu
-                , M.isKanji, H.isHiragana, K.isKatakana ]
+                , M.isKanji, H.isHiragana, K.isKatakana
+                , M.isSeparator
+                ]
+    dsep = try $ do
+      string $ replicate 2 M.separator
+      return M.separator
+
+separator :: Parser T.Separator
+separator = do
+  char M.separator
+  notFollowedBy $ char M.separator
+  return $ T.wrap []
 
 stage0 :: Parser [TokenBox]
 stage0 = do
-  r <- many $ choice $ [TokenBox <$> hiragana, TokenBox <$> katakana, TokenBox <$> kanji, TokenBox <$> lit]
+  r <- many $ choice $ [ TokenBox <$> hiragana
+                       , TokenBox <$> katakana
+                       , TokenBox <$> kanji
+                       , TokenBox <$> lit
+                       , TokenBox <$> separator
+                       ]
   eof
   return $ r ++ [TokenBox (T.wrap "\n" :: T.Lit)]

@@ -8,16 +8,19 @@ module Token.Token (
 , Katakana
 , Romaji
 , Lit
+, Separator
 ) where
 
 import           Monad.Choice (Choice)
 import qualified Token.Compound as C
 
-data Kanji = Kanji String deriving (Show, Eq, Ord)
-data Hiragana = Hiragana String deriving (Show, Eq, Ord)
-data Katakana = Katakana String deriving (Show, Eq, Ord)
-data Romaji = Romaji String deriving (Show, Eq, Ord)
-data Lit = Lit String deriving (Show, Eq, Ord)
+newtype Kanji = Kanji String deriving (Show, Eq, Ord)
+newtype Hiragana = Hiragana String deriving (Show, Eq, Ord)
+newtype Katakana = Katakana String deriving (Show, Eq, Ord)
+newtype Romaji = Romaji String deriving (Show, Eq, Ord)
+newtype Lit = Lit String deriving (Show, Eq, Ord)
+-- TODO: Dollar type seems a bit special
+data Separator = Separator deriving (Show, Eq, Ord)
 
 infixl 4 <**>, <$$>
 
@@ -53,6 +56,10 @@ instance Token Romaji where
 instance Token Lit where
   unwrap (Lit t) = t
   wrap = Lit
+
+instance Token Separator where
+  unwrap = const []
+  wrap = const Separator
 
 instance Token t => Monoid t where
   mempty = wrap []

@@ -1,4 +1,4 @@
-module FuzzyChar (
+module Parser.FuzzyChar (
   fuzzyEq
 ) where
 

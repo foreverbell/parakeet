@@ -14,3 +14,4 @@ kin'yōbi, kin'yōbi, kin-yōbi, kin-yōbi
 mittsu
 Kazukazu no saigai nimokakawarazu
 1984-Nen
+mābō $ tōfu
