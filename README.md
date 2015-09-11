@@ -2,7 +2,9 @@
 
 ## Disclaimer
 
-I know **nothing** about Compiler Theory, Haskell and Japanese. This repository is purely for fun, and serving as a test-bed for some Haskell experiments. So this repository is not intended to upload to Hackage.
+I know **nothing** about Compiler Theory, Haskell and Japanese. This repository is purely for fun, and serving as a test-bed for some Haskell experiments. 
+
+So this repository is not intended to upload to Hackage.
 
 ## Introduction
 
@@ -52,6 +54,6 @@ You should guarantee that the two input files are encoded in UTF-8.
 
 ## TODO List
 
-* More output format.
+* More output formats.
 * Ambiguous `ō` warning.
 
