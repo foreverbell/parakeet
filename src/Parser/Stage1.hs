@@ -153,7 +153,7 @@ kanji token = do
     hFlatten hs = return $ map T.unwrap (hs :: [T.Hiragana])
     kFlatten ks = return $ map T.unwrap (ks :: [T.Katakana])
     skip n = replicateM n $ do
-      void (char '-') <|> void spaces <?> "delimiter, likely \'-\' or spaces" -- eat possible delimiters
+      void (char '-') <|> void spaces <?> "delimiter likely (\'-\' or spaces)" -- eat possible delimiters
       next <- strip . R.cut <$> romaji varities
       let (r:rs) = foremost next
       prepend $ concatMap T.unwrap rs
@@ -170,15 +170,15 @@ break = do
   many1 space
   continue C.Break
 
-terminate :: Parser ()
+terminate :: Parser [C.Compound]
 terminate = do
   s <- getState
   guard $ null s
   eof
-  return ()
+  return []
 
 stage1 :: Parser [C.Compound]
-stage1 = (terminate *> return [])
+stage1 = terminate
      <|> break
      <|> do TokenBox token <- popUserToken
             match token
