@@ -39,4 +39,6 @@ intermediate ds = flatten <$> ts
         Katakana k r -> return $ T.pack $ printf "\\katakana{%s}{%s}" k (intercalate " " r)
     flatten [] = T.empty
     flatten ("\n" : ts) = "\n" `T.append` flatten ts
-    flatten (t : ts) = t `T.append` " " `T.append` flatten ts
+    flatten (t : ts) = if T.null t
+      then flatten ts
+      else t `T.append` " " `T.append` flatten ts
