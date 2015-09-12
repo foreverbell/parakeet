@@ -1,7 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Print (
-  prettyPrint
+module Translator.Tex (
+  tex
+, texWrapped
 ) where
 
 import           Control.Monad.Reader (asks)
@@ -11,9 +12,8 @@ import           Data.List (intercalate)
 import           Text.Printf (printf)
 import           Prelude hiding (print)
 
-import           Parser.Parser (parse)
 import           Token.Compound (Compound(..))
-import           Monad.Parakeet (Parakeet, runParakeet)
+import           Monad.Parakeet (Parakeet)
 import           Options (Options(..))
 import           Template (template, header)
 
@@ -43,34 +43,28 @@ texify ds = T.concat <$> mapM singleTexify ds
     romajiFont = 5
     singleTexify :: Compound -> Parakeet Text
     singleTexify d = case d of
-      Line         -> return $ T.pack $ " \\\\ \n"
+      Line         -> return $ " \\\\ \n"
       Break        -> do
         showBreak <- asks optShowBreak
         return $ if showBreak
-          then T.pack $ "\\, "
+          then "\\, "
           else T.empty
       Lit s        -> return $ T.pack $ build' True mainFont s ++ " "
       Kanji k h r  -> return $ T.pack $ printf "\\ruby{%s%s}{%s} " (build mainFont k) (build rubyFont ("(" ++ concat h ++ ")")) (build romajiFont (intercalate " " r))
       Hiragana h r -> return $ T.pack $ printf "\\ruby{%s}{%s} " (build mainFont h) (build romajiFont (intercalate " " r))
       Katakana k r -> return $ T.pack $ printf "\\ruby{%s}{%s} " (build mainFont k) (build romajiFont (intercalate " " r))
 
-body :: Parakeet Text
-body = texify =<< parse
- 
-wrap :: Text -> Text -> Parakeet Text
-wrap hder body = do
-  noWrap <- asks optNoWrap
-  return $ if (noWrap)
-    then T.concat [hder, "\n\n", body]
-    else T.unlines $ flip fmap tmpl $ \t -> 
-           case t of
-             "$body$" -> body
-             _        -> t 
-    where
-      tmpl = hder : map (T.filter (/= '\r')) (T.lines template)
+tex :: [Compound] -> Parakeet Text
+tex cs = do
+  body <- texify cs
+  return $ T.concat [header, "\n\n", body]
 
-print :: Parakeet Text
-print = wrap header =<< body
+texWrapped :: [Compound] -> Parakeet Text
+texWrapped cs = do
+  body <- texify cs
+  return $ T.unlines $ flip fmap tmpl $ \t -> 
+    case t of
+      "$body$" -> body
+      _        -> t 
+  where tmpl = header : map (T.filter (/= '\r')) (T.lines template)
 
-prettyPrint :: Options -> Either String String
-prettyPrint opts = T.unpack <$> runParakeet opts print

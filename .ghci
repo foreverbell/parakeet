@@ -1,7 +1,7 @@
 :set -fwarn-incomplete-patterns
 :set -fwarn-unused-binds -fwarn-unused-imports
 :set -isrc
-:load src\Main.hs
+:load src/Main.hs
 
 import Data.List (intercalate)
 

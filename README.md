@@ -54,6 +54,5 @@ You should guarantee that the two input files are encoded in UTF-8.
 
 ## TODO List
 
-* More output formats.
 * Ambiguous `ō` warning.
 
