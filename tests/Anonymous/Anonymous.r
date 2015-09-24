@@ -1,4 +1,5 @@
 hai
+ekie
 jaaku
 obāsan, obaasan
 ojiisan 

@@ -7,6 +7,8 @@
 *.o
 *.hi
 
+stack.yaml
+.stack-work
 .cabal-sandbox/
 cabal.sandbox.config
 dist/
