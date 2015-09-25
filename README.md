@@ -23,6 +23,8 @@ To build, at least ghc **7.10.2** is required.
 $ cabal install obtuse-parakeet.cabal
 ```
 
+If you are using stack,  **lts-3.6** resolver is recommended.
+
 ## Development
 
 ```bash
@@ -53,4 +55,3 @@ You should guarantee that the two input files are encoded in UTF-8.
 ## TODO List
 
 * Ambiguous `ō` warning.
-
