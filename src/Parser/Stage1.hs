@@ -25,8 +25,6 @@ import           Monad.Parakeet
 import           Parser.FuzzyChar (fuzzyEq)
 import           Options (Options(..), FuriganaFormat(..))
 
-import Debug.Trace
-
 type Parser = ParsecT String [TokenBox] Parakeet
 
 class T.Token t => TokenCompoundable t where
