@@ -27,15 +27,15 @@ instance TokenKana Hiragana where
       lookup h@(x:xs) | isSokuon x = sokuonize <$> lookup xs
                       | otherwise  = return <$> join (otherForms . wrap <$> fromMaybe (M.lookup h chmap))
   
-  fromRomaji r = sequence $ convert r
+  fromRomaji r = convert r
     where
       convert [] = []
       convert (x:xs) = msum (map (\f -> f x) [checkSyllabicN, lookupNormal, checkChoonpu]) : convert xs
         where
           checkSyllabicN x = do
             guard $ isSyllabicN x
-            fst <$> toKana (wrap "n")
-          lookupNormal x = fst <$> toKana x
+            fst $ toKana (wrap "n")
+          lookupNormal x = fst $ toKana x
           checkChoonpu x = do
             guard $ length x' == 1
             return $ wrap "っ"

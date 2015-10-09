@@ -35,7 +35,7 @@ class Token t where
 class (Token k) => TokenKana k where
   buildCompound :: k -> [Romaji] -> C.Compound
   toRomaji :: k -> Choice [Romaji] 
-  fromRomaji :: [Romaji] -> Maybe [k] -- call Token.Romaji.cut first 
+  fromRomaji :: [Romaji] -> [Choice k] -- call Token.Romaji.cut first 
 
 instance Token Kanji where
   unwrap (Kanji t) = t

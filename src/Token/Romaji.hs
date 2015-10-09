@@ -1,5 +1,5 @@
 module Token.Romaji (
-  chlst
+  chList
 , toKana
 , otherForms
 , normSyllabicN
@@ -11,38 +11,64 @@ module Token.Romaji (
 , isSyllabicN
 ) where
 
-import           Data.List (nub, sort)
+import           Data.Tuple (swap)
+import           Data.List (sort, group)
 import qualified Data.Map as M
-import           Data.Maybe (maybeToList)
+import           Data.Maybe (maybeToList, fromJust)
+import           Control.Monad (mzero)
 
 import           Token.Token (wrap, unwrap, Hiragana, Katakana, Romaji, (<**>), (<$$>))
 import           Token.Misc (isMacron, toMacron, unMacron, isVowel)
 import           Token.Internal (hRaw, kRaw)
 import           Monad.Choice (Choice, fromList, toList)
 
-chlst :: [Romaji]
-chlst = nub $ sort $ concatMap (toList . otherForms . wrap . snd) $ hRaw ++ kRaw
+chList :: [Romaji]
+chList = nub' $ concatMap (toList . otherForms . wrap . snd) $ hRaw ++ kRaw
+  where nub' = map head . group . sort
 
-chmap :: M.Map String (String, String)
-chmap = M.fromList $ zipWith helper hRaw kRaw
+buildMap :: [(String, String)] -> M.Map String (Choice String)
+buildMap raw = M.fromList $ map toChoice (raw ++ raw')
+  where 
+    swapped = map swap raw
+    toChoice (k, r) = (r, return k)
+    raw' = concatMap f (tail otherList) 
+      where 
+        f (r, rs) = foldl g [] rs where
+          kana = fromJust $ lookup r swapped
+          g xs cur = case lookup cur swapped of
+            Nothing -> (kana, cur) : xs
+            _ -> xs
+
+hMap :: M.Map String (Choice String)
+hMap = buildMap hRaw
+
+kMap :: M.Map String (Choice String)
+kMap = buildMap kRaw
+
+toKana :: Romaji -> (Choice Hiragana, Choice Katakana)
+toKana r = (lookup hMap, lookup kMap)
   where
-    helper (h, hr) (k, kr) | hr /= kr  = error "bad data" -- never be here
-                           | otherwise = (hr, (h, k))
+    lookup m = case M.lookup (unwrap r) m of
+      Just ch -> wrap <$> ch
+      Nothing -> mzero
 
-toKana :: Romaji -> Maybe (Hiragana, Katakana)
-toKana r = (\(h, k) -> return (wrap h, wrap k)) =<< M.lookup (unwrap r) chmap
+otherList :: [(String, [String])]
+otherList = [ ("n",  ["n", "m", "nn", "n-", "n'"]) -- Syllabic n
+            , ("ha", ["ha", "wa"])                 -- Particles mutation
+            , ("he", ["he", "e"])
+            , ("wo", ["wo", "o"])
+            , ("di", ["di", "ji", "dji"])          -- Ambiguous ji & zu
+            , ("du", ["du", "zu", "dzu"])
+            ]
+
+otherMap :: M.Map String (Choice String)
+otherMap = M.fromList $ map (\(a, b) -> (a, fromList b)) otherList
 
 otherForms :: Romaji -> Choice Romaji
-otherForms r = otherForms' <$$> r
-  where
-    -- Syllabic n
-    otherForms' "n"  = fromList ["n", "m", "nn", "n-", "n'"]
-    -- Particles mutation
-    otherForms' "ha" = fromList ["ha", "wa"]
-    otherForms' "he" = fromList ["he", "e"]
-    otherForms' "wo" = fromList ["wo", "o"]
-    -- Otherwise
-    otherForms' r    = return r
+otherForms r = go <$$> r
+  where go r = case M.lookup r otherMap of
+          Nothing -> return r
+          Just xs -> xs
 
 normSyllabicN :: Romaji -> Romaji
 normSyllabicN r = if isSyllabicN r

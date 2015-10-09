@@ -20,16 +20,18 @@ import           Token.Hiragana ()
 import           Token.Katakana ()
 import qualified Token.Romaji as R
 import qualified Token.Misc as M
-import           Monad.Choice (foremost, toList, strip)
+import           Monad.Choice (Choice, foremost, toList, strip, choose)
 import           Monad.Parakeet
 import           Parser.FuzzyChar (fuzzyEq)
 import           Options (Options(..), FuriganaFormat(..))
+
+import Debug.Trace
 
 type Parser = ParsecT String [TokenBox] Parakeet
 
 class T.Token t => TokenCompoundable t where
   match :: t -> Parser [C.Compound]
- 
+
 data TokenBox = forall t. TokenCompoundable t => TokenBox t
 
 instance TokenCompoundable T.Hiragana where
@@ -69,8 +71,8 @@ continue e = do
   rest <- stage1
   return $ e : rest
 
-vary :: Bool -> Bool -> [T.Romaji] -> [T.Romaji]
-vary sokuonize longVowelize from = reverse . sortBy (compare `on` length . T.unwrap) $ nub $ map mconcat $ do 
+sugarize :: Bool -> Bool -> [T.Romaji] -> [T.Romaji]
+sugarize sokuonize longVowelize from = reverse . sortBy (compare `on` length . T.unwrap) $ nub $ map mconcat $ do 
   r <- from
   g <- set sokuonize [R.sokuonize, id]
   v <- set longVowelize [R.longVowelize True, id]
@@ -80,8 +82,8 @@ vary sokuonize longVowelize from = reverse . sortBy (compare `on` length . T.unw
   where set True xs  = xs
         set False xs = drop 1 xs
 
-varities :: [T.Romaji]
-varities = vary True True R.chlst
+allSugarized :: [T.Romaji]
+allSugarized = sugarize True True R.chList
 
 romaji :: [T.Romaji] -> Parser T.Romaji
 romaji rs = T.wrap <$> (choice $ map (try . fuzzy) rs')
@@ -104,7 +106,7 @@ kana token = choice $ go <$> (toList $ T.toRomaji token)
         rec :: [T.Romaji] -> Parser [C.Compound]
         rec [] = continue curElement
         rec (r:rs) = do
-          next <- toList . strip . R.cut <$> romaji (vary False True [r])
+          next <- toList . strip . R.cut <$> romaji (sugarize False True [r])
           choice $ flip map next $ \rlist -> try $ do
             prepend $ concatMap T.unwrap (tail rlist)
             guard $ (head rlist) == r
@@ -145,16 +147,17 @@ kanji token = do
   furigana <- lift $ asks optFurigana
   choice $ flip map tryRange $ \n -> try $ do  
     romajis <- fmap T.unwrap <$> skip n
-    kanas <- case furigana of
-               InKatakana -> maybe mzero kFlatten $ T.fromRomaji (T.wrap <$> romajis)
-               _          -> maybe mzero hFlatten $ T.fromRomaji (T.wrap <$> romajis)
+    kanas <- sequence $ case furigana of
+               InKatakana -> map (choose mzero flatten) (T.fromRomaji (T.wrap <$> romajis) :: [Choice T.Katakana])
+               _          -> map (choose mzero flatten) (T.fromRomaji (T.wrap <$> romajis) :: [Choice T.Hiragana])
     continue $ C.Kanji unwrapped kanas romajis
   where
-    hFlatten hs = return $ map T.unwrap (hs :: [T.Hiragana])
-    kFlatten ks = return $ map T.unwrap (ks :: [T.Katakana])
+    -- TODO: warn something if ambiguous
+    flatten :: (T.TokenKana k) => Choice k -> Parser String
+    flatten = return . T.unwrap . foremost
     skip n = replicateM n $ do
       void (char '-') <|> void spaces <?> "delimiter likely (\'-\' or spaces)" -- eat possible delimiters
-      next <- strip . R.cut <$> romaji varities
+      next <- strip . R.cut <$> romaji allSugarized
       let (r:rs) = foremost next
       prepend $ concatMap T.unwrap rs
       return $ R.normSyllabicN r

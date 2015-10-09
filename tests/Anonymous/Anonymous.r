@@ -1,5 +1,9 @@
 hai
 ekie
+tsudzuku
+chidjimu
+kidzuku
+bakadjikara
 jaaku
 obāsan, obaasan
 ojiisan 
@@ -16,3 +20,4 @@ mittsu
 Kazukazu no saigai nimokakawarazu
 1984-Nen
 mābō $ tōfu
+jijijijizuzuzuzu

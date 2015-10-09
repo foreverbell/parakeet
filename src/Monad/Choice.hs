@@ -8,6 +8,7 @@ module Monad.Choice (
 , foremost
 , rest
 , ambiguous
+, choose
 ) where
 
 import Control.Monad (liftM, ap, MonadPlus(..))
@@ -39,6 +40,10 @@ instance MonadPlus Choice where
   mzero = NoChoice
   NoChoice `mplus` c = c
   c `mplus` _ = c
+ 
+instance Monoid (Choice a) where
+  mempty = NoChoice
+  mappend x y = fromList $ toList x ++ toList y
 
 fromList :: [a] -> Choice a
 fromList [] = NoChoice
@@ -72,3 +77,7 @@ ambiguous :: Eq a => Choice a -> Bool
 ambiguous NoChoice = False
 ambiguous c = not $ null xs
   where Choice _ xs = strip c
+
+choose :: b -> (Choice a -> b) -> Choice a -> b
+choose n _ NoChoice = n
+choose _ f x = f x
