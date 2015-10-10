@@ -41,9 +41,9 @@ bindFormat     a o = do
   f <- format
   return $ o { optOutput = f } 
   where format = case a of
-          "tex"          -> return $ InTex
-          "baretex"      -> return $ InBareTex
-          "intermediate" -> return $ InIntermediate
+          "tex"          -> return InTex
+          "baretex"      -> return InBareTex
+          "intermediate" -> return InIntermediate
           _              -> die "Bad output format"
 
 setShowBreak o = return o { optShowBreak = True }
@@ -80,8 +80,7 @@ runOpts argv = case getOpt Permute options argv of
   (_, _, err) -> die $ concat err
   where
     setFileContent opts = do
-      when (null jf || null rf) $ do
-        die "Missing inputs\n"
+      when (null jf || null rf) $ die "Missing inputs\n"
       j <- IO.readFile jf
       r <- IO.readFile rf
       return opts { optContent = (j, r) }

@@ -8,7 +8,6 @@ import           Control.Monad.Reader (asks)
 import           Control.Monad (forM)
 import qualified Data.Text.Lazy as T
 import           Data.Text.Lazy (Text)
-import           Data.List (intercalate)
 import           Text.Printf (printf)
 import           Prelude hiding (print)
 
@@ -25,7 +24,7 @@ escape (x : xs) = x : escape xs
 intermediate :: [Compound] -> Parakeet Text
 intermediate ds = flatten <$> ts
   where 
-    ts = forM ds $ \d -> do
+    ts = forM ds $ \d -> 
       case d of 
         Line -> return "\n"
         Break -> do
@@ -34,9 +33,9 @@ intermediate ds = flatten <$> ts
             then "\\break"
             else T.empty
         Lit s -> return $ T.pack $ printf "\\lit{%s}" (escape s)
-        Kanji k h r -> return $ T.pack $ printf "\\kanji{%s}{%s}{%s}" k (concat h) (intercalate " " r)
-        Hiragana h r -> return $ T.pack $ printf "\\hiragana{%s}{%s}" h (intercalate " " r)
-        Katakana k r -> return $ T.pack $ printf "\\katakana{%s}{%s}" k (intercalate " " r)
+        Kanji k h r -> return $ T.pack $ printf "\\kanji{%s}{%s}{%s}" k (concat h) (unwords r)
+        Hiragana h r -> return $ T.pack $ printf "\\hiragana{%s}{%s}" h (unwords r)
+        Katakana k r -> return $ T.pack $ printf "\\katakana{%s}{%s}" k (unwords r)
     flatten [] = T.empty
     flatten ("\n" : ts) = "\n" `T.append` flatten ts
     flatten (t : ts) = if T.null t

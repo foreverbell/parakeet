@@ -14,7 +14,8 @@ module Token.Romaji (
 import           Data.Tuple (swap)
 import           Data.List (sort, group)
 import qualified Data.Map as M
-import           Data.Maybe (maybeToList, fromJust)
+import           Data.Maybe (maybeToList, fromJust, fromMaybe)
+import           Control.Arrow (second)
 import           Control.Monad (mzero)
 
 import           Token.Token (wrap, unwrap, Hiragana, Katakana, Romaji, (<**>), (<$$>))
@@ -62,13 +63,11 @@ otherList = [ ("n",  ["n", "m", "nn", "n-", "n'"]) -- Syllabic n
             ]
 
 otherMap :: M.Map String (Choice String)
-otherMap = M.fromList $ map (\(a, b) -> (a, fromList b)) otherList
+otherMap = M.fromList $ map (second fromList) otherList
 
 otherForms :: Romaji -> Choice Romaji
 otherForms r = go <$$> r
-  where go r = case M.lookup r otherMap of
-          Nothing -> return r
-          Just xs -> xs
+  where go r = fromMaybe (return r) (M.lookup r otherMap)
 
 normSyllabicN :: Romaji -> Romaji
 normSyllabicN r = if isSyllabicN r

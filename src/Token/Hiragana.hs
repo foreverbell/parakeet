@@ -27,7 +27,7 @@ instance TokenKana Hiragana where
       lookup h@(x:xs) | isSokuon x = sokuonize <$> lookup xs
                       | otherwise  = return <$> join (otherForms . wrap <$> fromMaybe (M.lookup h chmap))
   
-  fromRomaji r = convert r
+  fromRomaji = convert
     where
       convert [] = []
       convert (x:xs) = msum (map (\f -> f x) [checkSyllabicN, lookupNormal, checkChoonpu]) : convert xs

@@ -63,11 +63,11 @@ separator = do
 
 stage0 :: Parser [TokenBox]
 stage0 = do
-  r <- many $ choice $ [ TokenBox <$> hiragana
-                       , TokenBox <$> katakana
-                       , TokenBox <$> kanji
-                       , TokenBox <$> lit
-                       , TokenBox <$> separator
-                       ]
+  r <- many $ choice [ TokenBox <$> hiragana
+                     , TokenBox <$> katakana
+                     , TokenBox <$> kanji
+                     , TokenBox <$> lit
+                     , TokenBox <$> separator
+                     ]
   eof
   return $ r ++ [TokenBox (T.wrap "\n" :: T.Lit)]
