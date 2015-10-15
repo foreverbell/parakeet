@@ -70,7 +70,7 @@ continue e = do
   return $ e : rest
 
 sugarize :: Bool -> Bool -> [T.Romaji] -> [T.Romaji]
-sugarize sokuonize longVowelize from = reverse . sortBy (compare `on` length . T.unwrap) $ nub $ map mconcat $ do 
+sugarize sokuonize longVowelize from = sortBy (flip compare `on` (length . T.unwrap)) $ nub $ map mconcat $ do 
   r <- from
   g <- set sokuonize [R.sokuonize, id]
   v <- set longVowelize [R.longVowelize True, id]
@@ -84,37 +84,35 @@ allSugarized :: [T.Romaji]
 allSugarized = sugarize True True R.chList
 
 romaji :: [T.Romaji] -> Parser T.Romaji
-romaji rs = T.wrap <$> (choice $ map (try . fuzzy) rs')
+romaji rs = T.wrap <$> choice (map (try . fuzzy) rs')
         <?> show (length rs) ++ " romaji token(s) namely (" ++ intercalate ", " rs' ++ ")"
   where 
     rs' = map T.unwrap rs
     fuzzy :: String -> Parser String
     fuzzy s = return s <* do
-      forM_ s $ \c -> do
-        if M.isMacron c
-          then let (a, b) = M.toMacron $ M.unMacron c in char a <|> char b
-          else char c
+      forM_ s $ \c -> if M.isMacron c
+                        then let (a, b) = M.toMacron $ M.unMacron c in char a <|> char b
+                        else char c
 
 kana :: (T.TokenKana k) => k -> Parser [C.Compound]
-kana token = choice $ go <$> (toList $ T.toRomaji token)
+kana token = choice $ go <$> toList (T.toRomaji token)
   where
-    go romajis = try $ rec romajis
+    go romajis = try $ iter romajis
       where
         curElement = T.buildCompound token $ map R.normSyllabicN romajis
-        rec :: [T.Romaji] -> Parser [C.Compound]
-        rec [] = continue curElement
-        rec (r:rs) = do
+        iter [] = continue curElement
+        iter (r:rs) = do
           next <- toList . strip . R.cut <$> romaji (sugarize False True [r])
           choice $ flip map next $ \rlist -> try $ do
             prepend $ concatMap T.unwrap (tail rlist)
-            guard $ (head rlist) == r
-            rec rs
+            guard $ head rlist == r
+            iter rs
 
 hiragana :: T.Hiragana -> Parser [C.Compound]
-hiragana token = kana token
+hiragana = kana
 
 katakana :: T.Katakana -> Parser [C.Compound]
-katakana token = kana token
+katakana = kana
 
 lit :: T.Lit -> Parser [C.Compound]
 lit token = do
