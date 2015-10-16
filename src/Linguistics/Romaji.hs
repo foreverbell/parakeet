@@ -1,4 +1,4 @@
-module Token.Romaji (
+module Linguistics.Romaji (
   chList
 , toKana
 , otherForms
@@ -18,9 +18,9 @@ import           Data.Maybe (maybeToList, fromJust, fromMaybe)
 import           Control.Arrow (second)
 import           Control.Monad (mzero)
 
-import           Token.Token (wrap, unwrap, Hiragana, Katakana, Romaji, (<**>), (<$$>))
-import           Token.Misc (isMacron, toMacron, unMacron, isVowel)
-import           Token.Internal (hRaw, kRaw)
+import           Linguistics.Lexeme (wrap, unwrap, Hiragana, Katakana, Romaji, (<**>), (<$$>))
+import           Linguistics.Misc (isMacron, toMacron, unMacron, isVowel)
+import           Linguistics.Internal (hRaw, kRaw)
 import           Monad.Choice (Choice, fromList, toList)
 
 chList :: [Romaji]

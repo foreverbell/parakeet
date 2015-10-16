@@ -11,17 +11,17 @@ import           Data.Text.Lazy (Text)
 import           Text.Printf (printf)
 import           Prelude hiding (print)
 
-import           Token.Compound (Compound(..))
+import           Parser.Token (Token(..))
 import           Monad.Parakeet (Parakeet)
 import           Options (Options(..))
 
 escape :: String -> String
 escape [] = []
-escape ('{' : xs) = '{' : '{' : escape xs
-escape ('}' : xs) = '}' : '}' : escape xs
+escape ('{' : xs) = "{{" ++ escape xs
+escape ('}' : xs) = "}}" ++ escape xs
 escape (x : xs) = x : escape xs
 
-intermediate :: [Compound] -> Parakeet Text
+intermediate :: [Token] -> Parakeet Text
 intermediate ds = flatten <$> ts
   where 
     ts = forM ds $ \d -> 

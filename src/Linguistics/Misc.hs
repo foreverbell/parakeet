@@ -1,4 +1,4 @@
-module Token.Misc (
+module Linguistics.Misc (
   isKanji
 , isChoonpu
 , isMacron

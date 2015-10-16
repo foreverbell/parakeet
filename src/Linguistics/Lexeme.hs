@@ -1,8 +1,8 @@
 {-# LANGUAGE FlexibleInstances, UndecidableInstances #-}
 
-module Token.Token (
-  Token(..)
-, TokenKana(..)
+module Linguistics.Lexeme (
+  Lexeme(..)
+, LexemeKana(..)
 , Kanji
 , Hiragana
 , Katakana
@@ -12,7 +12,7 @@ module Token.Token (
 ) where
 
 import           Monad.Choice (Choice)
-import qualified Token.Compound as C
+import qualified Parser.Token as Token
 
 newtype Kanji = Kanji String deriving (Show, Eq, Ord)
 newtype Hiragana = Hiragana String deriving (Show, Eq, Ord)
@@ -24,7 +24,7 @@ data Separator = Separator deriving (Show, Eq, Ord)
 
 infixl 4 <**>, <$$>
 
-class Token t where
+class Lexeme t where
   unwrap :: t -> String
   wrap   :: String -> t
   (<**>) :: (String -> String) -> t -> t
@@ -32,35 +32,35 @@ class Token t where
   (<$$>) :: Functor f => (String -> f String) -> t -> f t 
   f <$$> t = wrap <$> f (unwrap t)
 
-class (Token k) => TokenKana k where
-  buildCompound :: k -> [Romaji] -> C.Compound
+class (Lexeme k) => LexemeKana k where
+  buildToken :: k -> [Romaji] -> Token.Token
   toRomaji :: k -> Choice [Romaji] 
-  fromRomaji :: [Romaji] -> [Choice k] -- call Token.Romaji.cut first 
+  fromRomaji :: [Romaji] -> [Choice k] -- call Linguistics.Romaji.cut first 
 
-instance Token Kanji where
+instance Lexeme Kanji where
   unwrap (Kanji t) = t
   wrap = Kanji
 
-instance Token Hiragana where
+instance Lexeme Hiragana where
   unwrap (Hiragana t) = t
   wrap = Hiragana
 
-instance Token Katakana where
+instance Lexeme Katakana where
   unwrap (Katakana t) = t
   wrap = Katakana
 
-instance Token Romaji where
+instance Lexeme Romaji where
   unwrap (Romaji t) = t
   wrap = Romaji
 
-instance Token Lit where
+instance Lexeme Lit where
   unwrap (Lit t) = t
   wrap = Lit
 
-instance Token Separator where
+instance Lexeme Separator where
   unwrap = const []
   wrap = const Separator
 
-instance Token t => Monoid t where
+instance Lexeme t => Monoid t where
   mempty = wrap []
   mappend a b = wrap $ unwrap a ++ unwrap b

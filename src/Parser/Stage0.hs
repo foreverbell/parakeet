@@ -6,10 +6,10 @@ import           Text.Parsec
 import           Control.Monad (liftM2)
 
 import           Parser.Stage1 (TokenBox(..))
-import qualified Token.Token as T
-import qualified Token.Hiragana as H
-import qualified Token.Katakana as K
-import qualified Token.Misc as M
+import qualified Linguistics.Lexeme as L
+import qualified Linguistics.Hiragana as H
+import qualified Linguistics.Katakana as K
+import qualified Linguistics.Misc as M
 import           Monad.Parakeet 
 
 type Parser = ParsecT String () Parakeet
@@ -27,24 +27,24 @@ parseTwo n s = do
     second <- satisfy s
     return [first, second]
 
-hiragana :: Parser T.Hiragana
-hiragana = T.wrap <$> hSokuon `concatM` hMain
+hiragana :: Parser L.Hiragana
+hiragana = L.wrap <$> hSokuon `concatM` hMain
   where
     hSokuon = option [] $ return <$> satisfy H.isSokuon
     hMain = parseTwo H.isNormal (H.isSmall `but` H.isSokuon)
 
-katakana :: Parser T.Katakana
-katakana = T.wrap <$> kSokuon `concatM` kMain `concatM` kChoonpu
+katakana :: Parser L.Katakana
+katakana = L.wrap <$> kSokuon `concatM` kMain `concatM` kChoonpu
   where
     kSokuon = option [] $ return <$> satisfy K.isSokuon 
     kMain = parseTwo K.isNormal (K.isSmall `but` K.isSokuon)
     kChoonpu  = option [] $ return <$> satisfy M.isChoonpu
 
-kanji :: Parser T.Kanji
-kanji = T.wrap <$> many1 (satisfy M.isKanji)
+kanji :: Parser L.Kanji
+kanji = L.wrap <$> many1 (satisfy M.isKanji)
 
-lit :: Parser T.Lit
-lit = T.wrap <$> many1 (satisfy other <|> dsep) 
+lit :: Parser L.Lit
+lit = L.wrap <$> many1 (satisfy other <|> dsep) 
   where 
     other c = not $ any (\f -> f c) 
                 [ M.isChoonpu
@@ -55,11 +55,11 @@ lit = T.wrap <$> many1 (satisfy other <|> dsep)
       string $ replicate 2 M.separator
       return M.separator
 
-separator :: Parser T.Separator
+separator :: Parser L.Separator
 separator = do
   char M.separator
   notFollowedBy $ char M.separator
-  return $ T.wrap []
+  return $ L.wrap []
 
 stage0 :: Parser [TokenBox]
 stage0 = do
@@ -70,4 +70,4 @@ stage0 = do
                      , TokenBox <$> separator
                      ]
   eof
-  return $ r ++ [TokenBox (T.wrap "\n" :: T.Lit)]
+  return $ r ++ [TokenBox (L.wrap "\n" :: L.Lit)]

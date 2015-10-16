@@ -1,4 +1,4 @@
-module Token.Katakana (
+module Linguistics.Katakana (
   isNormal
 , isSmall
 , isSokuon
@@ -9,20 +9,20 @@ import           Control.Monad (guard, msum, mzero, join)
 import           Data.Maybe (isJust)
 import qualified Data.Map as M
 
-import           Token.Token (TokenKana(..), wrap, unwrap, Katakana)
-import qualified Token.Compound as C
-import           Token.Romaji (otherForms, sokuonize, longVowelize, isSyllabicN, toKana)
-import           Token.Misc (isChoonpu)
-import           Token.Internal (kRaw)
+import qualified Parser.Token as Token
+import           Linguistics.Lexeme (LexemeKana(..), wrap, unwrap, Katakana)
+import           Linguistics.Romaji (otherForms, sokuonize, longVowelize, isSyllabicN, toKana)
+import           Linguistics.Misc (isChoonpu)
+import           Linguistics.Internal (kRaw)
 import           Monad.Choice (fromMaybe)
 
 chmap :: M.Map String String
 chmap = M.fromList kRaw
 
-instance TokenKana Katakana where
-  buildCompound k r = C.Katakana (unwrap k) (map unwrap r)
+instance LexemeKana Katakana where
+  buildToken k r = Token.Katakana (unwrap k) (map unwrap r)
 
-  toRomaji k =  lookup (unwrap k)
+  toRomaji k = lookup (unwrap k)
     where
       lookup [] = mzero
       lookup k | isSokuon (head k) = sokuonize <$> lookup (tail k)

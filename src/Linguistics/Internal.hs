@@ -1,4 +1,4 @@
-module Token.Internal (
+module Linguistics.Internal (
   hRaw,
   kRaw
 ) where

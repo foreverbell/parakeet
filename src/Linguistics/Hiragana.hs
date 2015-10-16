@@ -1,4 +1,4 @@
-module Token.Hiragana (
+module Linguistics.Hiragana (
   isNormal
 , isSmall
 , isSokuon
@@ -9,17 +9,17 @@ import           Control.Monad (guard, msum, mzero, join)
 import           Data.Maybe (isJust)
 import qualified Data.Map as M
 
-import           Token.Token (TokenKana(..), wrap, unwrap, Hiragana)
-import qualified Token.Compound as C
-import           Token.Romaji (otherForms, sokuonize, isSyllabicN, toKana)
-import           Token.Internal (hRaw)
+import qualified Parser.Token as Token
+import           Linguistics.Lexeme (LexemeKana(..), wrap, unwrap, Hiragana)
+import           Linguistics.Romaji (otherForms, sokuonize, isSyllabicN, toKana)
+import           Linguistics.Internal (hRaw)
 import           Monad.Choice (fromMaybe)
 
 chmap :: M.Map String String
 chmap = M.fromList hRaw
 
-instance TokenKana Hiragana where
-  buildCompound k r = C.Hiragana (unwrap k) (map unwrap r)
+instance LexemeKana Hiragana where
+  buildToken k r = Token.Hiragana (unwrap k) (map unwrap r)
 
   toRomaji h = lookup (unwrap h)
     where

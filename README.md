@@ -2,7 +2,7 @@
 
 ## Disclaimer
 
-I know **nothing** about Compiler Theory, Haskell and Japanese. This repository is purely for fun, and serving as a test-bed for some Haskell experiments. 
+I know **nothing** about Compilers, Haskell and Japanese. This repository is purely for fun, and serving as a test-bed for some Haskell experiments. 
 
 ## Introduction
 
@@ -25,7 +25,7 @@ To build, at least ghc **7.10.2** is required.
 $ cabal install obtuse-parakeet.cabal
 ```
 
-If you are using stack,  **lts-3.6** resolver is recommended.
+For stack users,  **lts-3.9** resolver is recommended.
 
 ## Development
 

@@ -1,8 +1,8 @@
-module Token.Compound (
-  Compound(..)
+module Parser.Token (
+  Token(..)
 ) where
 
-data Compound 
+data Token
     = Line
     | Break
     | Lit String
