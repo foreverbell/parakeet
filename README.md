@@ -1,4 +1,4 @@
-# obtuse-parakeet
+# parakeet
 
 ## Disclaimer
 
@@ -9,11 +9,11 @@ I know **nothing** about Compilers, Haskell and Japanese. This repository is pur
 Build the most convenient tool for Japanese beginners!
 
 Input:
-* https://raw.githubusercontent.com/foreverbell/obtuse-parakeet/master/tests/Butter-fly/Butter-fly.j
-* https://raw.githubusercontent.com/foreverbell/obtuse-parakeet/master/tests/Butter-fly/Butter-fly.r
+* https://raw.githubusercontent.com/foreverbell/parakeet/master/tests/Butter-fly/Butter-fly.j
+* https://raw.githubusercontent.com/foreverbell/parakeet/master/tests/Butter-fly/Butter-fly.r
 
 Output:
-![](https://raw.githubusercontent.com/foreverbell/miscellaneous/master/resource/obtuse-parakeet/Butter-fly.png)
+![](https://raw.githubusercontent.com/foreverbell/miscellaneous/master/resource/parakeet/Butter-fly.png)
 
 Rōmaji should follow [Hepburn romanization](https://en.wikipedia.org/wiki/Hepburn_romanization), which is used by Google translate. And also it is the most commonly used rōmaji in China.
 
@@ -22,7 +22,7 @@ Rōmaji should follow [Hepburn romanization](https://en.wikipedia.org/wiki/Hepbu
 To build, at least ghc **7.10.2** is required.
 
 ```bash
-$ cabal install obtuse-parakeet.cabal
+$ cabal install parakeet.cabal
 ```
 
 For stack users,  **lts-3.9** resolver is recommended.
@@ -41,7 +41,7 @@ $ cabal build
 * Font dependencies: MS Mincho, MS Gothic
 
 ```bash
-$ obtuse-parakeet -j Butter-fly.j -r Butter-fly.r -o Butter-fly.tex
+$ parakeet -j Butter-fly.j -r Butter-fly.r -o Butter-fly.tex
 $ xelatex Butter-fly.tex
 ```
 
