@@ -55,7 +55,12 @@ You should guarantee that the two input files are encoded in UTF-8.
 * Kana iteration mark `ゝ` and `ヽ` is not supported.
 * .. and other things.
 
+## Document
+
+Since I haven't find any potential users, so there will be no document available, please create an issue if you have trouble using it.
+
 ## TODO List
 
 * Ambiguous `ō` warning.
 * Extended katakana support.
+* Embedded title and author.
