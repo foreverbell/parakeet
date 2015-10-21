@@ -7,7 +7,7 @@ hi shi me ku hi ka ri ga te ra su
 o mo i ni mi mi wo su ma se ba
 ki ko e shi to mo no o mo ka ge
 
-na tsu yu u zo ra　ka o ri ta tsu
+na tsu yu u zo ra $ ka o ri ta tsu
 a za ya ka na su gi sa ri shi hi bi
 ko ko ro no ma ma wa ra i a tta
 a no na tsu no o mo i de yo
@@ -31,7 +31,7 @@ hi to to shi te ma na bu ko to
 na ki so fu ga tsu mu gu
 ta i se tsu na ko to ba wa ko no mu ne ni
 
-na tsu yu u zo ra　ka o ri ta tsu
+na tsu yu u zo ra $ ka o ri ta tsu
 a za ya ka na su gi sa ri shi hi bi
 a no go ro no ma ma ka wa ra nu
 shi mi wa ta ru nu ku mo ri yo

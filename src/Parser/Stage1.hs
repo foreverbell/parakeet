@@ -30,7 +30,7 @@ type Parser = ParsecT String [TokenBox] Parakeet
 class L.Lexeme t => TokenType t where
   match :: t -> Parser [T.Token]
 
-data TokenBox = forall t. TokenType t => TokenBox t
+data TokenBox = forall t. (TokenType t, Show t) => TokenBox t
 
 instance TokenType L.Hiragana where
   match = hiragana
@@ -43,9 +43,6 @@ instance TokenType L.Kanji where
 
 instance TokenType L.Lit where
   match = lit
-
-instance TokenType L.Separator where
-  match = separator
 
 prepend :: String -> Parser ()
 prepend a = void $ do
@@ -64,8 +61,15 @@ popUserToken = do
   modifyState tail
   return token
 
+separator :: Parser ()
+separator = void $ try $ do
+  spaces
+  char M.separator
+  notFollowedBy (char M.separator)
+
 continue :: T.Token -> Parser [T.Token]
 continue e = do
+  skipMany separator
   rest <- stage1
   return $ e : rest
 
@@ -130,7 +134,7 @@ lit token = do
         matchIgnoreSpace (x:xs) = do
           spaces
           if M.isSeparator x
-            then return M.separator <* string (replicate 2 M.separator)
+            then return M.separator <* string (replicate 2 M.separator) -- Two separators as lit to distinguish from separator
             else char' $ toLower x -- Romaji input is already lower-cased
           matchIgnoreSpace xs
         removeSpace = filter (not . isSpace)
@@ -159,12 +163,6 @@ kanji token = do
       let (r:rs) = foremost next
       prepend $ concatMap L.unwrap rs
       return $ R.normSyllabicN r
-
-separator :: L.Separator -> Parser [T.Token]
-separator = const $ do
-  spaces
-  char M.separator
-  stage1
 
 break :: Parser [T.Token]
 break = do

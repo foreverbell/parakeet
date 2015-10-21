@@ -3,7 +3,7 @@ module Parser.Stage0 (
 ) where
 
 import           Text.Parsec
-import           Control.Monad (liftM2)
+import           Control.Monad (liftM2, void)
 
 import           Parser.Stage1 (TokenBox(..))
 import qualified Linguistics.Lexeme as L
@@ -44,7 +44,7 @@ kanji :: Parser L.Kanji
 kanji = L.wrap <$> many1 (satisfy M.isKanji)
 
 lit :: Parser L.Lit
-lit = L.wrap <$> many1 (satisfy other <|> dsep) 
+lit = L.wrap <$> many1 (satisfy other <|> dsep)
   where 
     other c = not $ any (\f -> f c) 
                 [ M.isChoonpu
@@ -55,19 +55,17 @@ lit = L.wrap <$> many1 (satisfy other <|> dsep)
       string $ replicate 2 M.separator
       return M.separator
 
-separator :: Parser L.Separator
-separator = do
+separator :: Parser ()
+separator = try $ void $ do
   char M.separator
   notFollowedBy $ char M.separator
-  return $ L.wrap []
 
 stage0 :: Parser [TokenBox]
 stage0 = do
-  r <- many $ choice [ TokenBox <$> hiragana
-                     , TokenBox <$> katakana
-                     , TokenBox <$> kanji
-                     , TokenBox <$> lit
-                     , TokenBox <$> separator
-                     ]
+  r <- many $ optional separator >> choice [ TokenBox <$> hiragana
+                                           , TokenBox <$> katakana
+                                           , TokenBox <$> kanji
+                                           , TokenBox <$> lit
+                                           ]
   eof
   return $ r ++ [TokenBox (L.wrap "\n" :: L.Lit)]
