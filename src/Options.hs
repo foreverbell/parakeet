@@ -20,6 +20,7 @@ data Options = Options {
 , optOutputIO   :: String -> IO ()
 , optOutput     :: OutputFormat
 , optShowBreak  :: Bool
+, optNoMetaInfo :: Bool
 , optFurigana   :: FuriganaFormat
 }
 
@@ -31,12 +32,16 @@ initOptions = Options {
 , optOutputIO   = putStr
 , optOutput     = InTex
 , optShowBreak  = False
+, optNoMetaInfo = False
 , optFurigana   = InDefault
 }
 
 bindJInputFile a o = return o { optJInputFile = a }
+
 bindRInputFile a o = return o { optRInputFile = a }
+
 bindOutputIO   a o = return o { optOutputIO   = IO.writeFile a }
+
 bindFormat     a o = do
   f <- format
   return $ o { optOutput = f } 
@@ -47,10 +52,14 @@ bindFormat     a o = do
           _              -> die "Bad output format"
 
 setShowBreak o = return o { optShowBreak = True }
+
+setNoMetaInfo o = return o { optNoMetaInfo = True}
+
 setHiragana o = do
   when (f == InKatakana) $ die furiganaError
   return o { optFurigana = InHiragana }
   where f = optFurigana o
+
 setKatakana o = do
   when (f == InHiragana) $ die furiganaError
   return o { optFurigana = InKatakana }
@@ -63,10 +72,11 @@ options =
   [ Option ['j'] ["japanese"]   (ReqArg bindJInputFile "FILE") "japanese input file"
   , Option ['r'] ["romaji"]     (ReqArg bindRInputFile "FILE") "romaji input file"
   , Option ['o'] ["output"]     (ReqArg bindOutputIO   "FILE") "output file (default stdout)"
-  , Option ['f'] ["format"]     (ReqArg bindFormat   "FORMAT") "output format, options: tex (default), baretex or intermediate" 
-  , Option ['b'] ["show-break"] (NoArg  setShowBreak         ) "show break from romaji file"
-  , Option ['H'] ["hiragana"]   (NoArg  setHiragana          ) "set furigana format to hiragana (default)"
-  , Option ['K'] ["katakana"]   (NoArg  setKatakana          ) "set furigana format to katakana"
+  , Option [   ] ["format"]     (ReqArg bindFormat   "FORMAT") "output format, options: tex (default), baretex or intermediate" 
+  , Option [   ] ["show-break"] (NoArg  setShowBreak         ) "show break from romaji file"
+  , Option [   ] ["no-meta"]    (NoArg  setNoMetaInfo        ) "ignore metainfo (title & author)"
+  , Option [   ] ["hiragana"]   (NoArg  setHiragana          ) "set furigana format to hiragana (default)"
+  , Option [   ] ["katakana"]   (NoArg  setKatakana          ) "set furigana format to katakana"
   ]
 
 die :: String -> IO a

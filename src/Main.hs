@@ -6,17 +6,18 @@ import Data.Text.Lazy (unpack)
 
 import Options (Options(..), OutputFormat(..), runOpts)
 import Parser.Parser (parse)
-import Translator.Tex (tex, texWrapped)
+import Translator.Tex (tex, texBare)
 import Translator.Intermediate (intermediate)
 import Monad.Parakeet (Parakeet, runParakeet)
 
 parakeet :: Parakeet String
 parakeet = do
   format <- asks optOutput
-  unpack <$> (parse >>= translator format)
+  parsed <- parse
+  unpack <$> translator format parsed
   where translator format = case format of
-          InTex -> texWrapped
-          InBareTex -> tex
+          InTex -> tex
+          InBareTex -> texBare
           InIntermediate -> intermediate
 
 main = do

@@ -1,3 +1,6 @@
+## Butter-fly
+## Kouji Wada
+
 Gokigen na chou ni natte kirameku kaze ni notte 
 Ima sugu kimi ni ai ni yukou 
 Yokei na koto nante wasureta hou ga mashi sa 
