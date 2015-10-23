@@ -84,9 +84,6 @@ sugarize sokuonize longVowelize from = sortBy (flip compare `on` (length . L.unw
   where set True xs  = xs
         set False xs = drop 1 xs
 
-allSugarized :: [L.Romaji]
-allSugarized = sugarize True True R.chList
-
 romaji :: [L.Romaji] -> Parser L.Romaji
 romaji rs = L.wrap <$> choice (map (try . fuzzy) rs')
         <?> show (length rs) ++ " romaji token(s) namely (" ++ intercalate ", " rs' ++ ")"
@@ -100,25 +97,27 @@ romaji rs = L.wrap <$> choice (map (try . fuzzy) rs')
                         then let (a, b) = M.toMacron $ M.unMacron c in char a <|> char b
                         else char c
 
-kana :: (L.LexemeKana k) => k -> Parser [T.Token]
-kana token = choice $ go <$> toList (L.toRomaji token)
+kana :: (L.LexemeKana k) => (k -> [L.Romaji] -> T.Token) -> k -> Parser [T.Token]
+kana builder token = choice $ go <$> toList (L.toRomaji token)
   where
     go romajis = try $ iter romajis
       where
-        curElement = L.buildToken token $ map R.normSyllabicN romajis
+        curElement = builder token $ map R.normSyllabicN romajis
         iter [] = continue curElement
         iter (r:rs) = do
-          next <- toList . strip . R.cut <$> romaji (sugarize False True [r])
+          next <- toList . strip . R.factor <$> romaji (sugarize False True [r])
           choice $ flip map next $ \rlist -> try $ do
             prepend $ concatMap L.unwrap (tail rlist)
             guard $ head rlist == r
             iter rs
 
 hiragana :: L.Hiragana -> Parser [T.Token]
-hiragana = kana
+hiragana = kana builder
+  where builder h r = T.Hiragana (L.unwrap h) (map L.unwrap r)
 
 katakana :: L.Katakana -> Parser [T.Token]
-katakana = kana
+katakana = kana builder
+  where builder k r = T.Katakana (L.unwrap k) (map L.unwrap r)
 
 lit :: L.Lit -> Parser [T.Token]
 lit token = do
@@ -159,10 +158,13 @@ kanji token = do
     flatten = return . L.unwrap . foremost
     skip n = replicateM n $ do
       void (char '-') <|> void spaces <?> "delimiter likely (\'-\' or spaces)" -- eat possible delimiters
-      next <- strip . R.cut <$> romaji allSugarized
+      next <- strip . R.factor <$> romaji unitRomajis
       let (r:rs) = foremost next
       prepend $ concatMap L.unwrap rs
       return $ R.normSyllabicN r
+
+unitRomajis :: [L.Romaji]
+unitRomajis = sugarize True True R.chList
 
 break :: Parser [T.Token]
 break = do

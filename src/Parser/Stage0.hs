@@ -20,25 +20,25 @@ concatM = liftM2 (++)
 but :: (Char -> Bool) -> (Char -> Bool) -> (Char -> Bool)
 but p1 p2 c = p1 c && not (p2 c)
 
-parseTwo :: (Char -> Bool) -> (Char -> Bool) -> Parser String
-parseTwo n s = do
+parse2 :: (Char -> Bool) -> (Char -> Bool) -> Parser String
+parse2 n s = do
   first <- satisfy n
   option [first] $ do 
     second <- satisfy s
     return [first, second]
 
 hiragana :: Parser L.Hiragana
-hiragana = L.wrap <$> hSokuon `concatM` hMain
+hiragana = L.wrap <$> sokuon `concatM` body
   where
-    hSokuon = option [] $ return <$> satisfy H.isSokuon
-    hMain = parseTwo H.isNormal (H.isSmall `but` H.isSokuon)
+    sokuon = option [] $ return <$> satisfy H.isSokuon
+    body = parse2 H.isNormal (H.isSmall `but` H.isSokuon)
 
 katakana :: Parser L.Katakana
-katakana = L.wrap <$> kSokuon `concatM` kMain `concatM` kChoonpu
+katakana = L.wrap <$> sokuon `concatM` body `concatM` choonpu
   where
-    kSokuon = option [] $ return <$> satisfy K.isSokuon 
-    kMain = parseTwo K.isNormal (K.isSmall `but` K.isSokuon)
-    kChoonpu  = option [] $ return <$> satisfy M.isChoonpu
+    sokuon = option [] $ return <$> satisfy K.isSokuon 
+    body = parse2 K.isNormal (K.isSmall `but` K.isSokuon)
+    choonpu  = option [] $ return <$> satisfy M.isChoonpu
 
 kanji :: Parser L.Kanji
 kanji = L.wrap <$> many1 (satisfy M.isKanji)

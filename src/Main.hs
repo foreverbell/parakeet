@@ -20,6 +20,7 @@ parakeet = do
           InBareTex -> texBare
           InIntermediate -> intermediate
 
+main :: IO ()
 main = do
   opts <- runOpts =<< getArgs
   let put = optOutputIO opts

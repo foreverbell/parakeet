@@ -9,7 +9,6 @@ import           Control.Monad (guard, msum, mzero, join)
 import           Data.Maybe (isJust)
 import qualified Data.Map as M
 
-import qualified Parser.Token as Token
 import           Linguistics.Lexeme (LexemeKana(..), wrap, unwrap, Katakana)
 import           Linguistics.Romaji (otherForms, sokuonize, longVowelize, isSyllabicN, toKana)
 import           Linguistics.Misc (isChoonpu)
@@ -20,8 +19,6 @@ chmap :: M.Map String String
 chmap = M.fromList kRaw
 
 instance LexemeKana Katakana where
-  buildToken k r = Token.Katakana (unwrap k) (map unwrap r)
-
   toRomaji k = lookup (unwrap k)
     where
       lookup [] = mzero
@@ -40,8 +37,11 @@ instance LexemeKana Katakana where
           lookupNormal x = snd $ toKana x
           checkChoonpu x = do
             guard $ length x' == 1
-            return $ wrap "ッ"
+            return $ wrap [sokuon]
             where x' = unwrap x
+
+sokuon :: Char
+sokuon = 'ッ'
 
 isNormal :: Char -> Bool
 isNormal = isJust . flip M.lookup chmap . return
@@ -51,7 +51,7 @@ isSmall c = c `elem` ['ァ', 'ィ', 'ゥ', 'ェ', 'ォ', 'ッ', 'ャ', 'ュ', '�
     -- [0x30a1, 0x30a3, 0x30a5, 0x30a7, 0x30a9, 0x30c3, 0x30e3, 0x30e5, 0x30e7, 0x30ee, 0x30f5, 0x30f6]
 
 isSokuon :: Char -> Bool
-isSokuon = (==) 'ッ'
+isSokuon = (==) sokuon
 
 isKatakana :: Char -> Bool
 isKatakana c = isNormal c || isSmall c

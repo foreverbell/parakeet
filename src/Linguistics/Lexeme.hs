@@ -3,21 +3,23 @@
 module Linguistics.Lexeme (
   Lexeme(..)
 , LexemeKana(..)
+, toRLV
+, Lit
 , Kanji
 , Hiragana
 , Katakana
 , Romaji
-, Lit
 ) where
 
-import           Monad.Choice (Choice)
-import qualified Parser.Token as Token
+import Monad.Choice (Choice)
 
+newtype Lit = Lit String deriving (Show, Eq, Ord)
 newtype Kanji = Kanji String deriving (Show, Eq, Ord)
 newtype Hiragana = Hiragana String deriving (Show, Eq, Ord)
 newtype Katakana = Katakana String deriving (Show, Eq, Ord)
-newtype Romaji = Romaji String deriving (Show, Eq, Ord)
-newtype Lit = Lit String deriving (Show, Eq, Ord)
+data Romaji = Romaji String 
+            | RomajiLV String
+            deriving (Show, Eq, Ord) 
 
 infixl 4 <**>, <$$>
 
@@ -30,9 +32,12 @@ class Lexeme t where
   f <$$> t = wrap <$> f (unwrap t)
 
 class (Lexeme k) => LexemeKana k where
-  buildToken :: k -> [Romaji] -> Token.Token
   toRomaji :: k -> Choice [Romaji] 
-  fromRomaji :: [Romaji] -> [Choice k] -- call Linguistics.Romaji.cut first 
+  fromRomaji :: [Romaji] -> [Choice k] 
+
+instance Lexeme Lit where
+  unwrap (Lit t) = t
+  wrap = Lit
 
 instance Lexeme Kanji where
   unwrap (Kanji t) = t
@@ -48,11 +53,11 @@ instance Lexeme Katakana where
 
 instance Lexeme Romaji where
   unwrap (Romaji t) = t
+  unwrap (RomajiLV t) = t
   wrap = Romaji
 
-instance Lexeme Lit where
-  unwrap (Lit t) = t
-  wrap = Lit
+toRLV :: Romaji -> Romaji
+toRLV = RomajiLV . unwrap
 
 instance Lexeme t => Monoid t where
   mempty = wrap []

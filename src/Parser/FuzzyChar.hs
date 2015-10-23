@@ -15,11 +15,15 @@ eq = (==)
 elem :: [Int] -> Int -> Bool
 elem = flip L.elem
 
+{-
+
 and :: (Int -> Bool) -> (Int -> Bool) -> (Int -> Bool)
 and p q c = p c && q c
 
 or :: (Int -> Bool) -> (Int -> Bool) -> (Int -> Bool)
 or p q c = p c || q c
+
+-}
 
 (==>) a b = (a, b)
 

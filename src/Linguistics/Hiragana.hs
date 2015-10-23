@@ -9,7 +9,6 @@ import           Control.Monad (guard, msum, mzero, join)
 import           Data.Maybe (isJust)
 import qualified Data.Map as M
 
-import qualified Parser.Token as Token
 import           Linguistics.Lexeme (LexemeKana(..), wrap, unwrap, Hiragana)
 import           Linguistics.Romaji (otherForms, sokuonize, isSyllabicN, toKana)
 import           Linguistics.Internal (hRaw)
@@ -19,8 +18,6 @@ chmap :: M.Map String String
 chmap = M.fromList hRaw
 
 instance LexemeKana Hiragana where
-  buildToken k r = Token.Hiragana (unwrap k) (map unwrap r)
-
   toRomaji h = lookup (unwrap h)
     where
       lookup [] = mzero
@@ -38,8 +35,11 @@ instance LexemeKana Hiragana where
           lookupNormal x = fst $ toKana x
           checkChoonpu x = do
             guard $ length x' == 1
-            return $ wrap "っ"
+            return $ wrap [sokuon]
             where x' = unwrap x
+
+sokuon :: Char
+sokuon = 'っ'
 
 isNormal :: Char -> Bool
 isNormal = isJust . flip M.lookup chmap . return
@@ -50,7 +50,7 @@ isSmall c = c `elem` ['ぁ', 'ぃ', 'ぅ', 'ぇ', 'ぉ', 'っ', 'ゃ', 'ゅ', '�
     -- last two (3095, 3096) aren't commonly used in modern Japanese.
 
 isSokuon :: Char -> Bool
-isSokuon = (==) 'っ'
+isSokuon = (==) sokuon
 
 isHiragana :: Char -> Bool
 isHiragana c = isNormal c || isSmall c

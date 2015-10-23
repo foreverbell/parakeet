@@ -11,7 +11,8 @@ import           Data.Text.Lazy (Text)
 import           Text.Printf (printf)
 import           Prelude hiding (print)
 
-import           Parser.Token (Token(..), MetaInfo(..), getTitle, getAuthor)
+import           Parser.Token (Token(..))
+import           Parser.MetaInfo (MetaInfo(..), getTitle, getAuthor)
 import           Monad.Parakeet (Parakeet)
 import           Options (Options(..))
 

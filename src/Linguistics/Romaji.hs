@@ -5,7 +5,7 @@ module Linguistics.Romaji (
 , normSyllabicN
 , unSokuonize
 , unLongVowelize
-, cut
+, factor
 , sokuonize
 , longVowelize
 , isSyllabicN
@@ -18,7 +18,7 @@ import           Data.Maybe (maybeToList, fromJust, fromMaybe)
 import           Control.Arrow (second)
 import           Control.Monad (mzero)
 
-import           Linguistics.Lexeme (wrap, unwrap, Hiragana, Katakana, Romaji, (<**>), (<$$>))
+import           Linguistics.Lexeme (wrap, unwrap, toRLV, Hiragana, Katakana, Romaji, (<**>), (<$$>))
 import           Linguistics.Misc (isMacron, toMacron, unMacron, isVowel)
 import           Linguistics.Internal (hRaw, kRaw)
 import           Monad.Choice (Choice, fromList, toList)
@@ -69,6 +69,7 @@ otherForms :: Romaji -> Choice Romaji
 otherForms r = go <$$> r
   where go r = fromMaybe (return r) (M.lookup r otherMap)
 
+-- normalize syllabic n (take the first alphabet)
 normSyllabicN :: Romaji -> Romaji
 normSyllabicN r = if isSyllabicN r
     then return . head <**> r
@@ -97,11 +98,12 @@ unLongVowelize r
     lastTo | lastDesugar == 'o' = fromList ['u', 'o']  -- ambiguous 'ō' -> ou
            | otherwise          = return lastDesugar
 
--- divide a Romaji into different parts, e.g. tchī -> [t, chi, i]
-cut :: Romaji -> Choice [Romaji]
-cut r = do 
+-- divide a Romaji with possible sokuon & macron into different parts, e.g. tchī -> [t, chi, i]
+factor :: Romaji -> Choice [Romaji]
+factor r = do 
   (sokuonPart, next) <- unSokuonize r
-  (longVowelPart, normalized) <- unLongVowelize next
+  (longVowelPart, normalized') <- unLongVowelize next
+  let normalized = if null longVowelPart then normalized' else toRLV normalized'
   return $ maybeToList sokuonPart ++ [normalized] ++ maybeToList longVowelPart
 
 -- chi -> tchi, ka -> kka .. a -> a
@@ -110,8 +112,8 @@ sokuonize [] = []
 sokuonize r = (sokuonize' <$$> head r) ++ tail r
   where 
     sokuonize' [] = []
-    sokuonize' s@('c' : 'h' : _) = ["t", s]
-    sokuonize' s@(c : _) | sokuonizable c = [[c], s]
+    sokuonize' s@('c':'h':_) = ["t", s]
+    sokuonize' s@(c:_) | sokuonizable c = [[c], s]
                          | otherwise      = [s]
     sokuonizable c = c `notElem` "aiueonmrwy" -- ++ "gzdbh"
     -- https://en.wikipedia.org/wiki/Sokuon

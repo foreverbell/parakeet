@@ -12,7 +12,8 @@ import           Text.Printf (printf)
 import           Text.RawString.QQ
 import           Prelude hiding (print)
 
-import           Parser.Token (Token(..), MetaInfo(..), getTitle, getLitAuthor) 
+import           Parser.Token (Token(..))
+import           Parser.MetaInfo (MetaInfo(..), getTitle, getLitAuthor) 
 import           Monad.Parakeet (Parakeet)
 import           Options (Options(..))
 

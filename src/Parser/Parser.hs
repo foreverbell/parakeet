@@ -12,7 +12,8 @@ import Monad.Parakeet (Parakeet)
 import Options (Options(..))
 import Parser.Stage0 (stage0)
 import Parser.Stage1 (stage1)
-import Parser.Token (Token(..), MetaInfo(..), Author(..), Title(..))
+import Parser.Token (Token(..))
+import Parser.MetaInfo (MetaInfo(..), Author(..), Title(..))
 
 setLine l = do
   pos <- getPosition
