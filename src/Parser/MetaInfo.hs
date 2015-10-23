@@ -7,18 +7,18 @@ module Parser.MetaInfo (
 , getLitAuthor
 ) where
 
-import Parser.Token
+import Parser.FlatToken
 
-newtype Title = Title [Token] deriving (Show)
-newtype Author = Author ([Token], [Token]) deriving (Show)
+newtype Title = Title [FlatToken] deriving (Show)
+newtype Author = Author ([FlatToken], [FlatToken]) deriving (Show)
 newtype MetaInfo = MetaInfo (Title, Author) deriving (Show)
 
-getTitle :: MetaInfo -> [Token]
+getTitle :: MetaInfo -> [FlatToken]
 getTitle (MetaInfo (Title title, _)) = title
 
-getAuthor :: MetaInfo -> [Token]
+getAuthor :: MetaInfo -> [FlatToken]
 getAuthor (MetaInfo (_, Author (author, _))) = author
 
-getLitAuthor :: MetaInfo -> [Token]
+getLitAuthor :: MetaInfo -> [FlatToken]
 getLitAuthor (MetaInfo (_, Author (_, author))) = author
 

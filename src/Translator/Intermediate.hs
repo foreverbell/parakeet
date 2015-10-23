@@ -11,7 +11,7 @@ import           Data.Text.Lazy (Text)
 import           Text.Printf (printf)
 import           Prelude hiding (print)
 
-import           Parser.Token (Token(..))
+import           Parser.FlatToken (FlatToken(..))
 import           Parser.MetaInfo (MetaInfo(..), getTitle, getAuthor)
 import           Monad.Parakeet (Parakeet)
 import           Options (Options(..))
@@ -27,7 +27,7 @@ smartConcat [] = T.empty
 smartConcat ("\n":ts) = "\n" `T.append` smartConcat ts
 smartConcat (t:ts) = if T.null t then smartConcat ts else T.concat [t, " ", smartConcat ts]
 
-tokenToText :: Token -> Parakeet Text
+tokenToText :: FlatToken -> Parakeet Text
 tokenToText Line = return "\n"
 tokenToText Break = do
   showBreak <- asks optShowBreak
@@ -39,7 +39,7 @@ tokenToText (Kanji k h r) = return $ T.pack $ printf "\\kanji{%s}{%s}{%s}" k (co
 tokenToText (Hiragana h r) = return $ T.pack $ printf "\\hiragana{%s}{%s}" h (unwords r)
 tokenToText (Katakana k r) = return $ T.pack $ printf "\\katakana{%s}{%s}" k (unwords r)
 
-intermediate :: (Maybe MetaInfo, [Token]) -> Parakeet Text
+intermediate :: (Maybe MetaInfo, [FlatToken]) -> Parakeet Text
 intermediate (meta, tokens) = do
   title <- maybe (return T.empty) (\meta -> wrap "title" . smartConcat <$> mapM tokenToText (getTitle meta)) meta
   author <- maybe (return T.empty) (\meta -> wrap "author" . smartConcat <$> mapM tokenToText (getAuthor meta)) meta

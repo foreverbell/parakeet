@@ -13,14 +13,20 @@ module Linguistics.Lexeme (
 
 import Monad.Choice (Choice)
 
-newtype Lit = Lit String deriving (Show, Eq, Ord)
-newtype Kanji = Kanji String deriving (Show, Eq, Ord)
-newtype Hiragana = Hiragana String deriving (Show, Eq, Ord)
-newtype Katakana = Katakana String deriving (Show, Eq, Ord)
+newtype Lit = Lit String deriving (Show)
+newtype Kanji = Kanji String deriving (Show)
+newtype Hiragana = Hiragana String deriving (Show)
+newtype Katakana = Katakana String deriving (Show)
 data Romaji = Romaji String 
             | RomajiLV String
-            deriving (Show, Eq, Ord) 
+            deriving (Show)
 
+instance Eq Romaji where
+  a == b = unwrap a == unwrap b
+
+instance Ord Romaji where
+  a `compare` b = unwrap a `compare` unwrap b
+  
 infixl 4 <**>, <$$>
 
 class Lexeme t where

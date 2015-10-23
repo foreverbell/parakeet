@@ -12,7 +12,7 @@ import           Text.Printf (printf)
 import           Text.RawString.QQ
 import           Prelude hiding (print)
 
-import           Parser.Token (Token(..))
+import           Parser.FlatToken (FlatToken(..))
 import           Parser.MetaInfo (MetaInfo(..), getTitle, getLitAuthor) 
 import           Monad.Parakeet (Parakeet)
 import           Options (Options(..))
@@ -63,7 +63,7 @@ build useVerb f
                 , "tiny" 
                 ] :: [String]
 
-texify :: Bool -> Int -> [Token] -> Parakeet Text
+texify :: Bool -> Int -> [FlatToken] -> Parakeet Text
 texify useVerb offset tokens = T.concat <$> mapM singleTexify tokens
   where
     mainFont = fixFont $ 4 + offset
@@ -72,7 +72,7 @@ texify useVerb offset tokens = T.concat <$> mapM singleTexify tokens
     fixFont f | f < 0 = 0
               | f > 9 = 9
               | otherwise = f
-    singleTexify :: Token -> Parakeet Text
+    singleTexify :: FlatToken -> Parakeet Text
     singleTexify d = case d of
       Line         -> return " \\\\ \n"
       Break        -> do
@@ -85,24 +85,24 @@ texify useVerb offset tokens = T.concat <$> mapM singleTexify tokens
       Hiragana h r -> return $ T.pack $ printf "\\ruby{%s}{%s} " (build False mainFont h) (build False romajiFont (unwords r))
       Katakana k r -> return $ T.pack $ printf "\\ruby{%s}{%s} " (build False mainFont k) (build False romajiFont (unwords r))
 
-texifyTitle :: [Token] -> Parakeet Text
+texifyTitle :: [FlatToken] -> Parakeet Text
 texifyTitle title = do
   tex <- texify False (-2) title
   return $ T.pack $ printf "\\title{%s}" (T.unpack tex)
 
-texifyAuthor :: [Token] -> Parakeet Text
+texifyAuthor :: [FlatToken] -> Parakeet Text
 texifyAuthor author = do
   tex <- texify False 1 author
   return $ T.pack $ printf "\\author{%s}" (T.unpack tex)
 
-texBare :: (Maybe MetaInfo, [Token]) -> Parakeet Text
+texBare :: (Maybe MetaInfo, [FlatToken]) -> Parakeet Text
 texBare (meta, tokens) = do
   title  <- maybe (return T.empty) (texifyTitle . getTitle) meta
   author <- maybe (return T.empty) (texifyAuthor . getLitAuthor) meta
   body   <- texify True 0 tokens
   return $ T.concat [header, "\n\n", title, "\n", author, "\n\n", body]
 
-tex :: (Maybe MetaInfo, [Token]) -> Parakeet Text
+tex :: (Maybe MetaInfo, [FlatToken]) -> Parakeet Text
 tex (meta, tokens) = do
   title  <- maybe (return T.empty) (texifyTitle . getTitle) meta
   -- TODO: using lit author is workaround, since ruby is not well supported in \author{ }

@@ -2,12 +2,14 @@ module Parser.Token (
   Token(..)
 ) where
 
+import qualified Linguistics.Lexeme as Lexeme
+
 data Token
     = Line
     | Break
-    | Lit String
-    | Kanji String [String] [String]  -- kanji, kana, romaji
-    | Hiragana String [String]        -- hiragana, romaji
-    | Katakana String [String]        -- katakana, romaji
+    | Lit Lexeme.Lit
+    | Kanji Lexeme.Kanji [Lexeme.Hiragana] [Lexeme.Katakana] [Lexeme.Romaji]
+    | Hiragana Lexeme.Hiragana [Lexeme.Romaji]
+    | Katakana Lexeme.Katakana [Lexeme.Romaji]
     deriving (Show)
 
