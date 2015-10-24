@@ -6,7 +6,7 @@ module Parser.Stage1 (
 ) where
 
 import           Text.Parsec
-import           Control.Monad (forM_, void, guard, mzero, replicateM)
+import           Control.Monad (forM_, void, mzero, guard, replicateM)
 import           Data.Char (toLower, isSpace)
 import           Data.List (sortBy, nub, intercalate)
 import           Data.Function (on)
@@ -17,7 +17,7 @@ import           Linguistics.Hiragana ()
 import           Linguistics.Katakana ()
 import qualified Linguistics.Romaji as R
 import qualified Linguistics.Misc as M
-import           Monad.Choice (Choice, foremost, toList, strip, choose)
+import           Monad.Choice (foremost, toList, strip)
 import           Monad.Parakeet
 import           Parser.FuzzyChar (fuzzyEq)
 import qualified Parser.Token as T
@@ -120,18 +120,17 @@ lit token = do
   if unwrapped == "\n"
     then return [T.Line] <* (spaces >> eof)
     else do
-      matchIgnoreSpace $ removeSpace unwrapped
+      eat $ filter (not . isSpace) unwrapped
       continue $ T.Lit token
       where
-        matchIgnoreSpace :: String -> Parser ()
-        matchIgnoreSpace []     = return ()
-        matchIgnoreSpace (x:xs) = do
+        eat :: String -> Parser ()
+        eat []     = return ()
+        eat (x:xs) = do
           spaces
           if M.isSeparator x
             then return M.separator <* string (replicate 2 M.separator) -- Two separators as lit to distinguish from separator
             else char' $ toLower x -- Romaji input is already lower-cased
-          matchIgnoreSpace xs
-        removeSpace = filter (not . isSpace)
+          eat xs
         char' :: Char -> Parser Char
         char' ch = satisfy (fuzzyEq ch) <?> "character likely \'" ++ [ch, '\''] 
 
@@ -141,17 +140,14 @@ kanji token = do
   let tryRange = [1 .. len * 3 + 8]
   choice $ flip map tryRange $ \n -> try $ do  
     romajis <- skip n
-    hiraganas <- sequence $ map (choose mzero flatten) (L.fromRomaji romajis :: [Choice L.Hiragana])
-    katakanas <- sequence $ map (choose mzero flatten) (L.fromRomaji romajis :: [Choice L.Katakana])
+    hiraganas <- maybe mzero return $ sequence (L.fromRomaji romajis :: [Maybe L.Hiragana])
+    katakanas <- maybe mzero return $ sequence (L.fromRomaji romajis :: [Maybe L.Katakana])
     continue $ T.Kanji token hiraganas katakanas romajis
   where
-    -- TODO: warn something if ambiguous
-    flatten :: (L.LexemeKana k) => Choice k -> Parser k
-    flatten = return . foremost
     skip n = replicateM n $ do
       void (char '-') <|> void spaces <?> "delimiter likely (\'-\' or spaces)" -- eat possible delimiters
       next <- strip . R.factor <$> romaji unitRomajis
-      let (r:rs) = foremost next
+      let (r:rs) = foremost next -- TODO: ambiguity!
       prepend $ concatMap L.unwrap rs
       return $ R.normSyllabicN r
 

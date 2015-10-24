@@ -21,6 +21,7 @@ data Options = Options {
 , optOutput     :: OutputFormat
 , optShowBreak  :: Bool
 , optNoMetaInfo :: Bool
+, optKeepLV     :: Bool
 , optFurigana   :: FuriganaFormat
 }
 
@@ -33,6 +34,7 @@ initOptions = Options {
 , optOutput     = InTex
 , optShowBreak  = False
 , optNoMetaInfo = False
+, optKeepLV     = False
 , optFurigana   = InDefault
 }
 
@@ -53,7 +55,9 @@ bindFormat     a o = do
 
 setShowBreak o = return o { optShowBreak = True }
 
-setNoMetaInfo o = return o { optNoMetaInfo = True}
+setNoMetaInfo o = return o { optNoMetaInfo = True }
+
+setKeepLV o = return o { optKeepLV = True }
 
 setHiragana o = do
   when (f == InKatakana) $ die furiganaError
@@ -75,6 +79,7 @@ options =
   , Option [   ] ["format"]     (ReqArg bindFormat   "FORMAT") "output format, options: tex (default), baretex or intermediate" 
   , Option [   ] ["show-break"] (NoArg  setShowBreak         ) "show break from romaji file"
   , Option [   ] ["no-meta"]    (NoArg  setNoMetaInfo        ) "ignore metainfo (title & author)"
+  , Option [   ] ["keep-lv"]    (NoArg  setKeepLV            ) "keep long vowel macron in output"
   , Option [   ] ["hiragana"]   (NoArg  setHiragana          ) "set furigana format to hiragana (default)"
   , Option [   ] ["katakana"]   (NoArg  setKatakana          ) "set furigana format to katakana"
   ]

@@ -29,14 +29,14 @@ or p q c = p c || q c
 
 -- if two rules overlap, always obey the first rule
 rules :: [(Int -> Bool, Int -> Int)]
-rules = [ elem [0x60, 0xff40]      ==> const 0x27              -- ` -> '
-        , inside 0xff01 0xff5e     ==> \c -> c - 0xff01 + 0x21 -- Full width char to half width
-        , eq 0x3001                ==> const 0x2c              -- Full comma
-        , eq 0x3002                ==> const 0x2e              -- Full stop
-        , elem [0x300c, 0xff62]    ==> const 0x27              -- Single quotation mark
-        , elem [0x300d, 0xff63]    ==> const 0x27
-        , elem [0x300e, 0x201c]    ==> const 0x22              -- Double quotation mark
-        , elem [0x300f, 0x201d]    ==> const 0x22
+rules = [ elem [0x60, 0xff40]   ==> const 0x27              -- ` -> '
+        , inside 0xff01 0xff5e  ==> \c -> c - 0xff01 + 0x21 -- Full width char to half width
+        , eq 0x3001             ==> const 0x2c              -- Full comma
+        , eq 0x3002             ==> const 0x2e              -- Full stop
+        , elem [0x300c, 0xff62] ==> const 0x27              -- Single quotation mark
+        , elem [0x300d, 0xff63] ==> const 0x27
+        , elem [0x300e, 0x201c] ==> const 0x22              -- Double quotation mark
+        , elem [0x300f, 0x201d] ==> const 0x22
         ]
 
 normOrder :: Char -> Int

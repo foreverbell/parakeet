@@ -4,6 +4,7 @@ module Monad.Choice (
 , fromList'
 , toList
 , fromMaybe
+, toMaybe
 , strip
 , foremost
 , rest
@@ -59,6 +60,10 @@ fromMaybe (Just x) = Choice x []
 toList :: Choice a -> [a]
 toList NoChoice = []
 toList (Choice x xs) = x : xs
+
+toMaybe :: Choice a -> Maybe a
+toMaybe NoChoice = Nothing
+toMaybe (Choice x _) = Just x
 
 strip :: Eq a => Choice a -> Choice a
 strip NoChoice = NoChoice

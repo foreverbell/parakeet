@@ -12,7 +12,7 @@ import qualified Data.Map as M
 import           Linguistics.Lexeme (LexemeKana(..), wrap, unwrap, Hiragana)
 import           Linguistics.Romaji (otherForms, sokuonize, isSyllabicN, toKana)
 import           Linguistics.Internal (hRaw)
-import           Monad.Choice (fromMaybe)
+import           Monad.Choice (fromMaybe, toMaybe)
 
 chmap :: M.Map String String
 chmap = M.fromList hRaw
@@ -24,7 +24,7 @@ instance LexemeKana Hiragana where
       lookup h@(x:xs) | isSokuon x = sokuonize <$> lookup xs
                       | otherwise  = return <$> join (otherForms . wrap <$> fromMaybe (M.lookup h chmap))
   
-  fromRomaji = convert
+  fromRomaji hs = toMaybe <$> convert hs
     where
       convert [] = []
       convert (x:xs) = msum (map (\f -> f x) [checkSyllabicN, lookupNormal, checkChoonpu]) : convert xs

@@ -9,6 +9,7 @@ module Linguistics.Lexeme (
 , Hiragana
 , Katakana
 , Romaji
+, isRLV
 ) where
 
 import Monad.Choice (Choice)
@@ -39,7 +40,7 @@ class Lexeme t where
 
 class (Lexeme k) => LexemeKana k where
   toRomaji :: k -> Choice [Romaji] 
-  fromRomaji :: [Romaji] -> [Choice k] 
+  fromRomaji :: [Romaji] -> [Maybe k] 
 
 instance Lexeme Lit where
   unwrap (Lit t) = t
@@ -61,6 +62,10 @@ instance Lexeme Romaji where
   unwrap (Romaji t) = t
   unwrap (RomajiLV t) = t
   wrap = Romaji
+
+isRLV :: Romaji -> Bool
+isRLV (RomajiLV _) = True
+isRLV _            = False
 
 toRLV :: Romaji -> Romaji
 toRLV = RomajiLV . unwrap

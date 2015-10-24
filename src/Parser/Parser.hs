@@ -12,6 +12,7 @@ import Monad.Parakeet (Parakeet)
 import Options (Options(..))
 import Parser.Stage0 (stage0)
 import Parser.Stage1 (stage1)
+import Parser.Stage2 (stage2)
 import Parser.FlatToken (FlatToken(..), flatten)
 import Parser.MetaInfo (MetaInfo(..), Author(..), Title(..))
 
@@ -21,12 +22,15 @@ setLine l = do
 
 parseLine :: Line -> Line -> String -> String -> Parakeet [FlatToken]
 parseLine lj lr j r = do
+  keeplv <- asks optKeepLV
+  let stage2' = if keeplv then stage2 else return
   jf <- asks optJInputFile
   rf <- asks optRInputFile
   wd <- test =<< runParserT (setLine lj >> stage0) () jf j
-  tk <- test =<< runParserT (setLine lr >> stage1) wd rf (map toLower r)
-  sequence $ fmap flatten tk
+  tk <- stage2' =<< test =<< runParserT (setLine lr >> stage1) wd rf (map toLower r)
+  sequence $ flatten <$> tk
   where test = either (throwError . show) return
+        -- errPos f l = "\"" ++ f ++ "\"" ++ " (line " ++ show (l :: Line) ++ ")"
 
 extractMetaInfo :: (String, String) -> Maybe (String, String) -> Parakeet MetaInfo
 extractMetaInfo (j1, j2) (Just (r1, r2)) = do

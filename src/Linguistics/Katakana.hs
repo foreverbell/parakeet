@@ -13,7 +13,7 @@ import           Linguistics.Lexeme (LexemeKana(..), wrap, unwrap, Katakana)
 import           Linguistics.Romaji (otherForms, sokuonize, longVowelize, isSyllabicN, toKana)
 import           Linguistics.Misc (isChoonpu)
 import           Linguistics.Internal (kRaw)
-import           Monad.Choice (fromMaybe)
+import           Monad.Choice (fromMaybe, toMaybe)
 
 chmap :: M.Map String String
 chmap = M.fromList kRaw
@@ -26,7 +26,7 @@ instance LexemeKana Katakana where
                | isChoonpu (last k) = longVowelize False <$> lookup (init k)
                | otherwise = return <$> join (otherForms . wrap <$> fromMaybe (M.lookup k chmap))
   
-  fromRomaji = convert
+  fromRomaji ks = toMaybe <$> convert ks
     where
       convert [] = []
       convert (x:xs) = msum (map (\f -> f x) [checkSyllabicN, lookupNormal, checkChoonpu]) : convert xs
