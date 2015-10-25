@@ -15,6 +15,10 @@ Input:
 Output:
 ![](https://raw.githubusercontent.com/foreverbell/miscellaneous/master/resource/parakeet/Butter-fly.png)
 
+Full output:
+* tex: https://raw.githubusercontent.com/foreverbell/miscellaneous/master/resource/parakeet/Butter-fly.tex
+* pdf: https://raw.githubusercontent.com/foreverbell/miscellaneous/master/resource/parakeet/Butter-fly.pdf
+
 Rōmaji should follow [Hepburn romanization](https://en.wikipedia.org/wiki/Hepburn_romanization), which is used by Google translate. And also it is the most commonly used rōmaji in China.
 
 ## Installation
@@ -52,7 +56,6 @@ You should guarantee that the two input files are encoded in UTF-8.
 * The parsing algorithm is essentially LL(infinity), it is an exponential algorithm of course! So the program will get extremely slow when there is a mistake in a long line of rōmaji.
 * The long vowel `ō` is ambiguous in Hepburn romanization, which is interpreted to `ou` or `oo`. To resolve this, we always pick the former one. For example, `東京(Tōkyō)` is correctly translated to `とうきょう`, while `大阪(Ōsaka)` is wrongly translated to `おうさか`.
 * There are two `zu`s and `ji`s in romanization, namely `ずづ` and `じぢ` in hiragana respectively. We always pick `ずじ` when translating `zu` and `ji` into furigana. If you want `づぢ`, use `du(dzu)` and `di(dji)` instead.
-* Kana iteration mark `ゝ` and `ヽ` is not supported.
 * .. and other things.
 
 ## Document
@@ -63,3 +66,5 @@ Since I haven't find any potential users, so there will be no document available
 
 * Ambiguous `ō` warning.
 * Extended katakana support.
+* Kana iteration mark `ゝ` and `ヽ` support.
+

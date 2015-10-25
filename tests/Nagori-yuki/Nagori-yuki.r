@@ -1,26 +1,26 @@
-kisha wo matsu kimi no yoko de boku wa
-tokei wo ki ni shiteru
-kisetsu hazure no yuki ga futteru
-Tokyo de miru yuki wa kore ga saigo ne to
-samishisou ni kimi ga tsubuyaku
-nagori yuki mo furu toki wo shiri
-fuzakesugita kisetsu no ato de
-ima haru ga kite kimi wa kirei ni natta
+Kisha o matsu kimi no yoko de boku wa
+tokei o ki ni shi teru
+kisetsuhazure no yuki ga futteru
+Tōkyō de miru yuki wa kore ga saigo ne to
+samishisō ni kimi ga tsubuyaku
+nagori yuki mo furu toki o shiri
+fuzake sugita kisetsu no ato de
+ima harugakite kimi wa kirei ni natta
 kyonen yori zutto kirei ni natta
 
 ugokihajimeta kisha no mado ni
-kao wo tsukete
+kao o tsukete
 kimi wa nani ka iou to shite iru
-kimi no kuchibiru ga sayounara to ugoku koto ga
-kowakute shita wo muiteta
-toki ga yukeba osannai kimi mo
+kimi no kuchibiru ga sayōnara to ugoku koto ga
+kowakute shita o mui teta
+toki ga yukeba osanai kimi mo
 otona ni naru to kidzukanai mama
-ima haru ga ki te kimi wa kirei ni natta
+ima harugakite kimi wa kirei ni natta
 kyonen yori zutto kirei ni natta
 
-kimi ga satta HOOMU ni nokori
-ochite wa tokeru yuki wo mite ita
-ima haru ga kite kimi wa kirei ni natta
+kimi ga satta hōmu ni nokori
+ochite wa tokeru yuki o mite ita
+ima harugakite kimi wa kirei ni natta
 kyonen yori zutto kirei ni natta
 kyonen yori zutto kirei ni natta
 kyonen yori zutto kirei ni natta
