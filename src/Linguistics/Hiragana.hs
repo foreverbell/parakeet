@@ -2,6 +2,7 @@ module Linguistics.Hiragana (
   isNormal
 , isSmall
 , isSokuon
+, isIterationMark
 , isHiragana
 ) where
 
@@ -41,16 +42,20 @@ instance LexemeKana Hiragana where
 sokuon :: Char
 sokuon = 'っ'
 
+iterationMark :: Char
+iterationMark = 'ゝ'
+
 isNormal :: Char -> Bool
 isNormal = isJust . flip M.lookup chmap . return
 
 isSmall :: Char -> Bool
-isSmall c = c `elem` ['ぁ', 'ぃ', 'ぅ', 'ぇ', 'ぉ', 'っ', 'ゃ', 'ゅ', 'ょ', 'ゎ']
-    -- [0x3041, 0x3043, 0x3045, 0x3047, 0x3049, 0x3063, 0x3083, 0x3085, 0x3087, 0x308e, 0x3095, 0x3096] 
-    -- last two (3095, 3096) aren't commonly used in modern Japanese.
+isSmall c = c `elem` ['ぁ', 'ぃ', 'ぅ', 'ぇ', 'ぉ', 'っ', 'ゃ', 'ゅ', 'ょ', 'ゎ', 'ゕ', 'ゖ']
 
 isSokuon :: Char -> Bool
 isSokuon = (==) sokuon
 
+isIterationMark :: Char -> Bool
+isIterationMark = (==) iterationMark
+
 isHiragana :: Char -> Bool
-isHiragana c = isNormal c || isSmall c
+isHiragana c = isNormal c || isSmall c || isIterationMark c

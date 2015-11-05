@@ -2,6 +2,7 @@ module Linguistics.Katakana (
   isNormal
 , isSmall
 , isSokuon
+, isIterationMark
 , isKatakana
 ) where
 
@@ -43,15 +44,20 @@ instance LexemeKana Katakana where
 sokuon :: Char
 sokuon = 'ッ'
 
+iterationMark :: Char
+iterationMark = 'ヽ'
+
 isNormal :: Char -> Bool
 isNormal = isJust . flip M.lookup chmap . return
 
 isSmall :: Char -> Bool
 isSmall c = c `elem` ['ァ', 'ィ', 'ゥ', 'ェ', 'ォ', 'ッ', 'ャ', 'ュ', 'ョ', 'ヮ', 'ヵ', 'ヶ']
-    -- [0x30a1, 0x30a3, 0x30a5, 0x30a7, 0x30a9, 0x30c3, 0x30e3, 0x30e5, 0x30e7, 0x30ee, 0x30f5, 0x30f6]
 
 isSokuon :: Char -> Bool
 isSokuon = (==) sokuon
 
+isIterationMark :: Char -> Bool
+isIterationMark = (==) iterationMark
+
 isKatakana :: Char -> Bool
-isKatakana c = isNormal c || isSmall c
+isKatakana c = isNormal c || isSmall c || isIterationMark c
