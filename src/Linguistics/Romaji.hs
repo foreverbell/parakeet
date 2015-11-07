@@ -16,9 +16,9 @@ module Linguistics.Romaji (
 import           Data.Tuple (swap)
 import           Data.List (sort, group)
 import qualified Data.Map as M
-import           Data.Maybe (maybeToList, fromJust, fromMaybe)
+import           Data.Maybe (maybeToList, fromJust, fromMaybe, isNothing)
 import           Control.Arrow (second)
-import           Control.Monad (mzero)
+import           Control.Monad (mzero, guard)
 
 import           Linguistics.Lexeme (wrap, unwrap, toRLV, Hiragana, Katakana, Romaji, (<**>), (<$$>))
 import           Linguistics.Misc (isMacron, toMacron, unMacron, isVowel)
@@ -72,7 +72,7 @@ otherForms r = go <$$> r
   where go r = fromMaybe (return r) (M.lookup r otherMap)
 
 buildDakutenPairs :: [(Int, Int)] -> [(String, String)]
-buildDakutenPairs = concatMap convert 
+buildDakutenPairs = extend . concatMap convert 
   where
     nline = replicate 14 5 ++ [1] ++ replicate 11 3 :: [Int]
     prefix = zipWith (+) (0 : prefix) nline
@@ -81,6 +81,11 @@ buildDakutenPairs = concatMap convert
         count = nline !! l1
         offset1 = prefix !! (l1 - 1)
         offset2 = prefix !! (l2 - 1)
+    extend pairs = pairs ++ concatMap f pairs
+      where f (s1, s2) = do
+              x <- unwrap <$> toList (otherForms (wrap s1))
+              guard $ isNothing (lookup x pairs)
+              return (x, s2)
 
 dakutenMap :: M.Map String String
 dakutenMap = M.fromList $ buildDakutenPairs (dakutenPair1 ++ map swap dakutenPair3)

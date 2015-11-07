@@ -23,3 +23,8 @@ mābō$tōfu
 jijijijizuzuzuzu
 Ā, kyō mo owari ka.
 pubu
+Gakumon'nosusume
+Isuzu
+Dzutsu
+Dutsu
+Bubudzuke
