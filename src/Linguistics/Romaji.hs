@@ -2,13 +2,15 @@ module Linguistics.Romaji (
   chList
 , toKana
 , otherForms
+, dakutenize
+, unDakutenize
+, isSyllabicN
 , normSyllabicN
+, sokuonize
 , unSokuonize
+, longVowelize
 , unLongVowelize
 , factor
-, sokuonize
-, longVowelize
-, isSyllabicN
 ) where
 
 import           Data.Tuple (swap)
@@ -69,11 +71,55 @@ otherForms :: Romaji -> Choice Romaji
 otherForms r = go <$$> r
   where go r = fromMaybe (return r) (M.lookup r otherMap)
 
+buildDakutenPairs :: [(Int, Int)] -> [(String, String)]
+buildDakutenPairs = concatMap convert 
+  where
+    nline = replicate 14 5 ++ [1] ++ replicate 11 3 :: [Int]
+    prefix = zipWith (+) (0 : prefix) nline
+    convert (l1, l2) = map (\x -> (snd (hRaw !! (offset1 + x)), snd (hRaw !! (offset2 + x)))) [0 .. count - 1]
+      where 
+        count = nline !! l1
+        offset1 = prefix !! (l1 - 1)
+        offset2 = prefix !! (l2 - 1)
+
+dakutenMap :: M.Map String String
+dakutenMap = M.fromList $ buildDakutenPairs (dakutenPair1 ++ map swap dakutenPair3)
+
+unDakutenMap :: M.Map String String
+unDakutenMap = M.fromList $ buildDakutenPairs $ map swap (dakutenPair1 ++ dakutenPair2)
+
+dakutenPair1 = [(1, 2), (3, 4), (5, 6), (8, 9), (15, 16), (17, 18), (21, 22)] :: [(Int, Int)] -- (normal, dakuten)
+dakutenPair2 = [(8, 10), (21, 23)] :: [(Int, Int)] -- (normal, han-dakuten)
+dakutenPair3 = [(9, 10), (22, 23)] :: [(Int, Int)] -- (dakuten, han-dakuten)
+
+dakutenize :: Romaji -> Romaji
+dakutenize r = lookup <**> r
+  where lookup x = fromMaybe x (M.lookup x dakutenMap)
+
+unDakutenize :: Romaji -> Romaji
+unDakutenize r = lookup <**> r
+  where lookup x = fromMaybe x (M.lookup x unDakutenMap)
+
+isSyllabicN :: Romaji -> Bool
+isSyllabicN n = n `elem` toList (otherForms (wrap "n"))
+
 -- normalize syllabic n (take the first alphabet)
 normSyllabicN :: Romaji -> Romaji
 normSyllabicN r = if isSyllabicN r
     then return . head <**> r
     else r
+
+-- sokuonize a factorized romaji, chi -> tchi, ka -> kka, a -> a
+sokuonize :: [Romaji] -> [Romaji]
+sokuonize [] = []
+sokuonize r = (sokuonize' <$$> head r) ++ tail r
+  where 
+    sokuonize' [] = []
+    sokuonize' s@('c':'h':_) = ["t", s]
+    sokuonize' s@(c:_) | sokuonizable c = [[c], s]
+                         | otherwise      = [s]
+    sokuonizable c = c `notElem` "aiueonmrwy" -- ++ "gzdbh"
+    -- https://en.wikipedia.org/wiki/Sokuon
 
 unSokuonize :: Romaji -> Choice (Maybe Romaji, Romaji)
 unSokuonize r
@@ -81,6 +127,16 @@ unSokuonize r
   | mconcat (sokuonize [tail <**> r]) == r
       = return (Just (return . head <**> r), tail <**> r)
   | otherwise = return (Nothing, r)
+
+-- long vowelize a factorized romaji
+longVowelize :: Bool -> [Romaji] -> [Romaji]
+longVowelize _ [] = []
+longVowelize m r = init r ++ (longVowelize' <$$> last r)
+  where
+    longVowelize' [] = []
+    longVowelize' s | not (isVowel (last s)) = [s]
+                    | m                      = [init s ++ [fst $ toMacron (last s)]]
+                    | otherwise              = [s, [last s]] 
 
 unLongVowelize :: Romaji -> Choice (Maybe Romaji, Romaji)
 unLongVowelize r 
@@ -98,7 +154,7 @@ unLongVowelize r
     lastTo | lastDesugar == 'o' = fromList ['u', 'o']  -- ambiguous 'ō' -> ou
            | otherwise          = return lastDesugar
 
--- divide a Romaji with possible sokuon & macron into different parts, e.g. tchī -> [t, chi, i]
+-- factorize a romaji with possible sokuon & macron into different parts, e.g. tchī -> [t, chi, i]
 factor :: Romaji -> Choice [Romaji]
 factor r = do 
   (sokuonPart, next) <- unSokuonize r
@@ -106,26 +162,3 @@ factor r = do
   let normalized = if null longVowelPart then normalized' else toRLV normalized'
   return $ maybeToList sokuonPart ++ [normalized] ++ maybeToList longVowelPart
 
--- chi -> tchi, ka -> kka .. a -> a
-sokuonize :: [Romaji] -> [Romaji]
-sokuonize [] = []
-sokuonize r = (sokuonize' <$$> head r) ++ tail r
-  where 
-    sokuonize' [] = []
-    sokuonize' s@('c':'h':_) = ["t", s]
-    sokuonize' s@(c:_) | sokuonizable c = [[c], s]
-                         | otherwise      = [s]
-    sokuonizable c = c `notElem` "aiueonmrwy" -- ++ "gzdbh"
-    -- https://en.wikipedia.org/wiki/Sokuon
-
-longVowelize :: Bool -> [Romaji] -> [Romaji]
-longVowelize _ [] = []
-longVowelize m r = init r ++ (longVowelize' <$$> last r)
-  where
-    longVowelize' [] = []
-    longVowelize' s | not (isVowel (last s)) = [s]
-                    | m                      = [init s ++ [fst $ toMacron (last s)]]
-                    | otherwise              = [s, [last s]] 
-
-isSyllabicN :: Romaji -> Bool
-isSyllabicN n = n `elem` toList (otherForms (wrap "n"))

@@ -11,7 +11,7 @@ import           Data.Maybe (isJust)
 import qualified Data.Map as M
 
 import           Linguistics.Lexeme (LexemeKana(..), wrap, unwrap, Hiragana)
-import           Linguistics.Romaji (otherForms, sokuonize, isSyllabicN, toKana)
+import           Linguistics.Romaji (otherForms, dakutenize, unDakutenize, sokuonize, isSyllabicN, toKana)
 import           Linguistics.Internal (hRaw)
 import           Monad.Choice (fromMaybe, toMaybe)
 
@@ -22,8 +22,10 @@ instance LexemeKana Hiragana where
   toRomaji h = lookup (unwrap h)
     where
       lookup [] = mzero
-      lookup h@(x:xs) | isSokuon x = sokuonize <$> lookup xs
-                      | otherwise  = return <$> join (otherForms . wrap <$> fromMaybe (M.lookup h chmap))
+      lookup h | isSokuon (head h) = sokuonize <$> lookup (tail h)
+               | isIterationMark1 (last h) = (\xs -> xs ++ [unDakutenize (last xs)]) <$> lookup (init h)
+               | isIterationMark2 (last h) = (\xs -> xs ++ [dakutenize (last xs)]) <$> lookup (init h)
+               | otherwise  = return <$> join (otherForms . wrap <$> fromMaybe (M.lookup h chmap))
   
   fromRomaji hs = toMaybe <$> convert hs
     where
@@ -42,8 +44,8 @@ instance LexemeKana Hiragana where
 sokuon :: Char
 sokuon = 'っ'
 
-iterationMark :: Char
-iterationMark = 'ゝ'
+iterationMarks :: String
+iterationMarks = ['ゝ', 'ゞ']
 
 isNormal :: Char -> Bool
 isNormal = isJust . flip M.lookup chmap . return
@@ -55,7 +57,13 @@ isSokuon :: Char -> Bool
 isSokuon = (==) sokuon
 
 isIterationMark :: Char -> Bool
-isIterationMark = (==) iterationMark
+isIterationMark c = c `elem` iterationMarks
+
+isIterationMark1 :: Char -> Bool
+isIterationMark1 c = c == iterationMarks !! 0
+
+isIterationMark2 :: Char -> Bool
+isIterationMark2 c = c == iterationMarks !! 1
 
 isHiragana :: Char -> Bool
 isHiragana c = isNormal c || isSmall c || isIterationMark c

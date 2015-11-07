@@ -21,3 +21,5 @@ Kazukazu no saigai nimokakawarazu
 1984-Nen
 mābō$tōfu
 jijijijizuzuzuzu
+Ā, kyō mo owari ka.
+pubu

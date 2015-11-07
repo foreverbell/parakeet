@@ -14,8 +14,8 @@ import           Monad.Parakeet
 
 type Parser = ParsecT String () Parakeet
 
-concatM :: (Monad m) => m [a] -> m [a] -> m [a]
-concatM = liftM2 (++)
+concatM :: Monad m => [m [a]] -> m [a]
+concatM xs = foldl (liftM2 (++)) (return []) xs
 
 but :: (Char -> Bool) -> (Char -> Bool) -> (Char -> Bool)
 but p1 p2 c = p1 c && not (p2 c)
@@ -28,17 +28,19 @@ parse2 n s = do
     return [first, second]
 
 hiragana :: Parser L.Hiragana
-hiragana = L.wrap <$> sokuon `concatM` body
+hiragana = L.wrap <$> concatM [sokuon, body, itermark]
   where
     sokuon = option [] $ return <$> satisfy H.isSokuon
     body = parse2 H.isNormal (H.isSmall `but` H.isSokuon)
+    itermark = option [] $ return <$> satisfy H.isIterationMark
 
 katakana :: Parser L.Katakana
-katakana = L.wrap <$> sokuon `concatM` body `concatM` choonpu
+katakana = L.wrap <$> concatM [sokuon, body, choonpu <|> itermark]
   where
     sokuon = option [] $ return <$> satisfy K.isSokuon 
     body = parse2 K.isNormal (K.isSmall `but` K.isSokuon)
-    choonpu  = option [] $ return <$> satisfy M.isChoonpu
+    choonpu = option [] $ return <$> satisfy M.isChoonpu
+    itermark = option [] $ return <$> satisfy K.isIterationMark
 
 kanji :: Parser L.Kanji
 kanji = L.wrap <$> many1 (satisfy M.isKanji)

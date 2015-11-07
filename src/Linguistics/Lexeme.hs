@@ -10,22 +10,14 @@ module Linguistics.Lexeme (
 , Romaji
 , isRLV
 , toRLV
-, isHIM
-, toHIM
-, isKIM
-, toKIM
 ) where
 
 import Monad.Choice (Choice)
 
 newtype Lit = Lit String deriving (Show)
 newtype Kanji = Kanji String deriving (Show)
-data Hiragana = Hiragana String 
-              | HiraganaIM String -- hiragana iteration mark
-              deriving (Show)
-data Katakana = Katakana String 
-              | KatakanaIM String -- katakana iteration mark
-              deriving (Show)
+newtype Hiragana = Hiragana String deriving (Show)
+newtype Katakana = Katakana String deriving (Show)
 data Romaji = Romaji String 
             | RomajiLV String -- romaji with long vowel
             deriving (Show)
@@ -47,6 +39,7 @@ class Lexeme t where
   f <$$> t = wrap <$> f (unwrap t)
 
 class (Lexeme k) => LexemeKana k where
+  -- toRomaji k: sokuon ++ body ++ choonpu (katakana only) / itermark 
   toRomaji :: k -> Choice [Romaji] 
   fromRomaji :: [Romaji] -> [Maybe k] 
 
@@ -60,12 +53,10 @@ instance Lexeme Kanji where
 
 instance Lexeme Hiragana where
   unwrap (Hiragana t) = t
-  unwrap (HiraganaIM t) = t
   wrap = Hiragana
 
 instance Lexeme Katakana where
   unwrap (Katakana t) = t
-  unwrap (KatakanaIM t) = t
   wrap = Katakana
 
 instance Lexeme Romaji where
@@ -79,20 +70,6 @@ isRLV _            = False
 
 toRLV :: Romaji -> Romaji
 toRLV = RomajiLV . unwrap
-
-isHIM :: Hiragana -> Bool
-isHIM (HiraganaIM _) = True
-isHIM _              = False
-
-toHIM :: Hiragana -> Hiragana
-toHIM = HiraganaIM . unwrap
-
-isKIM :: Katakana -> Bool
-isKIM (KatakanaIM _) = True
-isKIM _              = False
-
-toKIM :: Katakana -> Katakana
-toKIM = KatakanaIM . unwrap
 
 instance Lexeme t => Monoid t where
   mempty = wrap []
