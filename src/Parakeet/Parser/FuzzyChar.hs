@@ -1,4 +1,4 @@
-module Parser.FuzzyChar (
+module Parakeet.Parser.FuzzyChar (
   fuzzyEq
 ) where
 

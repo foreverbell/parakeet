@@ -1,6 +1,6 @@
 {-# LANGUAGE FlexibleInstances, UndecidableInstances #-}
 
-module Linguistics.Lexeme (
+module Parakeet.Linguistics.Lexeme (
   Lexeme(..)
 , LexemeKana(..)
 , Lit
@@ -12,7 +12,7 @@ module Linguistics.Lexeme (
 , toRLV
 ) where
 
-import Monad.Choice (Choice)
+import Control.Monad.Choice (Choice)
 
 newtype Lit = Lit String deriving (Show)
 newtype Kanji = Kanji String deriving (Show)

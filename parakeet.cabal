@@ -25,7 +25,27 @@ executable parakeet
                        GeneralizedNewtypeDeriving,
                        FlexibleInstances,
                        UndecidableInstances
-  -- other-modules:       
+  other-modules:       
+    Control.Monad.Choice
+    Control.Monad.Parakeet
+    Parakeet.Linguistics.Hiragana
+    Parakeet.Linguistics.Internal
+    Parakeet.Linguistics.Katakana
+    Parakeet.Linguistics.Lexeme
+    Parakeet.Linguistics.Misc
+    Parakeet.Linguistics.Romaji
+    Parakeet.Options
+    Parakeet.Parser.FlatToken
+    Parakeet.Parser.FuzzyChar
+    Parakeet.Parser.MetaInfo
+    Parakeet.Parser.Parser
+    Parakeet.Parser.Stage0
+    Parakeet.Parser.Stage1
+    Parakeet.Parser.Stage2
+    Parakeet.Parser.Token
+    Parakeet.Translator.Intermediate
+    Parakeet.Translator.Tex
+    System.IO.UTF8
   build-depends: 
     base           == 4.8.*,
     text           == 1.2.*, 

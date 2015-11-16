@@ -1,16 +1,16 @@
-module Parser.Stage0 (
+module Parakeet.Parser.Stage0 (
   stage0
 ) where
 
 import           Text.Parsec
 import           Control.Monad (liftM2, void)
+import           Control.Monad.Parakeet 
 
-import           Parser.Stage1 (TokenBox(..))
-import qualified Linguistics.Lexeme as L
-import qualified Linguistics.Hiragana as H
-import qualified Linguistics.Katakana as K
-import qualified Linguistics.Misc as M
-import           Monad.Parakeet 
+import           Parakeet.Parser.Stage1 (TokenBox(..))
+import qualified Parakeet.Linguistics.Lexeme as L
+import qualified Parakeet.Linguistics.Hiragana as H
+import qualified Parakeet.Linguistics.Katakana as K
+import qualified Parakeet.Linguistics.Misc as M
 
 type Parser = ParsecT String () Parakeet
 

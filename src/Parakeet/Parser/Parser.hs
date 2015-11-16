@@ -1,20 +1,20 @@
-module Parser.Parser (
+module Parakeet.Parser.Parser (
   parse
 ) where
 
 import Text.Parsec hiding (parse)
 import Control.Monad.Reader (asks)
 import Control.Monad.Except (throwError)
+import Control.Monad.Parakeet (Parakeet)
 import Data.Char (toLower, isSpace)
 import Data.List (isPrefixOf, zipWith4)
 
-import Monad.Parakeet (Parakeet)
-import Options (Options(..))
-import Parser.Stage0 (stage0)
-import Parser.Stage1 (stage1)
-import Parser.Stage2 (stage2)
-import Parser.FlatToken (FlatToken(..), flatten)
-import Parser.MetaInfo (MetaInfo(..), Author(..), Title(..))
+import Parakeet.Options (Options(..))
+import Parakeet.Parser.Stage0 (stage0)
+import Parakeet.Parser.Stage1 (stage1)
+import Parakeet.Parser.Stage2 (stage2)
+import Parakeet.Parser.FlatToken (FlatToken(..), flatten)
+import Parakeet.Parser.MetaInfo (MetaInfo(..), Author(..), Title(..))
 
 setLine l = do
   pos <- getPosition

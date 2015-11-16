@@ -1,14 +1,14 @@
-module Parser.Stage2 (
+module Parakeet.Parser.Stage2 (
   stage2
 ) where
 
 import           Control.Monad (when)
 import           Control.Monad.Except (throwError)
+import           Control.Monad.Parakeet
 
-import           Parser.Token
-import           Monad.Parakeet
-import qualified Linguistics.Lexeme as L
-import           Linguistics.Romaji (longVowelize)
+import           Parakeet.Parser.Token
+import qualified Parakeet.Linguistics.Lexeme as L
+import           Parakeet.Linguistics.Romaji (longVowelize)
 
 splitToken :: Token -> ([L.Romaji] -> Token, [L.Romaji])
 splitToken token = case token of

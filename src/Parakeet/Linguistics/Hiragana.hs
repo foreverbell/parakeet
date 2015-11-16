@@ -1,4 +1,4 @@
-module Linguistics.Hiragana (
+module Parakeet.Linguistics.Hiragana (
   isNormal
 , isSmall
 , isSokuon
@@ -7,13 +7,13 @@ module Linguistics.Hiragana (
 ) where
 
 import           Control.Monad (guard, msum, mzero, join)
+import           Control.Monad.Choice (fromMaybe, toMaybe)
 import           Data.Maybe (isJust)
 import qualified Data.Map as M
 
-import           Linguistics.Lexeme (LexemeKana(..), wrap, unwrap, Hiragana)
-import           Linguistics.Romaji (otherForms, dakutenize, unDakutenize, sokuonize, isSyllabicN, toKana)
-import           Linguistics.Internal (hRaw)
-import           Monad.Choice (fromMaybe, toMaybe)
+import           Parakeet.Linguistics.Lexeme (LexemeKana(..), wrap, unwrap, Hiragana)
+import           Parakeet.Linguistics.Romaji (otherForms, dakutenize, unDakutenize, sokuonize, isSyllabicN, toKana)
+import           Parakeet.Linguistics.Internal (hRaw)
 
 chmap :: M.Map String String
 chmap = M.fromList hRaw

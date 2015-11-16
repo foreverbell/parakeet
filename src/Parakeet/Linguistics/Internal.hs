@@ -1,4 +1,4 @@
-module Linguistics.Internal (
+module Parakeet.Linguistics.Internal (
   hRaw,
   kRaw
 ) where

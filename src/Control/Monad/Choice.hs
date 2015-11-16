@@ -1,4 +1,4 @@
-module Monad.Choice (
+module Control.Monad.Choice (
   Choice
 , fromList
 , fromList'

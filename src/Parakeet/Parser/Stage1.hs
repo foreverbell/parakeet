@@ -1,26 +1,26 @@
 {-# LANGUAGE ExistentialQuantification #-}
 
-module Parser.Stage1 (
+module Parakeet.Parser.Stage1 (
   stage1
 , TokenBox(..)
 ) where
 
 import           Text.Parsec
 import           Control.Monad (forM_, void, mzero, guard, replicateM)
+import           Control.Monad.Choice (foremost, toList, strip)
+import           Control.Monad.Parakeet
 import           Data.Char (toLower, isSpace)
 import           Data.List (sortBy, nub, intercalate)
 import           Data.Function (on)
 import           Prelude hiding (break)
 
-import qualified Linguistics.Lexeme as L
-import           Linguistics.Hiragana ()
-import           Linguistics.Katakana ()
-import qualified Linguistics.Romaji as R
-import qualified Linguistics.Misc as M
-import           Monad.Choice (foremost, toList, strip)
-import           Monad.Parakeet
-import           Parser.FuzzyChar (fuzzyEq)
-import qualified Parser.Token as T
+import qualified Parakeet.Linguistics.Lexeme as L
+import           Parakeet.Linguistics.Hiragana ()
+import           Parakeet.Linguistics.Katakana ()
+import qualified Parakeet.Linguistics.Romaji as R
+import qualified Parakeet.Linguistics.Misc as M
+import           Parakeet.Parser.FuzzyChar (fuzzyEq)
+import qualified Parakeet.Parser.Token as T
 
 type Parser = ParsecT String [TokenBox] Parakeet
 

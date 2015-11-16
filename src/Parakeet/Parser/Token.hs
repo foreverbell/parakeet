@@ -1,8 +1,8 @@
-module Parser.Token (
+module Parakeet.Parser.Token (
   Token(..)
 ) where
 
-import qualified Linguistics.Lexeme as Lexeme
+import qualified Parakeet.Linguistics.Lexeme as Lexeme
 
 data Token
     = Line

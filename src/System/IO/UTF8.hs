@@ -1,4 +1,4 @@
-module UTF8IO (
+module System.IO.UTF8 (
   readFile
 , writeFile
 ) where

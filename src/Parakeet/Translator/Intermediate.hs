@@ -1,20 +1,20 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Translator.Intermediate (
+module Parakeet.Translator.Intermediate (
   intermediate
 ) where
 
 import           Control.Monad.Reader (asks)
+import           Control.Monad.Parakeet (Parakeet)
 import           Control.Monad (forM)
 import qualified Data.Text.Lazy as T
 import           Data.Text.Lazy (Text)
 import           Text.Printf (printf)
 import           Prelude hiding (print)
 
-import           Parser.FlatToken (FlatToken(..))
-import           Parser.MetaInfo (MetaInfo(..), getTitle, getAuthor)
-import           Monad.Parakeet (Parakeet)
-import           Options (Options(..))
+import           Parakeet.Parser.FlatToken (FlatToken(..))
+import           Parakeet.Parser.MetaInfo (MetaInfo(..), getTitle, getAuthor)
+import           Parakeet.Options (Options(..))
 
 escape :: String -> String
 escape [] = []

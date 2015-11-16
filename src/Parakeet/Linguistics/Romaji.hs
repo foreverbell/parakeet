@@ -1,4 +1,4 @@
-module Linguistics.Romaji (
+module Parakeet.Linguistics.Romaji (
   chList
 , toKana
 , otherForms
@@ -19,11 +19,11 @@ import qualified Data.Map as M
 import           Data.Maybe (maybeToList, fromJust, fromMaybe, isNothing)
 import           Control.Arrow (second)
 import           Control.Monad (mzero, guard)
+import           Control.Monad.Choice (Choice, fromList, toList)
 
-import           Linguistics.Lexeme (wrap, unwrap, toRLV, Hiragana, Katakana, Romaji, (<**>), (<$$>))
-import           Linguistics.Misc (isMacron, toMacron, unMacron, isVowel)
-import           Linguistics.Internal (hRaw, kRaw)
-import           Monad.Choice (Choice, fromList, toList)
+import           Parakeet.Linguistics.Lexeme (wrap, unwrap, toRLV, Hiragana, Katakana, Romaji, (<**>), (<$$>))
+import           Parakeet.Linguistics.Misc (isMacron, toMacron, unMacron, isVowel)
+import           Parakeet.Linguistics.Internal (hRaw, kRaw)
 
 chList :: [Romaji]
 chList = nub' $ concatMap (toList . otherForms . wrap . snd) $ hRaw ++ kRaw

@@ -1,4 +1,4 @@
-module Linguistics.Misc (
+module Parakeet.Linguistics.Misc (
   isKanji
 , isChoonpu
 , isMacron

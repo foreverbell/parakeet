@@ -1,6 +1,6 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
-module Monad.Parakeet (
+module Control.Monad.Parakeet (
   Parakeet
 , runParakeet
 ) where
@@ -10,7 +10,7 @@ import Control.Monad.Reader (ReaderT(..), runReaderT)
 import Control.Monad.Identity (Identity, runIdentity)
 import Control.Monad.Reader.Class (MonadReader(..))
 
-import Options (Options(..))
+import Parakeet.Options (Options(..))
 
 newtype Parakeet a = Parakeet (ReaderT Options (ExceptT String Identity) a) 
   deriving ( Functor

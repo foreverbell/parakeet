@@ -1,4 +1,4 @@
-module Options (
+module Parakeet.Options (
   Options(..)
 , OutputFormat(..)
 , FuriganaFormat(..)
@@ -8,7 +8,7 @@ module Options (
 import           System.Console.GetOpt (getOpt, usageInfo, ArgOrder(..), OptDescr(..), ArgDescr(..))
 import           Control.Monad (when)
 
-import qualified UTF8IO as IO
+import qualified System.IO.UTF8 as IO
 
 data OutputFormat = InTex | InBareTex | InIntermediate deriving (Eq)
 data FuriganaFormat = InDefault | InHiragana | InKatakana deriving (Eq)

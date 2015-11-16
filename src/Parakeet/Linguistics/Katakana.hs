@@ -1,4 +1,4 @@
-module Linguistics.Katakana (
+module Parakeet.Linguistics.Katakana (
   isNormal
 , isSmall
 , isSokuon
@@ -7,14 +7,14 @@ module Linguistics.Katakana (
 ) where
 
 import           Control.Monad (guard, msum, mzero, join)
+import           Control.Monad.Choice (fromMaybe, toMaybe)
 import           Data.Maybe (isJust)
 import qualified Data.Map as M
 
-import           Linguistics.Lexeme (LexemeKana(..), wrap, unwrap, Katakana)
-import           Linguistics.Romaji (otherForms, dakutenize, unDakutenize, sokuonize, longVowelize, isSyllabicN, toKana)
-import           Linguistics.Misc (isChoonpu)
-import           Linguistics.Internal (kRaw)
-import           Monad.Choice (fromMaybe, toMaybe)
+import           Parakeet.Linguistics.Lexeme (LexemeKana(..), wrap, unwrap, Katakana)
+import           Parakeet.Linguistics.Romaji (otherForms, dakutenize, unDakutenize, sokuonize, longVowelize, isSyllabicN, toKana)
+import           Parakeet.Linguistics.Misc (isChoonpu)
+import           Parakeet.Linguistics.Internal (kRaw)
 
 chmap :: M.Map String String
 chmap = M.fromList kRaw

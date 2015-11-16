@@ -1,16 +1,16 @@
-module Parser.FlatToken (
+module Parakeet.Parser.FlatToken (
   FlatToken(..)
 , flatten
 ) where
 
 import           Control.Monad.Reader (asks)
+import           Control.Monad.Parakeet (Parakeet)
 
-import qualified Parser.Token as Token
-import qualified Linguistics.Lexeme as L
-import           Linguistics.Hiragana ()
-import           Linguistics.Katakana ()
-import           Options (Options(..), FuriganaFormat(..))
-import           Monad.Parakeet (Parakeet)
+import qualified Parakeet.Parser.Token as Token
+import qualified Parakeet.Linguistics.Lexeme as L
+import           Parakeet.Linguistics.Hiragana ()
+import           Parakeet.Linguistics.Katakana ()
+import           Parakeet.Options (Options(..), FuriganaFormat(..))
 
 data FlatToken
     = Line

@@ -1,4 +1,4 @@
-module Parser.MetaInfo (
+module Parakeet.Parser.MetaInfo (
   Author(..)
 , Title(..)
 , MetaInfo(..)
@@ -7,7 +7,7 @@ module Parser.MetaInfo (
 , getLitAuthor
 ) where
 
-import Parser.FlatToken
+import Parakeet.Parser.FlatToken
 
 newtype Title = Title [FlatToken] deriving (Show)
 newtype Author = Author ([FlatToken], [FlatToken]) deriving (Show)
