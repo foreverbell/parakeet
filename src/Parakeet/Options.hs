@@ -6,12 +6,12 @@ module Parakeet.Options (
 ) where
 
 import           System.Console.GetOpt (getOpt, usageInfo, ArgOrder(..), OptDescr(..), ArgDescr(..))
-import           Control.Monad (when)
-
 import qualified System.IO.UTF8 as IO
+import           Control.Monad (when)
+import           Data.Char.Extra (toLower)
 
 data OutputFormat = InTex | InBareTex | InIntermediate deriving (Eq)
-data FuriganaFormat = InDefault | InHiragana | InKatakana deriving (Eq)
+data FuriganaFormat = InHiragana | InKatakana deriving (Eq)
 
 data Options = Options {
   optContent    :: (String, String)
@@ -19,10 +19,12 @@ data Options = Options {
 , optRInputFile :: FilePath
 , optOutputIO   :: String -> IO ()
 , optOutput     :: OutputFormat
+, optFurigana   :: FuriganaFormat
+, optMincho     :: String
+, optGothic     :: String
 , optShowBreak  :: Bool
 , optNoMetaInfo :: Bool
 , optKeepLV     :: Bool
-, optFurigana   :: FuriganaFormat
 }
 
 initOptions :: Options 
@@ -32,26 +34,40 @@ initOptions = Options {
 , optRInputFile = []
 , optOutputIO   = putStr
 , optOutput     = InTex
+, optFurigana   = InHiragana
+, optMincho     = "MS Mincho"
+, optGothic     = "MS Gothic"
 , optShowBreak  = False
 , optNoMetaInfo = False
 , optKeepLV     = False
-, optFurigana   = InDefault
 }
 
 bindJInputFile a o = return o { optJInputFile = a }
 
 bindRInputFile a o = return o { optRInputFile = a }
 
-bindOutputIO   a o = return o { optOutputIO   = IO.writeFile a }
+bindOutputIO a o = return o { optOutputIO   = IO.writeFile a }
 
-bindFormat     a o = do
+bindFormat a o = do
   f <- format
   return $ o { optOutput = f } 
-  where format = case a of
+  where format = case toLower a of
           "tex"          -> return InTex
           "baretex"      -> return InBareTex
           "intermediate" -> return InIntermediate
           _              -> die "Bad output format"
+
+bindFurigana a o = do
+  f <- format
+  return $ o { optFurigana = f }
+  where format = case toLower a of
+          "hiragana" -> return InHiragana
+          "katakana" -> return InKatakana
+          _          -> die "Bad furigana format"
+
+bindMincho a o = return $ o { optMincho = a }
+
+bindGothic a o = return $ o { optGothic = a }
 
 setShowBreak o = return o { optShowBreak = True }
 
@@ -59,29 +75,18 @@ setNoMetaInfo o = return o { optNoMetaInfo = True }
 
 setKeepLV o = return o { optKeepLV = True }
 
-setHiragana o = do
-  when (f == InKatakana) $ die furiganaError
-  return o { optFurigana = InHiragana }
-  where f = optFurigana o
-
-setKatakana o = do
-  when (f == InHiragana) $ die furiganaError
-  return o { optFurigana = InKatakana }
-  where f = optFurigana o
-
-furiganaError = "Furigana option conflict"
-
 options :: [OptDescr (Options -> IO Options)]
 options = 
   [ Option ['j'] ["japanese"]   (ReqArg bindJInputFile "FILE") "japanese input file"
   , Option ['r'] ["romaji"]     (ReqArg bindRInputFile "FILE") "romaji input file"
   , Option ['o'] ["output"]     (ReqArg bindOutputIO   "FILE") "output file (default stdout)"
-  , Option [   ] ["format"]     (ReqArg bindFormat   "FORMAT") "output format, options: tex (default), baretex or intermediate" 
+  , Option [   ] ["format"]     (ReqArg bindFormat   "FORMAT") "output format: tex (default) | baretex | intermediate" 
+  , Option [   ] ["furigana"]   (ReqArg bindFurigana "FORMAT") "furigana format: hiragana (default) | katakana"
+  , Option [   ] ["mincho"]     (ReqArg bindMincho     "FONT") "mincho font for tex output, \"MS Mincho\" by default"
+  , Option [   ] ["gothic"]     (ReqArg bindGothic     "FONT") "gothic font for tex output, \"MS Gothic\" by default"
   , Option [   ] ["show-break"] (NoArg  setShowBreak         ) "show break from romaji file"
   , Option [   ] ["no-meta"]    (NoArg  setNoMetaInfo        ) "ignore metainfo (title & author)"
   , Option [   ] ["keep-lv"]    (NoArg  setKeepLV            ) "keep long vowel macron in output"
-  , Option [   ] ["hiragana"]   (NoArg  setHiragana          ) "set furigana format to hiragana (default)"
-  , Option [   ] ["katakana"]   (NoArg  setKatakana          ) "set furigana format to katakana"
   ]
 
 die :: String -> IO a

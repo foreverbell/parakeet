@@ -30,8 +30,7 @@ template = [r|
 \usepackage{xeCJK}
 \usepackage{ruby}
 
-\setCJKmainfont{MS Mincho}
-\setCJKsansfont{MS Gothic}
+$font$
 
 \linespread{2.0}
 \setlength\parindent{0.0pt}
@@ -104,6 +103,8 @@ texBare (meta, tokens) = do
 
 tex :: (Maybe MetaInfo, [FlatToken]) -> Parakeet Text
 tex (meta, tokens) = do
+  mincho <- asks optMincho
+  gothic <- asks optGothic
   title  <- maybe (return T.empty) (texifyTitle . getTitle) meta
   -- TODO: using lit author is workaround, since ruby is not well supported in \author{ }
   author <- maybe (return T.empty) (texifyAuthor . getLitAuthor) meta
@@ -112,6 +113,7 @@ tex (meta, tokens) = do
   return $ T.unlines $ flip fmap tmpl $ \t -> 
     case t of
       "$metainfo$" -> T.concat [title, "\n", author, "\n", date]
+      "$font$"     -> T.concat [T.pack $ printf "\\setCJKmainfont{%s}" mincho, "\n", T.pack $ printf "\\setCJKsansfont{%s}" gothic]
       "$body$"     -> maybe T.empty (const "\\maketitle\n\n") meta `T.append` body
       _            -> t 
   where tmpl = header : map (T.filter (/= '\r')) (T.lines template)

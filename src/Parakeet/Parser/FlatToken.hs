@@ -30,7 +30,7 @@ flatten (Token.Kanji k hs ks r) = do
   furigana <- asks optFurigana
   let kana = case furigana of
         InKatakana -> map L.unwrap ks
-        _          -> map L.unwrap hs
+        InHiragana -> map L.unwrap hs
   return $ Kanji (L.unwrap k) kana romaji
 flatten (Token.Hiragana h r) = return $ Hiragana (L.unwrap h) (map L.unwrap r)
 flatten (Token.Katakana k r) = return $ Katakana (L.unwrap k) (map L.unwrap r)

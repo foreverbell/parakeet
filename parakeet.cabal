@@ -28,6 +28,7 @@ executable parakeet
   other-modules:       
     Control.Monad.Choice
     Control.Monad.Parakeet
+    Data.Char.Extra
     Parakeet.Linguistics.Hiragana
     Parakeet.Linguistics.Internal
     Parakeet.Linguistics.Katakana

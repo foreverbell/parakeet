@@ -6,7 +6,8 @@ import Text.Parsec hiding (parse)
 import Control.Monad.Reader (asks)
 import Control.Monad.Except (throwError)
 import Control.Monad.Parakeet (Parakeet)
-import Data.Char (toLower, isSpace)
+import Data.Char (isSpace)
+import Data.Char.Extra (toLower)
 import Data.List (isPrefixOf, zipWith4)
 
 import Parakeet.Options (Options(..))
@@ -27,7 +28,7 @@ parseLine lj lr j r = do
   jf <- asks optJInputFile
   rf <- asks optRInputFile
   wd <- test =<< runParserT (setLine lj >> stage0) () jf j
-  tk <- stage2' =<< test =<< runParserT (setLine lr >> stage1) wd rf (map toLower r)
+  tk <- stage2' =<< test =<< runParserT (setLine lr >> stage1) wd rf (toLower r)
   sequence $ flatten <$> tk
   where test = either (throwError . show) return
         -- errPos f l = "\"" ++ f ++ "\"" ++ " (line " ++ show (l :: Line) ++ ")"
