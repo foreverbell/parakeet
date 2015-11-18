@@ -19,12 +19,12 @@ splitToken token = case token of
   Hiragana h rs -> (Hiragana h, rs)
   Katakana k rs -> (Katakana k, rs)
 
--- parameter description:
--- if the next romaji is the part of a long vowel;
--- token builder;
--- the romajis to be processed of the current token;
--- the processed romajis of the current token;
--- the remaining tokens to be processed.
+-- Parameter description:
+-- If the next romaji is the part of a long vowel;
+-- Token builder;
+-- Romajis to be processed of the current token;
+-- Processed romajis of the current token;
+-- Remaining tokens to be processed.
 substitute :: Bool -> ([L.Romaji] -> Token) -> [L.Romaji] -> [L.Romaji] -> [Token] -> Parakeet [Token]
 substitute False builder [] done [] = return [builder (reverse done)] 
 

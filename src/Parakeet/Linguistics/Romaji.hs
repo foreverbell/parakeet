@@ -108,13 +108,13 @@ unDakutenize r = lookup <**> r
 isSyllabicN :: Romaji -> Bool
 isSyllabicN n = n `elem` toList (otherForms (wrap "n"))
 
--- normalize syllabic n (take the first alphabet)
+-- | Normalize syllabic n (take the first alphabet).
 normSyllabicN :: Romaji -> Romaji
 normSyllabicN r = if isSyllabicN r
     then return . head <**> r
     else r
 
--- sokuonize a factorized romaji, chi -> tchi, ka -> kka, a -> a
+-- | Sokuonize a factorized romaji, chi -> tchi, ka -> kka, a -> a.
 sokuonize :: [Romaji] -> [Romaji]
 sokuonize [] = []
 sokuonize r = (sokuonize' <$$> head r) ++ tail r
@@ -133,7 +133,7 @@ unSokuonize r
       = return (Just (return . head <**> r), tail <**> r)
   | otherwise = return (Nothing, r)
 
--- long vowelize a factorized romaji
+-- | Long vowelize a factorized romaji.
 longVowelize :: Bool -> [Romaji] -> [Romaji]
 longVowelize _ [] = []
 longVowelize m r = init r ++ (longVowelize' <$$> last r)
@@ -149,7 +149,6 @@ unLongVowelize r
   | isMacron lastOne = do
       to <- lastTo
       return (Just (wrap [to]), wrap $ exceptLast ++ [lastDesugar])
---  | length (unwrap r) >= 2 && isVowel lastOne && isVowel sndLast = return (Just (wrap [lastOne]), wrap exceptLast)
   | otherwise = return (Nothing, r)
   where
     lastOne = last $ unwrap r
@@ -159,7 +158,7 @@ unLongVowelize r
     lastTo | lastDesugar == 'o' = fromList ['u', 'o']  -- ambiguous 'ō' -> ou
            | otherwise          = return lastDesugar
 
--- factorize a romaji with possible sokuon & macron into different parts, e.g. tchī -> [t, chi, i]
+-- | Factorize a romaji with possible sokuon & macron into different parts, e.g. tchī -> [t, chi, i].
 factor :: Romaji -> Choice [Romaji]
 factor r = do 
   (sokuonPart, next) <- unSokuonize r

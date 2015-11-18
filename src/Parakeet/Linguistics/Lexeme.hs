@@ -39,7 +39,7 @@ class Lexeme t where
   f <$$> t = wrap <$> f (unwrap t)
 
 class (Lexeme k) => LexemeKana k where
-  -- toRomaji k: sokuon ++ body ++ choonpu (katakana only) / itermark 
+  -- | toRomaji k: sokuon ++ body ++ choonpu (katakana only) / itermark 
   toRomaji :: k -> Choice [Romaji] 
   fromRomaji :: [Romaji] -> [Maybe k] 
 

@@ -46,7 +46,7 @@ bindJInputFile a o = return o { optJInputFile = a }
 
 bindRInputFile a o = return o { optRInputFile = a }
 
-bindOutputIO a o = return o { optOutputIO   = IO.writeFile a }
+bindOutputIO a o = return o { optOutputIO = IO.writeFile a }
 
 bindFormat a o = do
   f <- format

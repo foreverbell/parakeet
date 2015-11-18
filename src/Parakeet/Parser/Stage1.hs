@@ -10,6 +10,7 @@ import           Control.Monad (forM_, void, mzero, guard, replicateM)
 import           Control.Monad.Choice (foremost, toList, strip)
 import           Control.Monad.Parakeet
 import           Data.Char (toLower, isSpace)
+import           Data.Char.Fuzzy (fuzzyEq)
 import           Data.List (sortBy, nub, intercalate)
 import           Data.Function (on)
 import           Prelude hiding (break)
@@ -19,7 +20,6 @@ import           Parakeet.Linguistics.Hiragana ()
 import           Parakeet.Linguistics.Katakana ()
 import qualified Parakeet.Linguistics.Romaji as R
 import qualified Parakeet.Linguistics.Misc as M
-import           Parakeet.Parser.FuzzyChar (fuzzyEq)
 import qualified Parakeet.Parser.Token as T
 
 type Parser = ParsecT String [TokenBox] Parakeet

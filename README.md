@@ -29,7 +29,7 @@ To build, at least ghc **7.10.2** is required.
 $ cabal install parakeet.cabal
 ```
 
-For stack users,  **lts-3.9** resolver is recommended.
+For stack users,  **lts-3.13** resolver is recommended.
 
 ## Development
 
@@ -53,7 +53,7 @@ You should guarantee that the two input files are encoded in UTF-8.
 
 ## Limitations
 
-* The parsing algorithm is essentially LL(infinity), it is an exponential algorithm of course! So the program will get extremely slow when there is a mistake in a long line of rōmaji.
+* The parsing algorithm is essentially LL(infinity), it is an exponential algorithm of course! So the program will get extremely slow when there is a mistake in a long line of rōmaji. A proper use of separator `$` can avoid this trap.
 * The long vowel `ō` is ambiguous in Hepburn romanization, which is interpreted to `ou` or `oo`. To resolve this, we always pick the former one. For example, `東京(Tōkyō)` is correctly translated to `とうきょう`, while `大阪(Ōsaka)` is wrongly translated to `おうさか`.
 * There are two `zu`s and `ji`s in romanization, namely `ずづ` and `じぢ` in hiragana respectively. We always pick `ずじ` when translating `zu` and `ji` into furigana. If you want `づぢ`, use `du(dzu)` and `di(dji)` instead.
 * .. and other things.
@@ -66,3 +66,5 @@ Since I haven't find any potential users, so there will be no document available
 
 * Ambiguous `ō` warning.
 * Extended katakana support.
+* Exception type for robustness.
+* Library?

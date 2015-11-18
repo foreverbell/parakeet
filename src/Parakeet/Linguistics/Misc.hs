@@ -13,32 +13,31 @@ import Data.Char (ord)
 import Data.List (find)
 
 isKanji :: Char -> Bool
-isKanji = (\x -> (x >= 0x4e00 && x <= 0x9fbf) || x ==  0x3005) . ord
--- 0x3005 is kanji iteration mark
+isKanji = (\x -> (x >= 0x4e00 && x <= 0x9fbf) || x ==  0x3005) . ord -- 0x3005 is kanji iteration mark
 
 isChoonpu :: Char -> Bool 
 isChoonpu = (==) 'ー'
 
-macrons = [ ("āâ", 'a')
-          , ("īî", 'i')
-          , ("ūû", 'u')
-          , ("ēê", 'e')
-          , ("ōô", 'o')
+macrons :: [((Char, Char), Char)]
+macrons = [ (('ā', 'â'), 'a')
+          , (('ī', 'î'), 'i')
+          , (('ū', 'û'), 'u')
+          , (('ē', 'ê'), 'e')
+          , (('ō', 'ô'), 'o')
           ]
 
 isMacron :: Char -> Bool
-isMacron c = c `elem` concatMap fst macrons
+isMacron c = c `elem` concatMap ((\(a, b) -> [a, b]) . fst) macrons
 
 unMacron :: Char -> Char
-unMacron c = case find (\(a, _) -> c `elem` a) macrons of 
+unMacron c = case find (\((a1, a2), _) -> c == a1 || c == a2) macrons of 
   Just (_, b) -> b
   Nothing -> c
 
 toMacron :: Char -> (Char, Char)
 toMacron c = case find (\(_, b) -> b == c) macrons of 
-  Just ([a1, a2], _) -> (a1, a2)
+  Just (a, _) -> a
   Nothing -> (c, c)
-  _ -> undefined -- never be here
 
 isVowel :: Char -> Bool
 isVowel c = c `elem` "aiueo"

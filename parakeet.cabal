@@ -29,6 +29,7 @@ executable parakeet
     Control.Monad.Choice
     Control.Monad.Parakeet
     Data.Char.Extra
+    Data.Char.Fuzzy
     Parakeet.Linguistics.Hiragana
     Parakeet.Linguistics.Internal
     Parakeet.Linguistics.Katakana
@@ -37,7 +38,6 @@ executable parakeet
     Parakeet.Linguistics.Romaji
     Parakeet.Options
     Parakeet.Parser.FlatToken
-    Parakeet.Parser.FuzzyChar
     Parakeet.Parser.MetaInfo
     Parakeet.Parser.Parser
     Parakeet.Parser.Stage0
