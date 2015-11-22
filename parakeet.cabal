@@ -3,7 +3,7 @@
 
 name:                parakeet
 version:             0.1.0.0
-synopsis:            Hepburn Rōmaji + Japanese lexical analysis & formatting.
+synopsis:            Hepburn Romaji + Japanese lexical analysis & formatting.
 -- description:         
 homepage:            https://github.com/foreverbell/parakeet
 license:             MIT
@@ -27,25 +27,27 @@ executable parakeet
                        UndecidableInstances
   other-modules:       
     Control.Monad.Choice
+    Control.Monad.Extra
     Control.Monad.Parakeet
     Data.Char.Extra
     Data.Char.Fuzzy
     Parakeet.Linguistics.Hiragana
     Parakeet.Linguistics.Internal
     Parakeet.Linguistics.Katakana
-    Parakeet.Linguistics.Lexeme
     Parakeet.Linguistics.Misc
     Parakeet.Linguistics.Romaji
     Parakeet.Options
-    Parakeet.Parser.FlatToken
-    Parakeet.Parser.MetaInfo
     Parakeet.Parser.Parser
     Parakeet.Parser.Stage0
     Parakeet.Parser.Stage1
     Parakeet.Parser.Stage2
-    Parakeet.Parser.Token
     Parakeet.Translator.Intermediate
     Parakeet.Translator.Tex
+    Parakeet.Types.FlatToken
+    Parakeet.Types.Lexeme
+    Parakeet.Types.MetaInfo
+    Parakeet.Types.Options
+    Parakeet.Types.Token
     System.IO.UTF8
   build-depends: 
     base           == 4.8.*,

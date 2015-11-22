@@ -11,7 +11,7 @@ import           Control.Monad.Choice (fromMaybe, toMaybe)
 import           Data.Maybe (isJust)
 import qualified Data.Map as M
 
-import           Parakeet.Linguistics.Lexeme (LexemeKana(..), wrap, unwrap, Hiragana)
+import           Parakeet.Types.Lexeme (LexemeKana(..), wrap, unwrap, Hiragana)
 import           Parakeet.Linguistics.Romaji (otherForms, dakutenize, unDakutenize, sokuonize, isSyllabicN, toKana)
 import           Parakeet.Linguistics.Internal (hRaw)
 

@@ -2,20 +2,22 @@ module Parakeet.Parser.Parser (
   parse
 ) where
 
-import Text.Parsec hiding (parse)
-import Control.Monad.Reader (asks)
-import Control.Monad.Except (throwError)
-import Control.Monad.Parakeet (Parakeet)
-import Data.Char (isSpace)
-import Data.Char.Extra (toLower)
-import Data.List (isPrefixOf, zipWith4)
+import           Control.Monad.Reader (asks)
+import           Control.Monad.Except (throwError)
+import           Control.Monad.Parakeet (Parakeet)
+import           Data.Char (isSpace)
+import           Data.Char.Extra (toLower)
+import           Data.List (isPrefixOf, zipWith4)
+import           Text.Parsec hiding (parse)
 
-import Parakeet.Options (Options(..))
-import Parakeet.Parser.Stage0 (stage0)
-import Parakeet.Parser.Stage1 (stage1)
-import Parakeet.Parser.Stage2 (stage2)
-import Parakeet.Parser.FlatToken (FlatToken(..), flatten)
-import Parakeet.Parser.MetaInfo (MetaInfo(..), Author(..), Title(..))
+import           Parakeet.Types.FlatToken (FlatToken(..))
+import qualified Parakeet.Types.Lexeme as Lexeme
+import           Parakeet.Types.MetaInfo (MetaInfo(..), Author(..), Title(..))
+import qualified Parakeet.Types.Token as Token
+import           Parakeet.Types.Options (Options(..), FuriganaFormat(..))
+import           Parakeet.Parser.Stage0 (stage0)
+import           Parakeet.Parser.Stage1 (stage1)
+import           Parakeet.Parser.Stage2 (stage2)
 
 setLine l = do
   pos <- getPosition
@@ -46,6 +48,22 @@ trimFront (ls, l) = (drop emptys ls, l + emptys)
   where 
     emptys = length $ takeWhile isEmpty ls
     isEmpty = not . any (not . isSpace)
+
+flatten :: Token.Token -> Parakeet FlatToken
+flatten token = 
+  case token of
+       Token.Line -> return Line
+       Token.Break -> return Break
+       Token.Lit l -> return $ Lit (Lexeme.unwrap l)
+       Token.Hiragana h r -> return $ Hiragana (Lexeme.unwrap h) (map Lexeme.unwrap r)
+       Token.Katakana k r -> return $ Katakana (Lexeme.unwrap k) (map Lexeme.unwrap r)
+       Token.Kanji k hs ks r -> do
+          let romaji = map Lexeme.unwrap r
+          furigana <- asks optFurigana
+          let kana = case furigana of
+                InKatakana -> map Lexeme.unwrap ks
+                InHiragana -> map Lexeme.unwrap hs
+          return $ Kanji (Lexeme.unwrap k) kana romaji
 
 -- TODO: refactor `parse` in a monadic way
 parse :: Parakeet (Maybe MetaInfo, [FlatToken])

@@ -10,7 +10,7 @@ import Control.Monad.Reader (ReaderT(..), runReaderT)
 import Control.Monad.Identity (Identity, runIdentity)
 import Control.Monad.Reader.Class (MonadReader(..))
 
-import Parakeet.Options (Options(..))
+import Parakeet.Types.Options (Options(..))
 
 newtype Parakeet a = Parakeet (ReaderT Options (ExceptT String Identity) a) 
   deriving ( Functor

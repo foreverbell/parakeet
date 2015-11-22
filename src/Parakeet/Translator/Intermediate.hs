@@ -12,9 +12,9 @@ import           Data.Text.Lazy (Text)
 import           Text.Printf (printf)
 import           Prelude hiding (print)
 
-import           Parakeet.Parser.FlatToken (FlatToken(..))
-import           Parakeet.Parser.MetaInfo (MetaInfo(..), getTitle, getAuthor)
-import           Parakeet.Options (Options(..))
+import           Parakeet.Types.FlatToken (FlatToken(..))
+import           Parakeet.Types.Options (Options(..))
+import           Parakeet.Types.MetaInfo (MetaInfo(..), getTitle, getAuthor)
 
 escape :: String -> String
 escape [] = []

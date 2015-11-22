@@ -5,7 +5,6 @@ module Parakeet.Parser.Stage1 (
 , TokenBox(..)
 ) where
 
-import           Text.Parsec
 import           Control.Monad (forM_, void, mzero, guard, replicateM)
 import           Control.Monad.Choice (foremost, toList, strip)
 import           Control.Monad.Parakeet
@@ -14,13 +13,14 @@ import           Data.Char.Fuzzy (fuzzyEq)
 import           Data.List (sortBy, nub, intercalate)
 import           Data.Function (on)
 import           Prelude hiding (break)
+import           Text.Parsec
 
-import qualified Parakeet.Linguistics.Lexeme as L
+import qualified Parakeet.Types.Token as T
+import qualified Parakeet.Types.Lexeme as L
 import           Parakeet.Linguistics.Hiragana ()
 import           Parakeet.Linguistics.Katakana ()
 import qualified Parakeet.Linguistics.Romaji as R
 import qualified Parakeet.Linguistics.Misc as M
-import qualified Parakeet.Parser.Token as T
 
 type Parser = ParsecT String [TokenBox] Parakeet
 

@@ -21,7 +21,7 @@ import           Control.Arrow (second)
 import           Control.Monad (mzero, guard)
 import           Control.Monad.Choice (Choice, fromList, toList)
 
-import           Parakeet.Linguistics.Lexeme (wrap, unwrap, toRLV, Hiragana, Katakana, Romaji, (<**>), (<$$>))
+import           Parakeet.Types.Lexeme (wrap, unwrap, toRLV, Hiragana, Katakana, Romaji, (<**>), (<$$>))
 import           Parakeet.Linguistics.Misc (isMacron, toMacron, unMacron, isVowel)
 import           Parakeet.Linguistics.Internal (hRaw, kRaw)
 

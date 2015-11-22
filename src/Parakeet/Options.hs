@@ -1,31 +1,13 @@
 module Parakeet.Options (
-  Options(..)
-, OutputFormat(..)
-, FuriganaFormat(..)
-, runOpts
+  runOpts
 ) where
 
-import           System.Console.GetOpt (getOpt, usageInfo, ArgOrder(..), OptDescr(..), ArgDescr(..))
-import qualified System.IO.UTF8 as IO
 import           Control.Monad (when)
 import           Data.Char.Extra (toLower)
+import           System.Console.GetOpt (getOpt, usageInfo, ArgOrder(..), OptDescr(..), ArgDescr(..))
+import qualified System.IO.UTF8 as IO
 
-data OutputFormat = InTex | InBareTex | InIntermediate deriving (Eq)
-data FuriganaFormat = InHiragana | InKatakana deriving (Eq)
-
-data Options = Options {
-  optContent    :: (String, String)
-, optJInputFile :: FilePath
-, optRInputFile :: FilePath
-, optOutputIO   :: String -> IO ()
-, optOutput     :: OutputFormat
-, optFurigana   :: FuriganaFormat
-, optMincho     :: String
-, optGothic     :: String
-, optShowBreak  :: Bool
-, optNoMetaInfo :: Bool
-, optKeepLV     :: Bool
-}
+import           Parakeet.Types.Options
 
 initOptions :: Options 
 initOptions = Options {

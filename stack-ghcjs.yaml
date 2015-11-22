@@ -1,0 +1,11 @@
+flags: {}
+setup-info:
+  ghcjs:
+    source:
+      ghcjs-0.2.0.20151029_ghc-7.10.2:
+        url: https://github.com/nrolland/ghcjs/releases/download/v0.2.0.20151029/ghcjs-0.2.0.20151029.tar.gz
+extra-deps:
+- parsec-3.1.9
+- raw-strings-qq-1.0.2
+compiler-check: match-exact
+resolver: ghcjs-0.2.0.20151029_ghc-7.10.2

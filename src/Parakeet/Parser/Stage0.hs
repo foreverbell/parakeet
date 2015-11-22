@@ -2,20 +2,18 @@ module Parakeet.Parser.Stage0 (
   stage0
 ) where
 
-import           Text.Parsec
-import           Control.Monad (liftM2, void)
+import           Control.Monad (void)
+import           Control.Monad.Extra (concatM)
 import           Control.Monad.Parakeet 
+import           Text.Parsec
 
-import           Parakeet.Parser.Stage1 (TokenBox(..))
-import qualified Parakeet.Linguistics.Lexeme as L
+import qualified Parakeet.Types.Lexeme as L
 import qualified Parakeet.Linguistics.Hiragana as H
 import qualified Parakeet.Linguistics.Katakana as K
 import qualified Parakeet.Linguistics.Misc as M
+import           Parakeet.Parser.Stage1 (TokenBox(..))
 
 type Parser = ParsecT String () Parakeet
-
-concatM :: Monad m => [m [a]] -> m [a]
-concatM xs = foldl (liftM2 (++)) (return []) xs
 
 but :: (Char -> Bool) -> (Char -> Bool) -> (Char -> Bool)
 but p1 p2 c = p1 c && not (p2 c)

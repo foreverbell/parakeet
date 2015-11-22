@@ -6,8 +6,8 @@ import           Control.Monad (when)
 import           Control.Monad.Except (throwError)
 import           Control.Monad.Parakeet
 
-import           Parakeet.Parser.Token
-import qualified Parakeet.Linguistics.Lexeme as L
+import           Parakeet.Types.Token
+import qualified Parakeet.Types.Lexeme as L
 import           Parakeet.Linguistics.Romaji (longVowelize)
 
 splitToken :: Token -> ([L.Romaji] -> Token, [L.Romaji])

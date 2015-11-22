@@ -1,6 +1,6 @@
 {-# LANGUAGE FlexibleInstances, UndecidableInstances #-}
 
-module Parakeet.Linguistics.Lexeme (
+module Parakeet.Types.Lexeme (
   Lexeme(..)
 , LexemeKana(..)
 , Lit

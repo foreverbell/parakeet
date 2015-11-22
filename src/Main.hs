@@ -1,14 +1,17 @@
-module Main (main) where
+module Main (
+  main
+) where
 
-import System.Environment (getArgs)
+import Control.Monad.Parakeet (Parakeet, runParakeet)
 import Control.Monad.Reader (asks)
 import Data.Text.Lazy (unpack)
-import Control.Monad.Parakeet (Parakeet, runParakeet)
+import System.Environment (getArgs)
 
-import Parakeet.Options (Options(..), OutputFormat(..), runOpts)
+import Parakeet.Types.Options (Options(..), OutputFormat(..))
 import Parakeet.Parser.Parser (parse)
 import Parakeet.Translator.Tex (tex, texBare)
 import Parakeet.Translator.Intermediate (intermediate)
+import Parakeet.Options (runOpts)
 
 parakeet :: Parakeet String
 parakeet = do
