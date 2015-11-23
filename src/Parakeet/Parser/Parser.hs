@@ -69,8 +69,9 @@ flatten token =
 parse :: Parakeet (Maybe MetaInfo, [FlatToken])
 parse = do
   (j, r) <- asks optContent
-  let (js@(js0:js1:_), offsetJ) = trimFront (lines j, 1)
-  let (rs@(rs0:rs1:_), offsetR) = trimFront (lines r, 1)
+  let (js, offsetJ) = trimFront (lines j, 1)
+  let (rs, offsetR) = trimFront (lines r, 1)
+  let (js0, js1, rs0, rs1) = (js!!0, js!!1, rs!!0, rs!!1)
   ignoreMeta <- asks optNoMetaInfo
   let hasMetaJ = not ignoreMeta && hasMeta js
   let hasMetaR = not ignoreMeta && hasMetaJ && hasMeta rs 
@@ -86,5 +87,5 @@ parse = do
   where hasMeta f = case f of
           (a:b:_) -> isMetaLine a && isMetaLine b
           _       -> False
-        isMetaLine l = "##" `isPrefixOf` l
+        isMetaLine l = "##" `isPrefixOf` l 
         metaData l = dropWhile isSpace $ drop 2 l
