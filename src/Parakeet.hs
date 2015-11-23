@@ -1,17 +1,17 @@
-module Main (
-  main
+module Parakeet (
+  parakeet
+, module Parakeet.Types.Options
+, module Control.Monad.Parakeet
 ) where
 
 import Control.Monad.Parakeet (Parakeet, runParakeet)
 import Control.Monad.Reader (asks)
 import Data.Text.Lazy (unpack)
-import System.Environment (getArgs)
 
-import Parakeet.Types.Options (Options(..), OutputFormat(..))
 import Parakeet.Parser.Parser (parse)
+import Parakeet.Types.Options 
 import Parakeet.Translator.Tex (tex, texBare)
 import Parakeet.Translator.Intermediate (intermediate)
-import Parakeet.Options (runOpts)
 
 parakeet :: Parakeet String
 parakeet = do
@@ -22,12 +22,3 @@ parakeet = do
           InTex -> tex
           InBareTex -> texBare
           InIntermediate -> intermediate
-
-main :: IO ()
-main = do
-  opts <- runOpts =<< getArgs
-  let put = optOutputIO opts
-  let res = runParakeet opts parakeet
-  case res of 
-    Left err -> fail err
-    Right r  -> put r

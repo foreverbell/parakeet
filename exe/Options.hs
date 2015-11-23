@@ -1,13 +1,16 @@
-module Parakeet.Options (
+module Options (
   runOpts
 ) where
 
 import           Control.Monad (when)
-import           Data.Char.Extra (toLower)
+import qualified Data.Char as C
 import           System.Console.GetOpt (getOpt, usageInfo, ArgOrder(..), OptDescr(..), ArgDescr(..))
 import qualified System.IO.UTF8 as IO
 
-import           Parakeet.Types.Options
+import           Parakeet
+
+toLower :: String -> String
+toLower = map C.toLower
 
 initOptions :: Options 
 initOptions = Options {

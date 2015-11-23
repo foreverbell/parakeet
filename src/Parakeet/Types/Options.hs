@@ -4,14 +4,19 @@ module Parakeet.Types.Options (
 , FuriganaFormat(..)
 ) where
 
-data OutputFormat = InTex | InBareTex | InIntermediate deriving (Eq)
-data FuriganaFormat = InHiragana | InKatakana deriving (Eq)
+data OutputFormat = InTex 
+                  | InBareTex 
+                  | InIntermediate 
+                  deriving (Eq)
+data FuriganaFormat = InHiragana 
+                    | InKatakana 
+                    deriving (Eq)
 
 data Options = Options {
   optContent    :: (String, String)
 , optJInputFile :: FilePath
 , optRInputFile :: FilePath
-, optOutputIO   :: String -> IO ()
+, optOutputIO   :: String -> IO () -- TODO: refactor it
 , optOutput     :: OutputFormat
 , optFurigana   :: FuriganaFormat
 , optMincho     :: String

@@ -66,4 +66,4 @@ Since I haven't find any potential users, so there will be no document available
 * Ambiguous `ō` warning.
 * Extended katakana support.
 * Exception type for robustness.
-* Library?
+* ghcjs.
