@@ -4,7 +4,7 @@ module Main where
 
 import GHCJS.Foreign
 import GHCJS.Types
-import Data.JSString (pack, unpack)
+import JavaScript.String (pack, unpack)
 
 import Parakeet
 

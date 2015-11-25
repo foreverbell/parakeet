@@ -65,24 +65,21 @@ library
 
 executable parakeet
   ghc-options:         -O2 -W -fwarn-tabs
-  hs-source-dirs:      exe
   main-is:             Main.hs
-  -- other-extensions:    
-  other-modules:       
-    Main
-    Options
-    System.IO.UTF8
-  build-depends: 
-    base           == 4.8.*,
-    text           == 1.2.*,
-    parakeet
   default-language:    Haskell2010
-
-executable parakeet.js
-  hs-source-dirs:      jsexe
-  main-is:             Main.hs
-  build-depends:
-    base           == 4.8.*,
-    ghcjs-base,
-    parakeet
-  default-language:    Haskell2010
+  if impl(ghc)
+    hs-source-dirs:      exe
+    other-modules:       
+      Main
+      Options
+      System.IO.UTF8
+    build-depends: 
+      base           == 4.8.*,
+      text           == 1.2.*,
+      parakeet
+  else 
+    hs-source-dirs:      jsexe
+    build-depends:
+      base           == 4.8.*,
+      ghcjs-base,
+      parakeet
