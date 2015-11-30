@@ -4,7 +4,7 @@ module Main where
 
 import GHCJS.Foreign
 import GHCJS.Types
-import JavaScript.String (pack, unpack)
+import Data.JSString (pack, unpack)
 
 import Parakeet
 
@@ -12,11 +12,6 @@ foreign import javascript unsafe "document.getElementById($1).value"
   getElement :: JSString -> IO JSString
 foreign import javascript unsafe "document.getElementById($1).value = $2;"
   setElement :: JSString -> JSString -> IO ()
-foreign import javascript unsafe "document.documentElement.innerHTML = $1;"
-  setDocument :: JSString -> IO ()
-
-addBR :: String -> String
-addBR doc = unlines $ map (\x -> x ++ "<br/>") (lines doc)
 
 main :: IO ()
 main = do
@@ -36,7 +31,7 @@ main = do
   , optNoMetaInfo = False
   , optKeepLV     = True
   }
-  let result = addBR $ case runParakeet options parakeet of
-                            Left a -> a 
-                            Right b -> b
-  setDocument (pack result)
+  let result = case runParakeet options parakeet of
+                      Left a -> unlines ["Error:", a]
+                      Right b -> b
+  setElement (pack "result") (pack result)

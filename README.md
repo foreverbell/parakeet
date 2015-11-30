@@ -6,6 +6,8 @@ I know **nothing** about compilers, Haskell and Japanese. This repository is pur
 
 ## Introduction
 
+We have an online demo powered by GHCJS, see [here](https://foreverbell.github.io/parakeet) for more details.
+
 Build the most convenient tool for Japanese beginners!
 
 Input:
