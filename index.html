@@ -2,17 +2,24 @@
 <html>
 <head>
   <meta charset="UTF-8" />
-  <meta http-equiv="X-UA-Compatible" content="chrome=1,IE=edge" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <title>parakeet (online version)</title>
   <link rel="stylesheet" href="css/bootstrap.min.css" />
-  <script language="javascript" type="text/javascript" src="js/jquery.min.js"></script>
-  <script language="javascript" type="text/javascript" src="js/jquery.placeholder.min.js"></script>
-  <script language="javascript" type="text/javascript" src="js/bootstrap.min.js"></script>
+  <script type="text/javascript" src="js/jquery.min.js"></script>
+  <script type="text/javascript" src="js/jquery.placeholder.min.js"></script>
+  <script type="text/javascript" src="js/bootstrap.min.js"></script>
   <!-- parakeet -->
-  <script language="javascript" type="text/javascript" src="js/rts.js"></script>
-  <script language="javascript" type="text/javascript" src="js/lib.js"></script>
-  <script language="javascript" type="text/javascript" src="js/out.js"></script>
-  <script language="javascript" type="text/javascript"> h$main(h$mainZCZCMainzimain); </script>
+  <script type="text/javascript" src="js/rts.js"></script>
+  <script type="text/javascript" src="js/lib.js"></script>
+  <script type="text/javascript" src="js/out.js"></script>
+  <script type="text/javascript"> h$main(h$mainZCZCMainzimain); </script>
+  <style type='text/css'>
+    textarea {
+      white-space: pre;
+      word-wrap: normal;
+      resize: none;
+    }
+  </style>
 </head>
 <body>
   <div class="container" style="padding-top: 30px;">
@@ -21,17 +28,17 @@
         <fieldset>
           <div class="form-group col-md-6">
             <div>
-              <label for="jap" class="col-md-12 control-label" style="text-align: center;"><h4>Japanese</h4></label>
+              <label for="jap" class="col-md-12 control-label" style="text-align: center; font-size: 16px;">Japanese</label>
               <div class="col-md-12">
-                <textarea class="form-control" id="jap" rows="20" wrap="off" spellcheck="false" style="resize: none;">無限大な夢のあとの　何もない世の中じゃ</textarea>
+                <textarea class="form-control" id="jap" rows="20" spellcheck="false">無限大な夢のあとの　何もない世の中じゃ</textarea>
               </div>
             </div>
           </div>
           <div class="form-group col-md-6">
             <div>
-              <label for="rom" class="col-md-12 control-label" style="text-align: center;"><h4>Romaji</h4></label>
+              <label for="rom" class="col-md-12 control-label" style="text-align: center; font-size: 16px;">Romaji</label>
               <div class="col-md-12">
-                <textarea class="form-control" id="rom" rows="20" wrap="off" spellcheck="false" style="resize: none;">Mugendai na yume no ato no nanimo nai yo no naka ja</textarea>
+                <textarea class="form-control" id="rom" rows="20" spellcheck="false">Mugendai na yume no ato no nanimo nai yo no naka ja</textarea>
               </div>
             </div>
           </div>
@@ -44,7 +51,7 @@
   </div>
 
   <!-- Modal -->
-  <div class="modal fade bs-example-modal-lg" id="combine-modal" tabindex="-1" role="dialog" aria-labelledby="combine-modal-label">
+  <div class="modal fade bs-example-modal-lg" id="combine-modal" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-lg" role="document">
       <div class="modal-content">
         <form>
@@ -55,7 +62,7 @@
             </div>
             <div class="modal-body row">
               <div class="form-group col-md-12">
-                <textarea class="form-control" id="result" rows="20" wrap="off" spellcheck="false" style="resize: none;">Processing...</textarea>
+                <textarea class="form-control" id="result" rows="20" spellcheck="false">Processing...</textarea>
               </div>
             </div>
           </fieldset>
@@ -63,11 +70,11 @@
       </div>
     </div>
   </div>
+  <hr />
+  <footer>
+    <div class="container" style="text-align: center;">
+      <p>powered by <a href="https://github.com/ghcjs/ghcjs">ghcjs</a> &middot; star me at <a href="https://github.com/foreverbell/parakeet">github</a></p>
+    </div>
+  </footer>
 </body>
-<hr />
-<footer>
-  <div class="container" style="text-align: center;">
-    <p>powered by <a href="https://github.com/ghcjs/ghcjs">ghcjs</a> &middot; star me at <a href="https://github.com/foreverbell/parakeet">github</a></p>
-  </div>
-</footer>
 </html>
