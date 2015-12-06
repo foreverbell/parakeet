@@ -11,13 +11,16 @@ I know **nothing** about compilers, Haskell and Japanese. This repository is pur
 Build the most convenient tool for Japanese beginners!
 
 Input:
+
 * https://raw.githubusercontent.com/foreverbell/parakeet/master/tests/Butter-fly/Butter-fly.j
 * https://raw.githubusercontent.com/foreverbell/parakeet/master/tests/Butter-fly/Butter-fly.r
 
 Output:
+
 ![](https://raw.githubusercontent.com/foreverbell/miscellaneous/master/resource/parakeet/Butter-fly.png)
 
 Full output:
+
 * tex: https://raw.githubusercontent.com/foreverbell/miscellaneous/master/resource/parakeet/Butter-fly.tex
 * pdf: https://raw.githubusercontent.com/foreverbell/miscellaneous/master/resource/parakeet/Butter-fly.pdf
 
@@ -31,7 +34,19 @@ To build, at least ghc **7.10.2** is required.
 $ cabal install parakeet.cabal
 ```
 
-For stack users,  **lts-3.13** resolver is recommended.
+For stack users, 
+
+```bash
+$ stack install
+```
+
+or
+
+```bash
+$ stack install --stack-yaml=stack-ghcjs.yaml
+```
+
+if you want to compile to JavaScript.
 
 ## Development
 
