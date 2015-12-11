@@ -3,8 +3,7 @@ module Parakeet.Parser.Stage2 (
 ) where
 
 import           Control.Monad (when)
-import           Control.Monad.Except (throwError)
-import           Control.Monad.Parakeet
+import           Control.Monad.Parakeet (Parakeet, throw)
 
 import           Parakeet.Types.Token
 import qualified Parakeet.Types.Lexeme as L
@@ -37,13 +36,13 @@ substitute False builder [] done (first:rest) = do
   next <- substitute False builder' rs [] rest
   return $ builder (reverse done) : next
 
-substitute True _ [] _ [] = throwError internalError
+substitute True _ [] _ [] = throw internalError
 
 substitute True builder (_:curRest) done rest = substitute False builder curRest done rest
 
 substitute True builder [] done (first:rest) = do
   let (builder', rs) = splitToken first
-  when (null rs) $ throwError internalError
+  when (null rs) $ throw internalError
   next <- substitute False builder' (tail rs) [] rest
   return $ builder (reverse done) : next
 

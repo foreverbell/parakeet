@@ -4,8 +4,7 @@ module Parakeet (
 , module Control.Monad.Parakeet
 ) where
 
-import Control.Monad.Parakeet (Parakeet, runParakeet)
-import Control.Monad.Reader (asks)
+import Control.Monad.Parakeet (Parakeet, runParakeet, env)
 import Data.Text.Lazy (unpack)
 
 import Parakeet.Parser.Parser (parse)
@@ -15,7 +14,7 @@ import Parakeet.Translator.Intermediate (intermediate)
 
 parakeet :: Parakeet String
 parakeet = do
-  format <- asks optOutput
+  format <- env optOutput
   parsed <- parse
   unpack <$> translator format parsed
   where translator format = case format of

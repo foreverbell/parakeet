@@ -5,8 +5,7 @@ module Parakeet.Translator.Tex (
 , tex
 ) where
 
-import           Control.Monad.Reader (asks)
-import           Control.Monad.Parakeet (Parakeet)
+import           Control.Monad.Parakeet (Parakeet, env)
 import qualified Data.Text.Lazy as T
 import           Data.Text.Lazy (Text)
 import           Text.Printf (printf)
@@ -75,7 +74,7 @@ texify useVerb offset tokens = T.concat <$> mapM singleTexify tokens
     singleTexify d = case d of
       Line         -> return " \\\\ \n"
       Break        -> do
-        showBreak <- asks optShowBreak
+        showBreak <- env optShowBreak
         return $ if showBreak
           then "\\, "
           else T.empty
@@ -103,8 +102,8 @@ texBare (meta, tokens) = do
 
 tex :: (Maybe MetaInfo, [FlatToken]) -> Parakeet Text
 tex (meta, tokens) = do
-  mincho <- asks optMincho
-  gothic <- asks optGothic
+  mincho <- env optMincho
+  gothic <- env optGothic
   title  <- maybe (return T.empty) (texifyTitle . getTitle) meta
   -- TODO: using lit author is workaround, since ruby is not well supported in \author{ }
   author <- maybe (return T.empty) (texifyAuthor . getLitAuthor) meta

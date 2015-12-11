@@ -4,8 +4,7 @@ module Parakeet.Translator.Intermediate (
   intermediate
 ) where
 
-import           Control.Monad.Reader (asks)
-import           Control.Monad.Parakeet (Parakeet)
+import           Control.Monad.Parakeet (Parakeet, env)
 import           Control.Monad (forM)
 import qualified Data.Text.Lazy as T
 import           Data.Text.Lazy (Text)
@@ -30,7 +29,7 @@ smartConcat (t:ts) = if T.null t then smartConcat ts else T.concat [t, " ", smar
 tokenToText :: FlatToken -> Parakeet Text
 tokenToText Line = return "\n"
 tokenToText Break = do
-  showBreak <- asks optShowBreak
+  showBreak <- env optShowBreak
   return $ if showBreak 
     then "\\break"
     else T.empty

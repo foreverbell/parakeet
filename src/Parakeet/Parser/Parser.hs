@@ -2,9 +2,7 @@ module Parakeet.Parser.Parser (
   parse
 ) where
 
-import           Control.Monad.Reader (asks)
-import           Control.Monad.Except (throwError)
-import           Control.Monad.Parakeet (Parakeet)
+import           Control.Monad.Parakeet (Parakeet, env, throw)
 import           Data.Char (isSpace)
 import           Data.Char.Extra (toLower)
 import           Data.List (isPrefixOf, zipWith4)
@@ -25,14 +23,14 @@ setLine l = do
 
 parseLine :: Line -> Line -> String -> String -> Parakeet [FlatToken]
 parseLine lj lr j r = do
-  keeplv <- asks optKeepLV
+  keeplv <- env optKeepLV
   let stage2' = if keeplv then stage2 else return
-  jf <- asks optJInputFile
-  rf <- asks optRInputFile
+  jf <- env optJInputFile
+  rf <- env optRInputFile
   wd <- test =<< runParserT (setLine lj >> stage0) () jf j
   tk <- stage2' =<< test =<< runParserT (setLine lr >> stage1) wd rf (toLower r)
   sequence $ flatten <$> tk
-  where test = either (throwError . show) return
+  where test = either (throw . show) return
         -- errPos f l = "\"" ++ f ++ "\"" ++ " (line " ++ show (l :: Line) ++ ")"
 
 extractMetaInfo :: (String, String) -> Maybe (String, String) -> Parakeet MetaInfo
@@ -59,7 +57,7 @@ flatten token =
        Token.Katakana k r -> return $ Katakana (Lexeme.unwrap k) (map Lexeme.unwrap r)
        Token.Kanji k hs ks r -> do
           let romaji = map Lexeme.unwrap r
-          furigana <- asks optFurigana
+          furigana <- env optFurigana
           let kana = case furigana of
                 InKatakana -> map Lexeme.unwrap ks
                 InHiragana -> map Lexeme.unwrap hs
@@ -68,11 +66,11 @@ flatten token =
 -- TODO: refactor `parse` in a monadic way
 parse :: Parakeet (Maybe MetaInfo, [FlatToken])
 parse = do
-  (j, r) <- asks optContent
+  (j, r) <- env optContent
   let (js, offsetJ) = trimFront (lines j, 1)
   let (rs, offsetR) = trimFront (lines r, 1)
   let (js0, js1, rs0, rs1) = (js!!0, js!!1, rs!!0, rs!!1)
-  ignoreMeta <- asks optNoMetaInfo
+  ignoreMeta <- env optNoMetaInfo
   let hasMetaJ = not ignoreMeta && hasMeta js
   let hasMetaR = not ignoreMeta && hasMetaJ && hasMeta rs 
   let (js', offsetJ') = trimFront $ if hasMetaJ then (drop 2 js, offsetJ + 2) else (js, offsetJ)
