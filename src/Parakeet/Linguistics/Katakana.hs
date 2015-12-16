@@ -32,13 +32,13 @@ instance LexemeKana Katakana where
   fromRomaji ks = toMaybe <$> convert ks
     where
       convert [] = []
-      convert (x:xs) = msum (map (\f -> f x) [checkSyllabicN, lookupNormal, checkChoonpu]) : convert xs
+      convert (x:xs) = msum (map (\f -> f x) [checkSyllabicN, lookupNormal, checkSokuon]) : convert xs
         where
           checkSyllabicN x = do
             guard $ isSyllabicN x
             snd $ toKana (wrap "n")
           lookupNormal x = snd $ toKana x
-          checkChoonpu x = do
+          checkSokuon x = do
             guard $ length x' == 1
             return $ wrap [sokuon]
             where x' = unwrap x

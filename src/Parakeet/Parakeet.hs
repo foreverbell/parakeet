@@ -1,10 +1,8 @@
-module Parakeet (
+module Parakeet.Parakeet (
   parakeet
-, module Parakeet.Types.Options
-, module Control.Monad.Parakeet
 ) where
 
-import Control.Monad.Parakeet (Parakeet, runParakeet, env)
+import Control.Monad.Parakeet (Parakeet, env)
 import Data.Text.Lazy (unpack)
 
 import Parakeet.Parser.Parser (parse)

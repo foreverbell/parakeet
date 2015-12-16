@@ -6,8 +6,7 @@ import GHCJS.Types
 import GHCJS.Foreign
 import GHCJS.Foreign.Callback
 import Data.JSString (pack, unpack)
-
-import Parakeet
+import Text.Parakeet
 
 foreign import javascript unsafe "document.getElementById($1).value"
   getElement :: JSString -> IO JSString

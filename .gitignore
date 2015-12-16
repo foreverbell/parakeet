@@ -1,13 +1,18 @@
+# latex
 *.tex
 *.aux
 *.log
 *.pdf
+
+# vim
 *.swp
-*.out
+
+# haskell
 *.o
 *.hi
 
-.stack-work
+# stack & cabal
+.stack-work/
 .cabal-sandbox/
 cabal.sandbox.config
 dist/

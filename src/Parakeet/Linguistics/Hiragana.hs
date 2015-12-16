@@ -30,13 +30,13 @@ instance LexemeKana Hiragana where
   fromRomaji hs = toMaybe <$> convert hs
     where
       convert [] = []
-      convert (x:xs) = msum (map (\f -> f x) [checkSyllabicN, lookupNormal, checkChoonpu]) : convert xs
+      convert (x:xs) = msum (map (\f -> f x) [checkSyllabicN, lookupNormal, checkSokuon]) : convert xs
         where
           checkSyllabicN x = do
             guard $ isSyllabicN x
             fst $ toKana (wrap "n")
           lookupNormal x = fst $ toKana x
-          checkChoonpu x = do
+          checkSokuon x = do
             guard $ length x' == 1
             return $ wrap [sokuon]
             where x' = unwrap x

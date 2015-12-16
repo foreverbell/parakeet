@@ -2,7 +2,7 @@ module Parakeet.Parser.Stage0 (
   stage0
 ) where
 
-import           Control.Monad (void)
+import           Control.Monad (void, liftM2)
 import           Control.Monad.Extra (concatM)
 import           Control.Monad.Parakeet 
 import           Text.Parsec
@@ -41,17 +41,22 @@ katakana = L.wrap <$> concatM [sokuon, body, choonpu <|> itermark]
     itermark = option [] $ return <$> satisfy K.isIterationMark
 
 kanji :: Parser L.Kanji
-kanji = L.wrap <$> many1 (satisfy M.isKanji)
+kanji = L.wrap . concat <$> many1 (case1 <|> case2)
+  where
+    sokuon = satisfy H.isSokuon <|> satisfy K.isSokuon
+    body = satisfy M.isKanji
+    case1 = return <$> body
+    case2 = try $ liftM2 (\a b -> [a, b]) sokuon body
 
 lit :: Parser L.Lit
-lit = L.wrap <$> many1 (satisfy other <|> dsep)
+lit = L.wrap <$> many1 (satisfy other <|> escapedSeparator)
   where 
     other c = not $ any (\f -> f c) 
                 [ M.isChoonpu
                 , M.isKanji, H.isHiragana, K.isKatakana
                 , M.isSeparator
                 ]
-    dsep = try $ do
+    escapedSeparator = try $ do -- use double separators to escape separator
       string $ replicate 2 M.separator
       return M.separator
 
