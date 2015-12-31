@@ -10,22 +10,29 @@ module Parakeet.Types.Lexeme (
 , Romaji
 , isRLV
 , toRLV
+, concatRomajis
+, Bundle
+, Single
 ) where
 
 import Control.Monad.Choice (Choice)
+
+data Bundle
+data Single
+-- | Phantom type `a` to distinguish bundle and single romaji.
+data Romaji a = Romaji String 
+              | RomajiLV String -- romaji with long vowel
+              deriving (Show)
 
 newtype Lit = Lit String deriving (Show)
 newtype Kanji = Kanji String deriving (Show)
 newtype Hiragana = Hiragana String deriving (Show)
 newtype Katakana = Katakana String deriving (Show)
-data Romaji = Romaji String 
-            | RomajiLV String -- romaji with long vowel
-            deriving (Show)
 
-instance Eq Romaji where
+instance Eq (Romaji a) where
   a == b = unwrap a == unwrap b
 
-instance Ord Romaji where
+instance Ord (Romaji a) where
   a `compare` b = unwrap a `compare` unwrap b
   
 infixl 4 <**>, <$$>
@@ -40,8 +47,8 @@ class Lexeme t where
 
 class (Lexeme k) => LexemeKana k where
   -- | toRomaji k: sokuon ++ body ++ choonpu (katakana only) / itermark 
-  toRomaji :: k -> Choice [Romaji] 
-  fromRomaji :: [Romaji] -> [Maybe k] 
+  toRomaji :: k -> Choice [Romaji Single] 
+  fromRomaji :: [Romaji Single] -> [Maybe k] 
 
 instance Lexeme Lit where
   unwrap (Lit t) = t
@@ -59,18 +66,17 @@ instance Lexeme Katakana where
   unwrap (Katakana t) = t
   wrap = Katakana
 
-instance Lexeme Romaji where
+instance Lexeme (Romaji a) where
   unwrap (Romaji t) = t
   unwrap (RomajiLV t) = t
   wrap = Romaji
 
-isRLV :: Romaji -> Bool
+isRLV :: Romaji a -> Bool
 isRLV (RomajiLV _) = True
 isRLV _            = False
 
-toRLV :: Romaji -> Romaji
+toRLV :: Romaji a -> Romaji a
 toRLV = RomajiLV . unwrap
 
-instance Lexeme t => Monoid t where
-  mempty = wrap []
-  mappend a b = wrap $ unwrap a ++ unwrap b
+concatRomajis :: [Romaji Single] -> Romaji Bundle
+concatRomajis = wrap . concatMap unwrap

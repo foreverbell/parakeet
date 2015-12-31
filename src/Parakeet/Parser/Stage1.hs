@@ -70,8 +70,8 @@ continue e = do
   rest <- stage1
   return $ e : rest
 
-sugarize :: Bool -> Bool -> [L.Romaji] -> [L.Romaji]
-sugarize sokuonize longVowelize from = sortBy (flip compare `on` (length . L.unwrap)) $ nub $ map mconcat $ do 
+sugarize :: Bool -> Bool -> [L.Romaji L.Single] -> [L.Romaji L.Bundle]
+sugarize sokuonize longVowelize from = sortBy (flip compare `on` (length . L.unwrap)) $ nub $ map L.concatRomajis $ do 
   r <- from
   g <- set sokuonize [R.sokuonize, id]
   v <- set longVowelize [R.longVowelize True, id]
@@ -81,7 +81,7 @@ sugarize sokuonize longVowelize from = sortBy (flip compare `on` (length . L.unw
   where set True xs  = xs
         set False xs = drop 1 xs
 
-romaji :: [L.Romaji] -> Parser L.Romaji
+romaji :: [L.Romaji L.Bundle] -> Parser (L.Romaji L.Bundle)
 romaji rs = L.wrap <$> choice (map (try . fuzzy) rs')
         <?> show (length rs) ++ " romaji token(s) namely (" ++ intercalate ", " rs' ++ ")"
   where 
@@ -94,7 +94,7 @@ romaji rs = L.wrap <$> choice (map (try . fuzzy) rs')
                         then let (a, b) = M.toMacron $ M.unMacron c in char a <|> char b
                         else char c
 
-kana :: (L.LexemeKana k) => (k -> [L.Romaji] -> T.Token) -> k -> Parser [T.Token]
+kana :: (L.LexemeKana k) => (k -> [L.Romaji L.Single] -> T.Token) -> k -> Parser [T.Token]
 kana builder token = choice $ go <$> toList (L.toRomaji token)
   where
     go romajis = try $ iter romajis
@@ -128,8 +128,8 @@ lit token = do
         eat (x:xs) = do
           spaces
           if M.isSeparator x
-            then return M.separator <* string (replicate 2 M.separator) -- Two separators as lit to distinguish from separator
-            else char' $ toLower x -- Romaji input is already lower-cased
+            then return M.separator <* string (replicate 2 M.separator) -- two separators as lit to distinguish from separator
+            else char' $ toLower x -- romaji input is already lower-cased
           eat xs
         char' :: Char -> Parser Char
         char' ch = satisfy (fuzzyEq ch) <?> "character likely \'" ++ [ch, '\''] 
@@ -151,7 +151,7 @@ kanji token = do
       prepend $ concatMap L.unwrap rs
       return $ R.normSyllabicN r
 
-unitRomajis :: [L.Romaji]
+unitRomajis :: [L.Romaji L.Bundle]
 unitRomajis = sugarize True True R.chList
 
 break :: Parser [T.Token]

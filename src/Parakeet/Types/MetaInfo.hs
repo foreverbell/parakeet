@@ -21,4 +21,3 @@ getAuthor (MetaInfo (_, Author (author, _))) = author
 
 getLitAuthor :: MetaInfo -> [FlatToken]
 getLitAuthor (MetaInfo (_, Author (_, author))) = author
-

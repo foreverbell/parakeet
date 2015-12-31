@@ -37,6 +37,7 @@ library
     Control.Monad.Parakeet
     Data.Char.Extra
     Data.Char.Fuzzy
+    Data.List.Extra
     Parakeet.Linguistics.Hiragana
     Parakeet.Linguistics.Internal
     Parakeet.Linguistics.Katakana

@@ -3,7 +3,7 @@ module Parakeet.Linguistics.Internal (
   kRaw
 ) where
 
-hRaw :: [(String, String)]
+hRaw, kRaw :: [(String, String)]
 hRaw = [
   ("あ", "a"), ("い", "i"), ("う", "u"), ("え", "e"), ("お", "o"),
   ("か", "ka"), ("き", "ki"), ("く", "ku"), ("け", "ke"), ("こ", "ko"),
@@ -32,7 +32,6 @@ hRaw = [
   ("みゃ", "mya"), ("みゅ", "myu"), ("みょ", "myo"), 
   ("りゃ", "rya"), ("りゅ", "ryu"), ("りょ", "ryo") ]
 
-kRaw :: [(String, String)]
 kRaw = [
   ("ア", "a"), ("イ", "i"), ("ウ", "u"), ("エ", "e"), ("オ", "o"),
   ("カ", "ka"), ("キ", "ki"), ("ク", "ku"), ("ケ", "ke"), ("コ", "ko"),
@@ -60,4 +59,3 @@ kRaw = [
   ("ピャ", "pya"), ("ピュ", "pyu"), ("ピョ", "pyo"), 
   ("ミャ", "mya"), ("ミュ", "myu"), ("ミョ", "myo"), 
   ("リャ", "rya"), ("リュ", "ryu"), ("リョ", "ryo") ]
-

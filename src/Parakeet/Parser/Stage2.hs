@@ -7,9 +7,9 @@ import           Control.Monad.Parakeet (Parakeet, throw)
 
 import           Parakeet.Types.Token
 import qualified Parakeet.Types.Lexeme as L
-import           Parakeet.Linguistics.Romaji (longVowelize)
+import           Parakeet.Linguistics.Romaji (longVowelize1)
 
-splitToken :: Token -> ([L.Romaji] -> Token, [L.Romaji])
+splitToken :: Token -> ([L.Romaji L.Single] -> Token, [L.Romaji L.Single])
 splitToken token = case token of
   Line -> (const Line, [])
   Break -> (const Break, [])
@@ -18,17 +18,18 @@ splitToken token = case token of
   Hiragana h rs -> (Hiragana h, rs)
   Katakana k rs -> (Katakana k, rs)
 
--- Parameter description:
--- If the next romaji is the part of a long vowel;
--- Token builder;
--- Romajis to be processed of the current token;
--- Processed romajis of the current token;
--- Remaining tokens to be processed.
-substitute :: Bool -> ([L.Romaji] -> Token) -> [L.Romaji] -> [L.Romaji] -> [Token] -> Parakeet [Token]
+{-
+ - if the next romaji is the part of a long vowel
+ - token builder
+ - romajis wait to be processed of the current token
+ - processed romajis of the current token
+ - remaining tokens to be processed
+ -}
+substitute :: Bool -> ([L.Romaji L.Single] -> Token) -> [L.Romaji L.Single] -> [L.Romaji L.Single] -> [Token] -> Parakeet [Token]
 substitute False builder [] done [] = return [builder (reverse done)] 
 
 substitute False builder (cur:curRest) done rest = if L.isRLV cur
-  then substitute True builder curRest (mconcat (longVowelize True [cur]):done) rest
+  then substitute True builder curRest (longVowelize1 cur:done) rest
   else substitute False builder curRest (cur:done) rest
 
 substitute False builder [] done (first:rest) = do

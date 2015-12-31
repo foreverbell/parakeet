@@ -116,4 +116,3 @@ tex (meta, tokens) = do
       "$body$"     -> maybe T.empty (const "\\maketitle\n\n") meta `T.append` body
       _            -> t 
   where tmpl = header : map (T.filter (/= '\r')) (T.lines template)
-
