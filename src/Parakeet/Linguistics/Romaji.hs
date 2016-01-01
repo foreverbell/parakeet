@@ -21,9 +21,9 @@ import qualified Data.Map as M
 import           Data.Maybe (maybeToList, fromJust, fromMaybe, isNothing)
 import           Control.Arrow (second)
 import           Control.Monad (mzero, guard)
-import           Control.Monad.Choice (Choice, fromList, toList)
+import           Control.Monad.Choice (Choice, fromList, toList, foremost)
 
-import           Parakeet.Types.Lexeme (wrap, unwrap, toRLV, Hiragana, Katakana, Romaji, Bundle, Single, (<**>), (<$$>))
+import           Parakeet.Types.Lexeme (wrap, unwrap, toRLV, toRS, Hiragana, Katakana, Romaji, Bundle, Single, (<**>), (<$$>))
 import           Parakeet.Linguistics.Misc (isMacron, toMacron, unMacron, isVowel)
 import           Parakeet.Linguistics.Internal (hRaw, kRaw)
 
@@ -56,11 +56,11 @@ toKana r = (lookup hMap, lookup kMap)
       Nothing -> mzero
 
 otherList :: [(String, [String])]
-otherList = [ ("n",  ["n", "m", "nn", "n-", "n'"]) -- Syllabic n
-            , ("ha", ["ha", "wa"])                 -- Particles mutation
+otherList = [ ("n",  ["n", "m", "nn", "n-", "n'"]) -- syllabic n
+            , ("ha", ["ha", "wa"])                 -- particles mutation
             , ("he", ["he", "e"])
             , ("wo", ["wo", "o"])
-            , ("di", ["di", "ji", "dji"])          -- Ambiguous ji & zu
+            , ("di", ["di", "ji", "dji"])          -- ambiguous ji & zu
             , ("du", ["du", "zu", "dzu"])
             ]
 
@@ -107,13 +107,13 @@ unDakutenize r = lookup <**> r
 isSyllabicN :: Romaji Single -> Bool
 isSyllabicN n = n `elem` toList (otherForms (wrap "n"))
 
--- | Normalize syllabic n (take the first alphabet).
+-- | normalize syllabic n (take the first alphabet).
 normSyllabicN :: Romaji Single -> Romaji Single
 normSyllabicN r = if isSyllabicN r
     then return . head <**> r
     else r
 
--- | Sokuonize a factorized romaji, chi -> tchi, ka -> kka, a -> a.
+-- | sokuonize a factorized romaji, chi -> tchi, ka -> kka, a -> a.
 sokuonize :: [Romaji Single] -> [Romaji Single]
 sokuonize [] = []
 sokuonize r = mapHead (sokuonizeInternal <$$>) r
@@ -139,7 +139,8 @@ sokuonizeInternal s@('c':'h':_) = ["t", s]
 sokuonizeInternal s@(c:_) | sokuonizable c = [[c], s]
                           | otherwise      = [s]
 
--- | Long vowelize a factorized romaji.
+-- | long vowelize a factorized romaji.
+-- FIXME: seems it should return Romaji Bundle if m = True.
 longVowelize :: Bool -> [Romaji Single] -> [Romaji Single]
 longVowelize _ [] = []
 longVowelize m r = mapLast (longVowelizeInternal m <$$>) r
@@ -150,14 +151,11 @@ longVowelize1 r = head (longVowelizeInternal True <$$> r)
 unLongVowelize :: Romaji Bundle -> Choice (Maybe (Romaji Single), Romaji Bundle)
 unLongVowelize r 
   | null r' = return (Nothing, r)
-  | isMacron lastOne = do
-      to <- lastTo
-      return (Just (wrap [to]), wrap $ exceptLast ++ [lastDesugar])
+  | isMacron lastOne = lastTo >>= \to -> return (Just (wrap [to]), wrap $ exceptLast ++ [lastDesugar])
   | otherwise = return (Nothing, r)
   where
     r' = unwrap r
     lastOne = last r'
-    -- sndLast = last $ exceptLast
     exceptLast = init r'
     lastDesugar = unMacron lastOne
     lastTo | lastDesugar == 'o' = fromList ['u', 'o']  -- ambiguous 'ō' -> ou
@@ -165,14 +163,16 @@ unLongVowelize r
 
 longVowelizeInternal :: Bool -> String -> [String]
 longVowelizeInternal _ [] = []
-longVowelizeInternal m s | not (isVowel (last s)) = [s]
-                         | m                      = [mapLast (return . fst . toMacron) s]
-                         | otherwise              = [s, [last s]] 
- 
--- | Factorize a bundle romaji with possible sokuon & macron into different single parts, e.g. tchī -> [t, chi, i].
+longVowelizeInternal m s | not (isVowel ls) = [s]
+                         | m                = [mapLast (return . foremost . toMacron) s]
+                         | otherwise        = [s, [ls]] 
+  where ls = last s
+
+-- | factorize a bundle romaji with possible sokuon & macron into different single parts, e.g. tchī -> [t, chi, i].
 factor :: Romaji Bundle -> Choice [Romaji Single]
 factor r = do 
   (sokuonPart, next) <- unSokuonize r
-  (longVowelPart, normalized') <- unLongVowelize next
-  let normalized = (if null longVowelPart then id else toRLV) (wrap $ unwrap normalized')
+  (longVowelPart, temp) <- unLongVowelize next
+  let normalized | null longVowelPart = toRS temp
+                 | otherwise          = toRLV $ toRS temp
   return $ maybeToList sokuonPart ++ [normalized] ++ maybeToList longVowelPart

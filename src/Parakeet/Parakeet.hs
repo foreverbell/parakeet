@@ -15,7 +15,8 @@ parakeet = do
   format <- env optOutput
   parsed <- parse
   unpack <$> translator format parsed
-  where translator format = case format of
-          InTex -> tex
-          InBareTex -> texBare
-          InIntermediate -> intermediate
+  where 
+    translator format = case format of
+      InTex -> tex
+      InBareTex -> texBare
+      InIntermediate -> intermediate

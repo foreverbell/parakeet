@@ -71,7 +71,7 @@ continue e = do
   return $ e : rest
 
 sugarize :: Bool -> Bool -> [L.Romaji L.Single] -> [L.Romaji L.Bundle]
-sugarize sokuonize longVowelize from = sortBy (flip compare `on` (length . L.unwrap)) $ nub $ map L.concatRomajis $ do 
+sugarize sokuonize longVowelize from = sortBy (flip compare `on` (length . L.unwrap)) $ nub $ map L.concatR $ do 
   r <- from
   g <- set sokuonize [R.sokuonize, id]
   v <- set longVowelize [R.longVowelize True, id]
@@ -90,9 +90,8 @@ romaji rs = L.wrap <$> choice (map (try . fuzzy) rs')
     fuzzy s = return s <* forM_ s match
       where 
         match :: Char -> Parser Char
-        match c = if M.isMacron c
-                        then let (a, b) = M.toMacron $ M.unMacron c in char a <|> char b
-                        else char c
+        match c | M.isMacron c = choice $ map char (toList $ M.toMacron' c)
+                | otherwise    = char c
 
 kana :: (L.LexemeKana k) => (k -> [L.Romaji L.Single] -> T.Token) -> k -> Parser [T.Token]
 kana builder token = choice $ go <$> toList (L.toRomaji token)

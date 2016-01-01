@@ -16,7 +16,6 @@ data Options = Options {
   optContent    :: (String, String)
 , optJInputFile :: FilePath
 , optRInputFile :: FilePath
-, optOutputIO   :: String -> IO () -- TODO: refactor it
 , optOutput     :: OutputFormat
 , optFurigana   :: FuriganaFormat
 , optMincho     :: String

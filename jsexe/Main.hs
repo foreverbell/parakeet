@@ -24,7 +24,6 @@ main = do
       optContent    = (unpack jap, unpack rom)
     , optJInputFile = "japanese"
     , optRInputFile = "romaji"
-    , optOutputIO   = undefined
     , optOutput     = InTex
     , optFurigana   = InHiragana
     , optMincho     = "MS Mincho"

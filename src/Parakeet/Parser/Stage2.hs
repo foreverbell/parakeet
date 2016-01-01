@@ -26,32 +26,32 @@ splitToken token = case token of
  - remaining tokens to be processed
  -}
 substitute :: Bool -> ([L.Romaji L.Single] -> Token) -> [L.Romaji L.Single] -> [L.Romaji L.Single] -> [Token] -> Parakeet [Token]
-substitute False builder [] done [] = return [builder (reverse done)] 
+substitute False b [] d [] = return [b (reverse d)] 
 
-substitute False builder (cur:curRest) done rest = if L.isRLV cur
-  then substitute True builder curRest (longVowelize1 cur:done) rest
-  else substitute False builder curRest (cur:done) rest
+substitute False b (c:r) d r0 = if L.isRLV c
+  then substitute True b r (longVowelize1 c:d) r0
+  else substitute False b r (c:d) r0
 
-substitute False builder [] done (first:rest) = do
-  let (builder', rs) = splitToken first
-  next <- substitute False builder' rs [] rest
-  return $ builder (reverse done) : next
+substitute False b [] d r0 = do
+  let (b', rs) = splitToken (head r0)
+  n <- substitute False b' rs [] (tail r0)
+  return $ b (reverse d) : n
 
 substitute True _ [] _ [] = throw internalError
 
-substitute True builder (_:curRest) done rest = substitute False builder curRest done rest
+substitute True b (_:r) d r0 = substitute False b r d r0
 
-substitute True builder [] done (first:rest) = do
-  let (builder', rs) = splitToken first
+substitute True b [] d r0 = do
+  let (b', rs) = splitToken (head r0)
   when (null rs) $ throw internalError
-  next <- substitute False builder' (tail rs) [] rest
-  return $ builder (reverse done) : next
+  n <- substitute False b' (tail rs) [] (tail r0)
+  return $ b (reverse d) : n
 
 stage2 :: [Token] -> Parakeet [Token]
 stage2 [] = return []
 stage2 tokens = do
-  let (builder, rs) = splitToken (head tokens)
-  substitute False builder rs [] (tail tokens)
+  let (b, rs) = splitToken (head tokens)
+  substitute False b rs [] (tail tokens)
 
 internalError :: String
 internalError = "[internal error] except an vowel romaji but not found"

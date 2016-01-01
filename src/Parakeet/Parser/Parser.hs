@@ -31,7 +31,6 @@ parseLine lj lr j r = do
   tk <- stage2' =<< test =<< runParserT (setLine lr >> stage1) wd rf (toLower r)
   sequence $ flatten <$> tk
   where test = either (throw . show) return
-        -- errPos f l = "\"" ++ f ++ "\"" ++ " (line " ++ show (l :: Line) ++ ")"
 
 extractMetaInfo :: (String, String) -> Maybe (String, String) -> Parakeet MetaInfo
 extractMetaInfo (j1, j2) (Just (r1, r2)) = do
@@ -82,8 +81,9 @@ parse = do
     else return Nothing
   tokens <- concat <$> sequence (zipWith4 parseLine [offsetJ' .. ] [offsetR' .. ] js' rs')
   return (metaInfo, tokens)
-  where hasMeta f = case f of
-          (a:b:_) -> isMetaLine a && isMetaLine b
-          _       -> False
-        isMetaLine l = "##" `isPrefixOf` l 
-        metaData l = dropWhile isSpace $ drop 2 l
+  where 
+    hasMeta f = case f of
+      (a:b:_) -> isMetaLine a && isMetaLine b
+      _       -> False
+    isMetaLine l = "##" `isPrefixOf` l 
+    metaData l = dropWhile isSpace $ drop 2 l

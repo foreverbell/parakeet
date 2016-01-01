@@ -10,7 +10,10 @@ module Parakeet.Types.Lexeme (
 , Romaji
 , isRLV
 , toRLV
-, concatRomajis
+, toRB
+, toRS
+, concatR
+, appendR
 , Bundle
 , Single
 ) where
@@ -78,5 +81,16 @@ isRLV _            = False
 toRLV :: Romaji a -> Romaji a
 toRLV = RomajiLV . unwrap
 
-concatRomajis :: [Romaji Single] -> Romaji Bundle
-concatRomajis = wrap . concatMap unwrap
+toRB :: Romaji a -> Romaji Bundle
+toRB (Romaji r)   = Romaji r
+toRB (RomajiLV r) = RomajiLV r
+
+toRS :: Romaji a -> Romaji Single
+toRS (Romaji r)   = Romaji r
+toRS (RomajiLV r) = RomajiLV r
+
+concatR :: [Romaji a] -> Romaji Bundle
+concatR = wrap . mconcat . map unwrap
+
+appendR :: Romaji a -> Romaji b -> Romaji Bundle
+appendR a b = wrap $ unwrap a `mappend` unwrap b

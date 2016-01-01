@@ -7,12 +7,19 @@ import           System.Environment (getArgs)
 import qualified System.IO.UTF8 as IO
 import           Text.Parakeet
 
-initOptions :: Options 
-initOptions = Options {
+type OutputIO = String -> IO ()
+
+sequenceF :: Monad m => (m a, b) -> m (a, b)
+sequenceF (a0, b) = a0 >>= \a -> return (a, b)
+
+firstM :: Monad m => (a -> m b) -> (a, c) -> m (b, c)
+firstM f (a0, c) = f a0 >>= \b -> return (b, c)
+
+defaultOptions :: Options 
+defaultOptions = Options {
   optContent    = ([], [])
 , optJInputFile = []
 , optRInputFile = []
-, optOutputIO   = putStr
 , optOutput     = InTex
 , optFurigana   = InHiragana
 , optMincho     = "MS Mincho"
@@ -22,13 +29,16 @@ initOptions = Options {
 , optKeepLV     = False
 }
 
-bindJInputFile a o = return o { optJInputFile = a }
+defaultOutput :: OutputIO
+defaultOutput = putStr
 
-bindRInputFile a o = return o { optRInputFile = a }
+bindJInputFile a = firstM $ \o -> return o { optJInputFile = a }
 
-bindOutputIO a o = return o { optOutputIO = IO.writeFile a }
+bindRInputFile a = firstM $ \o -> return o { optRInputFile = a }
 
-bindFormat a o = do
+bindOutputIO a (o, _) = return (o, IO.writeFile a)
+
+bindFormat a = firstM $ \o -> do
   f <- format
   return $ o { optOutput = f } 
   where format = case map toLower a of
@@ -37,7 +47,7 @@ bindFormat a o = do
           "intermediate" -> return InIntermediate
           _              -> die "Bad output format"
 
-bindFurigana a o = do
+bindFurigana a = firstM $ \o -> do
   f <- format
   return $ o { optFurigana = f }
   where format = case map toLower a of
@@ -45,17 +55,17 @@ bindFurigana a o = do
           "katakana" -> return InKatakana
           _          -> die "Bad furigana format"
 
-bindMincho a o = return $ o { optMincho = a }
+bindMincho a = firstM $ \o -> return o { optMincho = a }
 
-bindGothic a o = return $ o { optGothic = a }
+bindGothic a = firstM $ \o -> return o { optGothic = a }
 
-setShowBreak o = return o { optShowBreak = True }
+setShowBreak = firstM $ \o -> return o { optShowBreak = True }
 
-setNoMetaInfo o = return o { optNoMetaInfo = True }
+setNoMetaInfo = firstM $ \o -> return o { optNoMetaInfo = True }
 
-setKeepLV o = return o { optKeepLV = True }
+setKeepLV = firstM $ \o -> return o { optKeepLV = True }
 
-options :: [OptDescr (Options -> IO Options)]
+options :: [OptDescr ((Options, OutputIO) -> IO (Options, OutputIO))]
 options = 
   [ Option ['j'] ["japanese"]   (ReqArg bindJInputFile "FILE") "japanese input file"
   , Option ['r'] ["romaji"]     (ReqArg bindRInputFile "FILE") "romaji input file"
@@ -72,26 +82,23 @@ options =
 die :: String -> IO a
 die e = fail $ e ++ usageInfo "Usage: " options
 
-runOpts :: [String] -> IO Options
+runOpts :: [String] -> IO (Options, OutputIO)
 runOpts argv = case getOpt Permute options argv of
-  (a, _, [])  -> do
-     opts <- foldl (>>=) (return initOptions) a
-     setFileContent opts  
+  (a, _, [])  -> firstM readFileContent =<< foldl (>>=) (return (defaultOptions, defaultOutput)) a
   (_, _, err) -> die $ concat err
   where
-    setFileContent opts = do
+    readFileContent opts = do
+      let jf = optJInputFile opts
+      let rf = optRInputFile opts
       when (null jf || null rf) $ die "Missing inputs\n"
       j <- IO.readFile jf
       r <- IO.readFile rf
       return opts { optContent = (j, r) }
-      where jf = optJInputFile opts
-            rf = optRInputFile opts
-
+       
 main :: IO ()
 main = do
-  opts <- runOpts =<< getArgs
-  let put = optOutputIO opts
+  (opts, output) <- runOpts =<< getArgs
   let res = runParakeet opts parakeet
   case res of 
     Left err -> fail err
-    Right r  -> put r
+    Right r  -> output r
