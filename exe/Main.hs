@@ -9,11 +9,8 @@ import           Text.Parakeet
 
 type OutputIO = String -> IO ()
 
-sequenceF :: Monad m => (m a, b) -> m (a, b)
-sequenceF (a0, b) = a0 >>= \a -> return (a, b)
-
 firstM :: Monad m => (a -> m b) -> (a, c) -> m (b, c)
-firstM f (a0, c) = f a0 >>= \b -> return (b, c)
+firstM f (a, c) = f a >>= \b -> return (b, c)
 
 defaultOptions :: Options 
 defaultOptions = Options {
@@ -25,7 +22,7 @@ defaultOptions = Options {
 , optMincho     = "MS Mincho"
 , optGothic     = "MS Gothic"
 , optShowBreak  = False
-, optNoMetaInfo = False
+, optNoMeta     = False
 , optKeepLV     = False
 }
 
@@ -61,7 +58,7 @@ bindGothic a = firstM $ \o -> return o { optGothic = a }
 
 setShowBreak = firstM $ \o -> return o { optShowBreak = True }
 
-setNoMetaInfo = firstM $ \o -> return o { optNoMetaInfo = True }
+setNoMeta = firstM $ \o -> return o { optNoMeta = True }
 
 setKeepLV = firstM $ \o -> return o { optKeepLV = True }
 
@@ -75,7 +72,7 @@ options =
   , Option [   ] ["mincho"]     (ReqArg bindMincho     "FONT") "mincho font for tex output, \"MS Mincho\" by default"
   , Option [   ] ["gothic"]     (ReqArg bindGothic     "FONT") "gothic font for tex output, \"MS Gothic\" by default"
   , Option [   ] ["show-break"] (NoArg  setShowBreak         ) "show break from romaji file"
-  , Option [   ] ["no-meta"]    (NoArg  setNoMetaInfo        ) "ignore metainfo (title & author)"
+  , Option [   ] ["no-meta"]    (NoArg  setNoMeta            ) "ignore meta data (title & author)"
   , Option [   ] ["keep-lv"]    (NoArg  setKeepLV            ) "keep long vowel macron in output"
   ]
 

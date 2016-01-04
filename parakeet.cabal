@@ -52,7 +52,7 @@ library
     Parakeet.Translator.Tex
     Parakeet.Types.FlatToken
     Parakeet.Types.Lexeme
-    Parakeet.Types.MetaInfo
+    Parakeet.Types.Meta
     Parakeet.Types.Options
     Parakeet.Types.Token
   build-depends: 

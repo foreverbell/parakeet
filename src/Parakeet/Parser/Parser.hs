@@ -10,7 +10,7 @@ import           Text.Parsec hiding (parse)
 
 import           Parakeet.Types.FlatToken (FlatToken(..))
 import qualified Parakeet.Types.Lexeme as Lexeme
-import           Parakeet.Types.MetaInfo (MetaInfo(..), Author(..), Title(..))
+import           Parakeet.Types.Meta (Meta(..), Author(..), Title(..))
 import qualified Parakeet.Types.Token as Token
 import           Parakeet.Types.Options (Options(..), FuriganaFormat(..))
 import           Parakeet.Parser.Stage0 (stage0)
@@ -32,13 +32,13 @@ parseLine lj lr j r = do
   sequence $ flatten <$> tk
   where test = either (throw . show) return
 
-extractMetaInfo :: (String, String) -> Maybe (String, String) -> Parakeet MetaInfo
-extractMetaInfo (j1, j2) (Just (r1, r2)) = do
+extractMeta :: (String, String) -> Maybe (String, String) -> Parakeet Meta
+extractMeta (j1, j2) (Just (r1, r2)) = do
   title <- if null r1 then return [Lit j1] else init <$> parseLine 1 1 j1 r1
   author <- if null r2 then return [Lit j2] else init <$> parseLine 2 2 j2 r2
   let authorLit = if null r2 then [Lit j2] else [Lit j2, Lit ("(" ++ r2 ++ ")")]
-  return $ MetaInfo (Title title, Author (author, authorLit))
-extractMetaInfo (j1, j2) Nothing = return $ MetaInfo (Title [Lit j1], Author ([Lit j2], [Lit j2]))
+  return $ Meta (Title title, Author (author, authorLit))
+extractMeta (j1, j2) Nothing = return $ Meta (Title [Lit j1], Author ([Lit j2], [Lit j2]))
 
 trimFront :: ([String], Line) -> ([String], Line)
 trimFront (ls, l) = (drop emptys ls, l + emptys)
@@ -63,24 +63,24 @@ flatten token =
           return $ Kanji (Lexeme.unwrap k) kana romaji
 
 -- TODO: refactor `parse` in a monadic way
-parse :: Parakeet (Maybe MetaInfo, [FlatToken])
+parse :: Parakeet (Maybe Meta, [FlatToken])
 parse = do
   (j, r) <- env optContent
   let (js, offsetJ) = trimFront (lines j, 1)
   let (rs, offsetR) = trimFront (lines r, 1)
   let (js0, js1, rs0, rs1) = (js!!0, js!!1, rs!!0, rs!!1)
-  ignoreMeta <- env optNoMetaInfo
+  ignoreMeta <- env optNoMeta
   let hasMetaJ = not ignoreMeta && hasMeta js
   let hasMetaR = not ignoreMeta && hasMetaJ && hasMeta rs 
   let (js', offsetJ') = trimFront $ if hasMetaJ then (drop 2 js, offsetJ + 2) else (js, offsetJ)
   let (rs', offsetR') = trimFront $ if hasMetaR then (drop 2 rs, offsetR + 2) else (rs, offsetR)
-  metaInfo <- if hasMetaJ
+  meta <- if hasMetaJ
     then if hasMetaR
-      then Just <$> extractMetaInfo (metaData js0, metaData js1) (Just (metaData rs0, metaData rs1))
-      else Just <$> extractMetaInfo (metaData js0, metaData js1) Nothing
+      then Just <$> extractMeta (metaData js0, metaData js1) (Just (metaData rs0, metaData rs1))
+      else Just <$> extractMeta (metaData js0, metaData js1) Nothing
     else return Nothing
   tokens <- concat <$> sequence (zipWith4 parseLine [offsetJ' .. ] [offsetR' .. ] js' rs')
-  return (metaInfo, tokens)
+  return (meta, tokens)
   where 
     hasMeta f = case f of
       (a:b:_) -> isMetaLine a && isMetaLine b

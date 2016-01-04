@@ -29,7 +29,7 @@ main = do
     , optMincho     = "MS Mincho"
     , optGothic     = "MS Gothic"
     , optShowBreak  = False
-    , optNoMetaInfo = False
+    , optNoMeta     = False
     , optKeepLV     = True
     }
     let result = case runParakeet options parakeet of

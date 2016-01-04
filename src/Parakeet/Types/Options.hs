@@ -21,6 +21,6 @@ data Options = Options {
 , optMincho     :: String
 , optGothic     :: String
 , optShowBreak  :: Bool
-, optNoMetaInfo :: Bool
+, optNoMeta     :: Bool
 , optKeepLV     :: Bool
 }

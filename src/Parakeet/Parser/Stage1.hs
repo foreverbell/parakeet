@@ -73,13 +73,17 @@ continue e = do
 sugarize :: Bool -> Bool -> [L.Romaji L.Single] -> [L.Romaji L.Bundle]
 sugarize sokuonize longVowelize from = sortBy (flip compare `on` (length . L.unwrap)) $ nub $ map L.concatR $ do 
   r <- from
-  g <- set sokuonize [R.sokuonize, id]
-  v <- set longVowelize [R.longVowelize True, id]
+  g <- getTransformer sokuonize [R.sokuonize, id]
+  v <- getTransformer longVowelize [R.longVowelize True, id]
   return $ if R.isSyllabicN r
     then [r]
     else v (g [r])
-  where set True xs  = xs
-        set False xs = drop 1 xs
+  where 
+    getTransformer True xs  = xs
+    getTransformer False xs = drop 1 xs
+
+unitRomajis :: [L.Romaji L.Bundle]
+unitRomajis = sugarize True True R.chList
 
 romaji :: [L.Romaji L.Bundle] -> Parser (L.Romaji L.Bundle)
 romaji rs = L.wrap <$> choice (map (try . fuzzy) rs')
@@ -149,9 +153,6 @@ kanji token = do
       let (r:rs) = foremost next -- TODO: ambiguity!
       prepend $ concatMap L.unwrap rs
       return $ R.normSyllabicN r
-
-unitRomajis :: [L.Romaji L.Bundle]
-unitRomajis = sugarize True True R.chList
 
 break :: Parser [T.Token]
 break = do

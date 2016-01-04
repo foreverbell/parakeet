@@ -13,7 +13,7 @@ import           Prelude hiding (print)
 
 import           Parakeet.Types.FlatToken (FlatToken(..))
 import           Parakeet.Types.Options (Options(..))
-import           Parakeet.Types.MetaInfo (MetaInfo(..), getTitle, getAuthor)
+import           Parakeet.Types.Meta (Meta(..), getTitle, getAuthor)
 
 escape :: String -> String
 escape [] = []
@@ -38,7 +38,7 @@ tokenToText (Kanji k h r) = return $ T.pack $ printf "\\kanji{%s}{%s}{%s}" k (co
 tokenToText (Hiragana h r) = return $ T.pack $ printf "\\hiragana{%s}{%s}" h (unwords r)
 tokenToText (Katakana k r) = return $ T.pack $ printf "\\katakana{%s}{%s}" k (unwords r)
 
-intermediate :: (Maybe MetaInfo, [FlatToken]) -> Parakeet Text
+intermediate :: (Maybe Meta, [FlatToken]) -> Parakeet Text
 intermediate (meta, tokens) = do
   title <- maybe (return T.empty) (\meta -> wrap "title" . smartConcat <$> mapM tokenToText (getTitle meta)) meta
   author <- maybe (return T.empty) (\meta -> wrap "author" . smartConcat <$> mapM tokenToText (getAuthor meta)) meta
