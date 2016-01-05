@@ -95,7 +95,7 @@ runOpts argv = case getOpt Permute options argv of
 main :: IO ()
 main = do
   (opts, output) <- runOpts =<< getArgs
-  let res = runParakeet opts parakeet
+  let res = parakeet opts
   case res of 
     Left err -> fail err
     Right r  -> output r

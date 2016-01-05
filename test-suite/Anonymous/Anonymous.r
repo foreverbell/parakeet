@@ -3,7 +3,6 @@ ekie
 tsudzuku
 chidjimu
 kidzuku
-bakadjikara
 jaaku
 obāsan, obaasan
 ojiisan 

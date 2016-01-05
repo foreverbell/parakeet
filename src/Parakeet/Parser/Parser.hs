@@ -40,8 +40,8 @@ extractMeta (j1, j2) (Just (r1, r2)) = do
   return $ Meta (Title title, Author (author, authorLit))
 extractMeta (j1, j2) Nothing = return $ Meta (Title [Lit j1], Author ([Lit j2], [Lit j2]))
 
-trimFront :: ([String], Line) -> ([String], Line)
-trimFront (ls, l) = (drop emptys ls, l + emptys)
+lstrip :: ([String], Line) -> ([String], Line)
+lstrip (ls, l) = (drop emptys ls, l + emptys)
   where 
     emptys = length $ takeWhile isEmpty ls
     isEmpty = not . any (not . isSpace)
@@ -66,14 +66,14 @@ flatten token =
 parse :: Parakeet (Maybe Meta, [FlatToken])
 parse = do
   (j, r) <- env optContent
-  let (js, offsetJ) = trimFront (lines j, 1)
-  let (rs, offsetR) = trimFront (lines r, 1)
+  let (js, offsetJ) = lstrip (lines j, 1)
+  let (rs, offsetR) = lstrip (lines r, 1)
   let (js0, js1, rs0, rs1) = (js!!0, js!!1, rs!!0, rs!!1)
   ignoreMeta <- env optNoMeta
   let hasMetaJ = not ignoreMeta && hasMeta js
   let hasMetaR = not ignoreMeta && hasMetaJ && hasMeta rs 
-  let (js', offsetJ') = trimFront $ if hasMetaJ then (drop 2 js, offsetJ + 2) else (js, offsetJ)
-  let (rs', offsetR') = trimFront $ if hasMetaR then (drop 2 rs, offsetR + 2) else (rs, offsetR)
+  let (js', offsetJ') = lstrip $ if hasMetaJ then (drop 2 js, offsetJ + 2) else (js, offsetJ)
+  let (rs', offsetR') = lstrip $ if hasMetaR then (drop 2 rs, offsetR + 2) else (rs, offsetR)
   meta <- if hasMetaJ
     then if hasMetaR
       then Just <$> extractMeta (metaData js0, metaData js1) (Just (metaData rs0, metaData rs1))
