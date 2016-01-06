@@ -24,7 +24,7 @@ import           Control.Monad (mzero, guard)
 import           Control.Monad.Choice (Choice, fromList, toList, foremost)
 
 import           Parakeet.Types.Lexeme (wrap, unwrap, toRLV, toRS, Hiragana, Katakana, Romaji, Bundle, Single, (<**>), (<$$>))
-import           Parakeet.Linguistics.Misc (isMacron, toMacron, unMacron, isVowel)
+import           Parakeet.Linguistics.Misc (isMacron, toMacron, fromMacron, isVowel)
 import           Parakeet.Linguistics.Internal (hRaw, kRaw)
 
 chList :: [Romaji Single]
@@ -157,7 +157,7 @@ unLongVowelize r
     r' = unwrap r
     lastOne = last r'
     exceptLast = init r'
-    lastDesugar = unMacron lastOne
+    lastDesugar = fromMacron lastOne
     lastTo | lastDesugar == 'o' = fromList ['u', 'o']  -- ambiguous 'ō' -> ou
            | otherwise          = return lastDesugar
 

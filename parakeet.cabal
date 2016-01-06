@@ -13,7 +13,8 @@ tested-with:         GHC==7.10.2, GHC==7.10.3
 extra-source-files:
   LICENSE
   README.md
-  tests/
+  test-suite/
+  test-expect/
 
 source-repository head
   type:     git
@@ -75,7 +76,7 @@ executable parakeet
  else
     hs-source-dirs:      exe
     build-depends:       base, text, parakeet
-    other-modules:  
+    other-modules:
       System.IO.UTF8
 
 test-suite parakeet-test
@@ -83,5 +84,7 @@ test-suite parakeet-test
   hs-source-dirs:      test
   main-is:             Main.hs
   build-depends:       base, text, HUnit, parakeet
+  other-modules:
+    System.IO.UTF8
   ghc-options:         -W -fwarn-tabs
   default-language:    Haskell2010

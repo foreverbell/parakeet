@@ -2,7 +2,7 @@ module Parakeet.Linguistics.Misc (
   isKanji
 , isChoonpu
 , isMacron
-, unMacron
+, fromMacron
 , toMacron
 , toMacron'
 , isVowel
@@ -31,8 +31,8 @@ macrons = [ (fromList "āâ", 'a')
 isMacron :: Char -> Bool
 isMacron c = c `elem` concatMap (toList . fst) macrons
 
-unMacron :: Char -> Char
-unMacron c = case find (\(m, _) -> c `elem` toList m) macrons of 
+fromMacron :: Char -> Char
+fromMacron c = case find (\(m, _) -> c `elem` toList m) macrons of 
   Just (_, b) -> b
   Nothing -> c
 
@@ -42,7 +42,7 @@ toMacron c = case find (\(_, b) -> b == c) macrons of
   Nothing -> return c
 
 toMacron' :: Char -> Choice Char
-toMacron' = toMacron . unMacron
+toMacron' = toMacron . fromMacron
 
 isVowel :: Char -> Bool
 isVowel c = c `elem` "aiueo"

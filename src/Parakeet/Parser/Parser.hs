@@ -5,7 +5,7 @@ module Parakeet.Parser.Parser (
 import           Control.Monad.Parakeet (Parakeet, env, throw)
 import           Data.Char (isSpace)
 import           Data.Char.Extra (toLower)
-import           Data.List (isPrefixOf, zipWith4)
+import           Data.List (isPrefixOf, zip4)
 import           Text.Parsec hiding (parse)
 
 import           Parakeet.Types.FlatToken (FlatToken(..))
@@ -21,30 +21,38 @@ setLine l = do
   pos <- getPosition
   setPosition $ setSourceLine pos l
 
-parseLine :: Line -> Line -> String -> String -> Parakeet [FlatToken]
-parseLine lj lr j r = do
+parseLine :: (Line, Line, String, String) -> Parakeet [FlatToken]
+parseLine (lj, lr, j, r) = do
   keeplv <- env optKeepLV
   let stage2' = if keeplv then stage2 else return
   jf <- env optJInputFile
   rf <- env optRInputFile
-  wd <- test =<< runParserT (setLine lj >> stage0) () jf j
-  tk <- stage2' =<< test =<< runParserT (setLine lr >> stage1) wd rf (toLower r)
+  wd <- fromEither =<< runParserT (setLine lj >> stage0) () jf j
+  tk <- stage2' =<< fromEither =<< runParserT (setLine lr >> stage1) wd rf (toLower r)
   sequence $ flatten <$> tk
-  where test = either (throw . show) return
+  where fromEither = either (throw . show) return
 
-extractMeta :: (String, String) -> Maybe (String, String) -> Parakeet Meta
-extractMeta (j1, j2) (Just (r1, r2)) = do
-  title <- if null r1 then return [Lit j1] else init <$> parseLine 1 1 j1 r1
-  author <- if null r2 then return [Lit j2] else init <$> parseLine 2 2 j2 r2
+formatMeta :: (String, String) -> Maybe (String, String) -> Parakeet Meta
+formatMeta (j1, j2) (Just (r1, r2)) = do
+  title <- if null r1 then return [Lit j1] else init <$> parseLine (1, 1, j1, r1)
+  author <- if null r2 then return [Lit j2] else init <$> parseLine (2, 2, j2, r2)
   let authorLit = if null r2 then [Lit j2] else [Lit j2, Lit ("(" ++ r2 ++ ")")]
   return $ Meta (Title title, Author (author, authorLit))
-extractMeta (j1, j2) Nothing = return $ Meta (Title [Lit j1], Author ([Lit j2], [Lit j2]))
+formatMeta (j1, j2) Nothing = return $ Meta (Title [Lit j1], Author ([Lit j2], [Lit j2]))
 
-lstrip :: ([String], Line) -> ([String], Line)
-lstrip (ls, l) = (drop emptys ls, l + emptys)
+type WithLine = ([String], [Line])
+
+dropl :: Int -> WithLine -> WithLine
+dropl d (buf, l) = (drop d buf, drop d l)
+
+lstrip :: WithLine -> WithLine
+lstrip wl@(buf, _) = dropl emptys wl
   where 
-    emptys = length $ takeWhile isEmpty ls
+    emptys = length $ takeWhile isEmpty buf
     isEmpty = not . any (not . isSpace)
+
+zipl :: WithLine -> WithLine -> [(Line, Line, String, String)]
+zipl (b1, l1) (b2, l2) = zip4 l1 l2 b1 b2
 
 flatten :: Token.Token -> Parakeet FlatToken
 flatten token = 
@@ -62,28 +70,29 @@ flatten token =
                 InHiragana -> map Lexeme.unwrap hs
           return $ Kanji (Lexeme.unwrap k) kana romaji
 
--- TODO: refactor `parse` in a monadic way
 parse :: Parakeet (Maybe Meta, [FlatToken])
 parse = do
-  (j, r) <- env optContent
-  let (js, offsetJ) = lstrip (lines j, 1)
-  let (rs, offsetR) = lstrip (lines r, 1)
+  j@(js, _) <- fst <$> env optContent >>= \j -> return (lstrip (lines j, [1 .. ]))
+  r@(rs, _) <- snd <$> env optContent >>= \r -> return (lstrip (lines r, [1 .. ]))
   let (js0, js1, rs0, rs1) = (js!!0, js!!1, rs!!0, rs!!1)
   ignoreMeta <- env optNoMeta
   let hasMetaJ = not ignoreMeta && hasMeta js
   let hasMetaR = not ignoreMeta && hasMetaJ && hasMeta rs 
-  let (js', offsetJ') = lstrip $ if hasMetaJ then (drop 2 js, offsetJ + 2) else (js, offsetJ)
-  let (rs', offsetR') = lstrip $ if hasMetaR then (drop 2 rs, offsetR + 2) else (rs, offsetR)
+  let j' | hasMetaJ = lstrip $ dropl 2 j
+         | otherwise = j
+  let r' | hasMetaR = lstrip $ dropl 2 r
+         | otherwise = r
   meta <- if hasMetaJ
-    then if hasMetaR
-      then Just <$> extractMeta (metaData js0, metaData js1) (Just (metaData rs0, metaData rs1))
-      else Just <$> extractMeta (metaData js0, metaData js1) Nothing
+    then do
+      let jSection = (getMetaData js0, getMetaData js1)
+      let rSection | hasMetaR  = Just (getMetaData rs0, getMetaData rs1)
+                   | otherwise = Nothing
+      Just <$> formatMeta jSection rSection
     else return Nothing
-  tokens <- concat <$> sequence (zipWith4 parseLine [offsetJ' .. ] [offsetR' .. ] js' rs')
-  return (meta, tokens)
+  token <- concat <$> mapM parseLine (zipl j' r')
+  return (meta, token)
   where 
-    hasMeta f = case f of
-      (a:b:_) -> isMetaLine a && isMetaLine b
-      _       -> False
+    hasMeta (a:b:_) = isMetaLine a && isMetaLine b
+    hasMeta _       = False
     isMetaLine l = "##" `isPrefixOf` l 
-    metaData l = dropWhile isSpace $ drop 2 l
+    getMetaData l = dropWhile isSpace $ drop 2 l
