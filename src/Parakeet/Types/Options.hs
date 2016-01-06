@@ -20,7 +20,6 @@ data Options = Options {
 , optFurigana   :: FuriganaFormat
 , optMincho     :: String
 , optGothic     :: String
-, optShowBreak  :: Bool
 , optNoMeta     :: Bool
 , optKeepLV     :: Bool
 }

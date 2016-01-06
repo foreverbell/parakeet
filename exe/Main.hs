@@ -21,7 +21,6 @@ defaultOptions = Options {
 , optFurigana   = InHiragana
 , optMincho     = "MS Mincho"
 , optGothic     = "MS Gothic"
-, optShowBreak  = False
 , optNoMeta     = False
 , optKeepLV     = False
 }
@@ -56,8 +55,6 @@ bindMincho a = firstM $ \o -> return o { optMincho = a }
 
 bindGothic a = firstM $ \o -> return o { optGothic = a }
 
-setShowBreak = firstM $ \o -> return o { optShowBreak = True }
-
 setNoMeta = firstM $ \o -> return o { optNoMeta = True }
 
 setKeepLV = firstM $ \o -> return o { optKeepLV = True }
@@ -71,7 +68,6 @@ options =
   , Option [   ] ["furigana"]   (ReqArg bindFurigana "FORMAT") "furigana format: hiragana (default) | katakana"
   , Option [   ] ["mincho"]     (ReqArg bindMincho     "FONT") "mincho font for tex output, \"MS Mincho\" by default"
   , Option [   ] ["gothic"]     (ReqArg bindGothic     "FONT") "gothic font for tex output, \"MS Gothic\" by default"
-  , Option [   ] ["show-break"] (NoArg  setShowBreak         ) "show break from romaji file"
   , Option [   ] ["no-meta"]    (NoArg  setNoMeta            ) "ignore meta data (title & author)"
   , Option [   ] ["keep-lv"]    (NoArg  setKeepLV            ) "keep long vowel macron in output"
   ]

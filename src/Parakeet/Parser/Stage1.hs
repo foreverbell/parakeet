@@ -43,6 +43,9 @@ instance TokenType L.Kanji where
 instance TokenType L.Lit where
   match = lit
 
+instance TokenType L.AlphaNum where
+  match = alphanum
+
 prepend :: String -> Parser ()
 prepend a = void $ do
   s <- getParserState
@@ -71,6 +74,12 @@ continue e = do
   skipMany separator
   rest <- stage1
   return $ e : rest
+
+break :: Parser [Token]
+break = do
+  many1 space
+  skipMany separator
+  stage1
 
 sugarize :: Bool -> Bool -> [L.Romaji L.Single] -> [L.Romaji L.Bundle]
 sugarize sokuonize longVowelize from = sortBy (flip compare `on` (length . L.unwrap)) $ nub $ map L.concatR $ do 
@@ -134,32 +143,53 @@ lit token = do
           spaces
           if M.isSeparator x
             then return M.separator <* string (replicate 2 M.separator) -- two separators as lit to distinguish from separator
-            else char' $ toLower x -- romaji input is already lower-cased
+            else fuzzyChar (toLower x) -- romaji input is already lower-cased
           eat xs
-        char' :: Char -> Parser Char
-        char' ch = satisfy (fuzzyEq ch) <?> "character likely \'" ++ [ch, '\''] 
+
+fuzzyChar :: Char -> Parser Char
+fuzzyChar ch = satisfy (fuzzyEq ch) <?> "character likely \'" ++ [ch, '\''] 
+
+skip :: Int -> Parser [L.Romaji L.Single]
+skip n = replicateM n $ do
+  void (char '-') <|> void spaces <?> "delimiter likely (\'-\' or spaces)" -- eat possible delimiters
+  next <- strip . R.factor <$> romaji unitRomajis
+  let (r:rs) = foremost next -- TODO: ambiguity!
+  prepend $ concatMap L.unwrap rs
+  return $ R.normSyllabicN r
+
+tries :: Int -> [Int]
+tries n = [1 .. n * 3 + 8]
+
+furigana :: [L.Romaji L.Single] -> Parser ([L.Hiragana], [L.Katakana])
+furigana romajis = do
+  hiraganas <- maybe mzero return $ sequence (L.fromRomaji romajis :: [Maybe L.Hiragana])
+  katakanas <- maybe mzero return $ sequence (L.fromRomaji romajis :: [Maybe L.Katakana])
+  return (hiraganas, katakanas)
 
 kanji :: L.Kanji -> Parser [Token]
 kanji token = do
   let len = length $ L.unwrap token
-  let tryRange = [1 .. len * 3 + 8]
-  choice $ flip map tryRange $ \n -> try $ do  
+  choice $ flip map (tries len) $ \n -> try $ do  
     romajis <- skip n
-    hiraganas <- maybe mzero return $ sequence (L.fromRomaji romajis :: [Maybe L.Hiragana])
-    katakanas <- maybe mzero return $ sequence (L.fromRomaji romajis :: [Maybe L.Katakana])
+    (hiraganas, katakanas) <- furigana romajis
     continue $ T.Kanji token hiraganas katakanas romajis
-  where
-    skip n = replicateM n $ do
-      void (char '-') <|> void spaces <?> "delimiter likely (\'-\' or spaces)" -- eat possible delimiters
-      next <- strip . R.factor <$> romaji unitRomajis
-      let (r:rs) = foremost next -- TODO: ambiguity!
-      prepend $ concatMap L.unwrap rs
-      return $ R.normSyllabicN r
 
-break :: Parser [Token]
-break = do
-  many1 space
-  continue T.Break
+alphanum :: L.AlphaNum -> Parser [Token]
+-- | two strategies: lit matching, or fallbacks to corespond romaji matching (similar to kanji).
+alphanum token = try strat1 <|> strat2  
+  where
+    eat :: String -> Parser ()
+    eat [] = return ()
+    eat (x:xs) = spaces >> fuzzyChar (toLower x) >> eat xs
+    strat1 = do
+      eat (L.unwrap token)
+      continue $ T.AlphaNum token Nothing
+    strat2 = do
+      let len = length $ L.unwrap token
+      choice $ flip map (tries len) $ \n -> try $ do
+        romajis <- skip n
+        (hiraganas, katakanas) <- furigana romajis
+        continue $ T.AlphaNum token $ Just (hiraganas, katakanas, romajis)
 
 terminate :: Parser [Token]
 terminate = do

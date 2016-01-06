@@ -4,7 +4,7 @@ module Parakeet.Translator.Intermediate (
   intermediate
 ) where
 
-import           Control.Monad.Parakeet (Parakeet, env)
+import           Control.Monad.Parakeet (Parakeet)
 import           Control.Monad (forM)
 import qualified Data.Text.Lazy as T
 import           Data.Text.Lazy (Text)
@@ -12,7 +12,6 @@ import           Text.Printf (printf)
 import           Prelude hiding (print)
 
 import           Parakeet.Types.FToken 
-import           Parakeet.Types.Options 
 import           Parakeet.Types.Meta 
 
 escape :: String -> String
@@ -28,11 +27,6 @@ smartConcat (t:ts) = if T.null t then smartConcat ts else T.concat [t, " ", smar
 
 tokenToText :: FToken -> Parakeet Text
 tokenToText Line = return "\n"
-tokenToText Break = do
-  showBreak <- env optShowBreak
-  return $ if showBreak 
-    then "\\break"
-    else T.empty
 tokenToText (Lit s) = return $ T.pack $ printf "\\lit{%s}" (escape s)
 tokenToText (Kanji k h r) = return $ T.pack $ printf "\\kanji{%s}{%s}{%s}" k (concat h) (unwords r)
 tokenToText (Hiragana h r) = return $ T.pack $ printf "\\hiragana{%s}{%s}" h (unwords r)

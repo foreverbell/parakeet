@@ -1,8 +1,9 @@
 module Data.Char.Fuzzy (
   fuzzyEq
+, fuzzyAlphaNum
 ) where
 
-import           Data.Char (ord)
+import           Data.Char (ord, chr, isAlphaNum)
 import           Prelude hiding (elem)
 import qualified Data.List as L
 
@@ -48,3 +49,9 @@ normOrder c = case L.find (\(p, _) -> p x) rules of
 
 fuzzyEq :: Char -> Char -> Bool
 fuzzyEq a b  = (==) (normOrder a) (normOrder b) 
+
+fuzzyAlphaNum :: Char -> Bool
+fuzzyAlphaNum c | inside 0xff01 0xff5e x = fuzzyAlphaNum (chr (x - 0xff01 + 0x21))
+                | x < 256 = isAlphaNum c
+                | otherwise = False
+  where x = ord c

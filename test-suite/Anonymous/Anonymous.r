@@ -27,4 +27,6 @@ Isuzu
 Dzutsu
 Dutsu
 Bubudzuke
-Masshiro na yuki no hana 
+Masshiro na yuki no hana
+Futa$ri$yo$ri$sotte 
+Futa$ri no mune ni sotto omoide o egaku yo

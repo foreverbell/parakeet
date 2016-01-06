@@ -2,6 +2,7 @@ module Parakeet.Parser.Parser (
   parse
 ) where
 
+import           Control.Monad (liftM)
 import           Control.Monad.Parakeet (Parakeet, env, throw)
 import           Data.Char (isSpace)
 import           Data.Char.Extra (toLower)
@@ -9,9 +10,7 @@ import           Data.List (isPrefixOf, zip4)
 import           Text.Parsec hiding (parse)
 
 import           Parakeet.Types.FToken
-import qualified Parakeet.Types.Lexeme as Lexeme
 import           Parakeet.Types.Meta
-import qualified Parakeet.Types.Token as Token
 import           Parakeet.Types.Options
 import           Parakeet.Parser.Stage0 (stage0)
 import           Parakeet.Parser.Stage1 (stage1)
@@ -28,10 +27,12 @@ parseLine (lj, lr, j, r) = do
   wd <- fromEither =<< runParserT (setLine lj >> stage0) () jf j
   tk <- fromEither =<< runParserT (setLine lr >> stage1) wd rf (toLower r)
   keeplv <- env optKeepLV
+  furigana <- env optFurigana
   if keeplv
-     then mapM flatten =<< stage2 tk
-     else mapM flatten tk
-  where fromEither = either (throw . show) return
+     then liftM (concatLit . map (fromToken furigana)) (stage2 tk)
+     else return $ concatLit $ map (fromToken furigana) tk
+  where
+    fromEither = either (throw . show) return
 
 formatMeta :: (String, String) -> Maybe (String, String) -> Parakeet Meta
 formatMeta (j1, j2) (Just (r1, r2)) = do
@@ -54,22 +55,6 @@ lstrip wl@(buf, _) = dropl emptys wl
 
 zipl :: WithLine -> WithLine -> [(Line, Line, String, String)]
 zipl (b1, l1) (b2, l2) = zip4 l1 l2 b1 b2
-
-flatten :: Token.Token a -> Parakeet FToken
-flatten token = 
-  case token of
-       Token.Line -> return Line
-       Token.Break -> return Break
-       Token.Lit l -> return $ Lit (Lexeme.unwrap l)
-       Token.Hiragana h r -> return $ Hiragana (Lexeme.unwrap h) (map Lexeme.unwrap r)
-       Token.Katakana k r -> return $ Katakana (Lexeme.unwrap k) (map Lexeme.unwrap r)
-       Token.Kanji k hs ks r -> do
-          let romaji = map Lexeme.unwrap r
-          furigana <- env optFurigana
-          let kana = case furigana of
-                InKatakana -> map Lexeme.unwrap ks
-                InHiragana -> map Lexeme.unwrap hs
-          return $ Kanji (Lexeme.unwrap k) kana romaji
 
 parse :: Parakeet (Maybe Meta, [FToken])
 parse = do

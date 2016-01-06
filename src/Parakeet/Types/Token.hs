@@ -2,12 +2,12 @@ module Parakeet.Types.Token (
   Token(..)
 ) where
 
-import qualified Parakeet.Types.Lexeme as Lexeme
+import qualified Parakeet.Types.Lexeme as L
 
 data Token a = Line
-             | Break
-             | Lit Lexeme.Lit
-             | Kanji Lexeme.Kanji [Lexeme.Hiragana] [Lexeme.Katakana] [Lexeme.Romaji a]
-             | Hiragana Lexeme.Hiragana [Lexeme.Romaji a]
-             | Katakana Lexeme.Katakana [Lexeme.Romaji a]
+             | Lit L.Lit
+             | AlphaNum L.AlphaNum (Maybe ([L.Hiragana], [L.Katakana], [L.Romaji a]))
+             | Kanji L.Kanji [L.Hiragana] [L.Katakana] [L.Romaji a]
+             | Hiragana L.Hiragana [L.Romaji a]
+             | Katakana L.Katakana [L.Romaji a]
              deriving (Show)

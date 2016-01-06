@@ -5,6 +5,7 @@ module Parakeet.Parser.Stage0 (
 import           Control.Monad (void, liftM2)
 import           Control.Monad.Extra (concatM)
 import           Control.Monad.Parakeet 
+import           Data.Char.Fuzzy (fuzzyAlphaNum)
 import           Text.Parsec
 
 import qualified Parakeet.Types.Lexeme as L
@@ -48,6 +49,9 @@ kanji = L.wrap . concat <$> many1 (case1 <|> case2)
     case1 = return <$> body
     case2 = try $ liftM2 (\a b -> [a, b]) sokuon body
 
+alphanum :: Parser L.AlphaNum
+alphanum = L.wrap <$> many1 (satisfy fuzzyAlphaNum)
+
 lit :: Parser L.Lit
 lit = L.wrap <$> many1 (satisfy other <|> escapedSeparator)
   where 
@@ -55,6 +59,7 @@ lit = L.wrap <$> many1 (satisfy other <|> escapedSeparator)
                 [ M.isChoonpu
                 , M.isKanji, H.isHiragana, K.isKatakana
                 , M.isSeparator
+                , fuzzyAlphaNum
                 ]
     escapedSeparator = try $ do -- use double separators to escape separator
       string $ replicate 2 M.separator
@@ -70,6 +75,7 @@ stage0 = do
   r <- many $ optional separator >> choice [ TokenBox <$> hiragana
                                            , TokenBox <$> katakana
                                            , TokenBox <$> kanji
+                                           , TokenBox <$> alphanum
                                            , TokenBox <$> lit
                                            ]
   eof

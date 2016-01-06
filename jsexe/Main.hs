@@ -28,7 +28,6 @@ main = do
     , optFurigana   = InHiragana
     , optMincho     = "MS Mincho"
     , optGothic     = "MS Gothic"
-    , optShowBreak  = False
     , optNoMeta     = False
     , optKeepLV     = True
     }

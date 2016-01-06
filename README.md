@@ -84,4 +84,3 @@ Since I haven't find any potential users, so there will be no document available
 * Extended katakana support.
 * Exception type for robustness.
 * Japanese lexical rules.
-* Numeric literals like `１２３` support.

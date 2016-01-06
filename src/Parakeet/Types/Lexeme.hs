@@ -4,6 +4,7 @@ module Parakeet.Types.Lexeme (
   Lexeme(..)
 , LexemeKana(..)
 , Lit
+, AlphaNum
 , Kanji
 , Hiragana
 , Katakana
@@ -28,6 +29,7 @@ data Romaji a = Romaji String
               deriving (Show)
 
 newtype Lit = Lit String deriving (Show)
+newtype AlphaNum = AlphaNum String deriving (Show)
 newtype Kanji = Kanji String deriving (Show)
 newtype Hiragana = Hiragana String deriving (Show)
 newtype Katakana = Katakana String deriving (Show)
@@ -56,6 +58,10 @@ class (Lexeme k) => LexemeKana k where
 instance Lexeme Lit where
   unwrap (Lit t) = t
   wrap = Lit
+
+instance Lexeme AlphaNum where
+  unwrap (AlphaNum t) = t
+  wrap = AlphaNum 
 
 instance Lexeme Kanji where
   unwrap (Kanji t) = t

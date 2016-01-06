@@ -9,7 +9,7 @@ Sorosoro kono machi ni
 Kimi to chikazukeru kisetsu ga kuru 
 
 Kotoshi, saisho no yuki no hana wo 
-Futari yorisotte 
+Futa$ri$yo$ri$sotte 
 Nagamete iru kono toki ni 
 Shiawase ga afure dasu 
 
@@ -41,7 +41,7 @@ Egao mo namida ni nureteru yoru mo
 Itsumo itsu demo soba ni iru yo 
 
 Kotoshi, saisho no yuki no hana wo 
-Futari yorisotte 
+Futa$ri$yo$ri$sotte 
 Nagamete iru kono toki ni 
 Shiawase ga afure dasu 
 
@@ -52,5 +52,5 @@ Sunao ni sou omoeru
 
 Kono machi ni furitsumotteku 
 Masshiro na yuki no hana 
-Futari no mune ni sotto omoide wo egaku yo 
+Futa$ri no mune ni sotto omoide wo egaku yo 
 Kore kara mo kimi to zutto...

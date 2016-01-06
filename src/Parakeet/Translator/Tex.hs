@@ -73,11 +73,6 @@ texify useVerb offset tokens = T.concat <$> mapM singleTexify tokens
     singleTexify :: FToken -> Parakeet Text
     singleTexify d = case d of
       Line         -> return " \\\\ \n"
-      Break        -> do
-        showBreak <- env optShowBreak
-        return $ if showBreak
-          then "\\, "
-          else T.empty
       Lit s        -> return $ T.pack $ build useVerb mainFont s ++ " "
       Kanji k h r  -> return $ T.pack $ printf "\\ruby{%s%s}{%s} " (build False mainFont k) (build False rubyFont ("(" ++ concat h ++ ")")) (build False romajiFont (unwords r))
       Hiragana h r -> return $ T.pack $ printf "\\ruby{%s}{%s} " (build False mainFont h) (build False romajiFont (unwords r))
