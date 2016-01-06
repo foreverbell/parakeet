@@ -3,12 +3,11 @@ module Parakeet.Types.Token (
 ) where
 
 import qualified Parakeet.Types.Lexeme as Lexeme
-import           Parakeet.Types.Lexeme (Single)
 
-data Token = Line
-           | Break
-           | Lit Lexeme.Lit
-           | Kanji Lexeme.Kanji [Lexeme.Hiragana] [Lexeme.Katakana] [Lexeme.Romaji Single]
-           | Hiragana Lexeme.Hiragana [Lexeme.Romaji Single]
-           | Katakana Lexeme.Katakana [Lexeme.Romaji Single]
-           deriving (Show)
+data Token a = Line
+             | Break
+             | Lit Lexeme.Lit
+             | Kanji Lexeme.Kanji [Lexeme.Hiragana] [Lexeme.Katakana] [Lexeme.Romaji a]
+             | Hiragana Lexeme.Hiragana [Lexeme.Romaji a]
+             | Katakana Lexeme.Katakana [Lexeme.Romaji a]
+             deriving (Show)

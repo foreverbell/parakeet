@@ -7,17 +7,17 @@ module Parakeet.Types.Meta (
 , getLitAuthor
 ) where
 
-import Parakeet.Types.FlatToken (FlatToken)
+import Parakeet.Types.FToken (FToken)
 
-newtype Title = Title [FlatToken] deriving (Show)
-newtype Author = Author ([FlatToken], [FlatToken]) deriving (Show)
+newtype Title = Title [FToken] deriving (Show)
+newtype Author = Author ([FToken], [FToken]) deriving (Show)
 newtype Meta = Meta (Title, Author) deriving (Show)
 
-getTitle :: Meta -> [FlatToken]
+getTitle :: Meta -> [FToken]
 getTitle (Meta (Title title, _)) = title
 
-getAuthor :: Meta -> [FlatToken]
+getAuthor :: Meta -> [FToken]
 getAuthor (Meta (_, Author (author, _))) = author
 
-getLitAuthor :: Meta -> [FlatToken]
+getLitAuthor :: Meta -> [FToken]
 getLitAuthor (Meta (_, Author (_, author))) = author

@@ -24,10 +24,12 @@ import qualified Parakeet.Linguistics.Misc as M
 
 type Parser = ParsecT String [TokenBox] Parakeet
 
-class L.Lexeme t => TokenType t where
-  match :: t -> Parser [T.Token]
+type Token = T.Token L.Single
 
 data TokenBox = forall t. (TokenType t, Show t) => TokenBox t
+
+class L.Lexeme t => TokenType t where
+  match :: t -> Parser [Token]
 
 instance TokenType L.Hiragana where
   match = hiragana
@@ -64,7 +66,7 @@ separator = void $ try $ do
   char M.separator
   notFollowedBy (char M.separator)
 
-continue :: T.Token -> Parser [T.Token]
+continue :: Token -> Parser [Token]
 continue e = do
   skipMany separator
   rest <- stage1
@@ -74,9 +76,9 @@ sugarize :: Bool -> Bool -> [L.Romaji L.Single] -> [L.Romaji L.Bundle]
 sugarize sokuonize longVowelize from = sortBy (flip compare `on` (length . L.unwrap)) $ nub $ map L.concatR $ do 
   r <- from
   g <- getTransformer sokuonize [R.sokuonize, id]
-  v <- getTransformer longVowelize [R.longVowelize True, id]
+  v <- getTransformer longVowelize [R.longVowelizeWithMacron, map L.toRB]
   return $ if R.isSyllabicN r
-    then [r]
+    then [L.toRB r]
     else v (g [r])
   where 
     getTransformer True xs  = xs
@@ -97,7 +99,7 @@ romaji rs = L.wrap <$> choice (map (try . fuzzy) rs')
         match c | M.isMacron c = choice $ map char (toList $ M.toMacron' c)
                 | otherwise    = char c
 
-kana :: (L.LexemeKana k) => (k -> [L.Romaji L.Single] -> T.Token) -> k -> Parser [T.Token]
+kana :: (L.LexemeKana k) => (k -> [L.Romaji L.Single] -> Token) -> k -> Parser [Token]
 kana builder token = choice $ go <$> toList (L.toRomaji token)
   where
     go romajis = try $ iter romajis
@@ -111,13 +113,13 @@ kana builder token = choice $ go <$> toList (L.toRomaji token)
             guard $ head rlist == r
             iter rs
 
-hiragana :: L.Hiragana -> Parser [T.Token]
+hiragana :: L.Hiragana -> Parser [Token]
 hiragana = kana T.Hiragana
 
-katakana :: L.Katakana -> Parser [T.Token]
+katakana :: L.Katakana -> Parser [Token]
 katakana = kana T.Katakana
 
-lit :: L.Lit -> Parser [T.Token]
+lit :: L.Lit -> Parser [Token]
 lit token = do
   let unwrapped = L.unwrap token
   if unwrapped == "\n"
@@ -137,7 +139,7 @@ lit token = do
         char' :: Char -> Parser Char
         char' ch = satisfy (fuzzyEq ch) <?> "character likely \'" ++ [ch, '\''] 
 
-kanji :: L.Kanji -> Parser [T.Token]
+kanji :: L.Kanji -> Parser [Token]
 kanji token = do
   let len = length $ L.unwrap token
   let tryRange = [1 .. len * 3 + 8]
@@ -154,19 +156,19 @@ kanji token = do
       prepend $ concatMap L.unwrap rs
       return $ R.normSyllabicN r
 
-break :: Parser [T.Token]
+break :: Parser [Token]
 break = do
   many1 space
   continue T.Break
 
-terminate :: Parser [T.Token]
+terminate :: Parser [Token]
 terminate = do
   s <- getState
   guard $ null s
   eof
   return []
 
-stage1 :: Parser [T.Token]
+stage1 :: Parser [Token]
 stage1 = terminate
      <|> break
      <|> do TokenBox token <- popUserToken

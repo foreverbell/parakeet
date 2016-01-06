@@ -7,9 +7,9 @@ import           Control.Monad.Parakeet (Parakeet, throw)
 
 import           Parakeet.Types.Token
 import qualified Parakeet.Types.Lexeme as L
-import           Parakeet.Linguistics.Romaji (longVowelize1)
+import           Parakeet.Linguistics.Romaji (longVowelize1WithMacron)
 
-splitToken :: Token -> ([L.Romaji L.Single] -> Token, [L.Romaji L.Single])
+splitToken :: Token L.Single -> ([L.Romaji L.Bundle] -> Token L.Bundle, [L.Romaji L.Single])
 splitToken token = case token of
   Line -> (const Line, [])
   Break -> (const Break, [])
@@ -25,12 +25,12 @@ splitToken token = case token of
  - processed romajis of the current token
  - remaining tokens to be processed
  -}
-substitute :: Bool -> ([L.Romaji L.Single] -> Token) -> [L.Romaji L.Single] -> [L.Romaji L.Single] -> [Token] -> Parakeet [Token]
+substitute :: Bool -> ([L.Romaji L.Bundle] -> Token L.Bundle) -> [L.Romaji L.Single] -> [L.Romaji L.Bundle] -> [Token L.Single] -> Parakeet [Token L.Bundle]
 substitute False b [] d [] = return [b (reverse d)] 
 
 substitute False b (c:r) d r0 = if L.isRLV c
-  then substitute True b r (longVowelize1 c:d) r0
-  else substitute False b r (c:d) r0
+  then substitute True b r (longVowelize1WithMacron c:d) r0
+  else substitute False b r (L.toRB c:d) r0
 
 substitute False b [] d r0 = do
   let (b', rs) = splitToken (head r0)
@@ -47,7 +47,7 @@ substitute True b [] d r0 = do
   n <- substitute False b' (tail rs) [] (tail r0)
   return $ b (reverse d) : n
 
-stage2 :: [Token] -> Parakeet [Token]
+stage2 :: [Token L.Single] -> Parakeet [Token L.Bundle]
 stage2 [] = return []
 stage2 tokens = do
   let (b, rs) = splitToken (head tokens)

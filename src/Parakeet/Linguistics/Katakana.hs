@@ -24,7 +24,7 @@ instance LexemeKana Katakana where
     where
       lookup [] = mzero
       lookup k | isSokuon (head k) = sokuonize <$> lookup (tail k)
-               | isChoonpu (last k) = longVowelize False <$> lookup (init k)
+               | isChoonpu (last k) = longVowelize <$> lookup (init k)
                | isIterationMark1 (last k) = (\xs -> xs ++ [unDakutenize (last xs)]) <$> lookup (init k)
                | isIterationMark2 (last k) = (\xs -> xs ++ [dakutenize (last xs)]) <$> lookup (init k)
                | otherwise = return <$> join (otherForms . wrap <$> fromMaybe (M.lookup k chmap))

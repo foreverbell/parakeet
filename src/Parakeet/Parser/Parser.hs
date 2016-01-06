@@ -8,11 +8,11 @@ import           Data.Char.Extra (toLower)
 import           Data.List (isPrefixOf, zip4)
 import           Text.Parsec hiding (parse)
 
-import           Parakeet.Types.FlatToken (FlatToken(..))
+import           Parakeet.Types.FToken
 import qualified Parakeet.Types.Lexeme as Lexeme
-import           Parakeet.Types.Meta (Meta(..), Author(..), Title(..))
+import           Parakeet.Types.Meta
 import qualified Parakeet.Types.Token as Token
-import           Parakeet.Types.Options (Options(..), FuriganaFormat(..))
+import           Parakeet.Types.Options
 import           Parakeet.Parser.Stage0 (stage0)
 import           Parakeet.Parser.Stage1 (stage1)
 import           Parakeet.Parser.Stage2 (stage2)
@@ -21,15 +21,16 @@ setLine l = do
   pos <- getPosition
   setPosition $ setSourceLine pos l
 
-parseLine :: (Line, Line, String, String) -> Parakeet [FlatToken]
+parseLine :: (Line, Line, String, String) -> Parakeet [FToken]
 parseLine (lj, lr, j, r) = do
-  keeplv <- env optKeepLV
-  let stage2' = if keeplv then stage2 else return
   jf <- env optJInputFile
   rf <- env optRInputFile
   wd <- fromEither =<< runParserT (setLine lj >> stage0) () jf j
-  tk <- stage2' =<< fromEither =<< runParserT (setLine lr >> stage1) wd rf (toLower r)
-  sequence $ flatten <$> tk
+  tk <- fromEither =<< runParserT (setLine lr >> stage1) wd rf (toLower r)
+  keeplv <- env optKeepLV
+  if keeplv
+     then mapM flatten =<< stage2 tk
+     else mapM flatten tk
   where fromEither = either (throw . show) return
 
 formatMeta :: (String, String) -> Maybe (String, String) -> Parakeet Meta
@@ -54,7 +55,7 @@ lstrip wl@(buf, _) = dropl emptys wl
 zipl :: WithLine -> WithLine -> [(Line, Line, String, String)]
 zipl (b1, l1) (b2, l2) = zip4 l1 l2 b1 b2
 
-flatten :: Token.Token -> Parakeet FlatToken
+flatten :: Token.Token a -> Parakeet FToken
 flatten token = 
   case token of
        Token.Line -> return Line
@@ -70,7 +71,7 @@ flatten token =
                 InHiragana -> map Lexeme.unwrap hs
           return $ Kanji (Lexeme.unwrap k) kana romaji
 
-parse :: Parakeet (Maybe Meta, [FlatToken])
+parse :: Parakeet (Maybe Meta, [FToken])
 parse = do
   j@(js, _) <- fst <$> env optContent >>= \j -> return (lstrip (lines j, [1 .. ]))
   r@(rs, _) <- snd <$> env optContent >>= \r -> return (lstrip (lines r, [1 .. ]))

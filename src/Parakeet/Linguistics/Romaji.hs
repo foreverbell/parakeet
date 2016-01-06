@@ -9,7 +9,8 @@ module Parakeet.Linguistics.Romaji (
 , sokuonize
 , unSokuonize
 , longVowelize
-, longVowelize1
+, longVowelizeWithMacron
+, longVowelize1WithMacron 
 , unLongVowelize
 , factor
 ) where
@@ -23,7 +24,7 @@ import           Control.Arrow (second)
 import           Control.Monad (mzero, guard)
 import           Control.Monad.Choice (Choice, fromList, toList, foremost)
 
-import           Parakeet.Types.Lexeme (wrap, unwrap, toRLV, toRS, Hiragana, Katakana, Romaji, Bundle, Single, (<**>), (<$$>))
+import           Parakeet.Types.Lexeme (wrap, unwrap, toRLV, toRS, toRB, Hiragana, Katakana, Romaji, Bundle, Single, (<**>), (<$$>))
 import           Parakeet.Linguistics.Misc (isMacron, toMacron, fromMacron, isVowel)
 import           Parakeet.Linguistics.Internal (hRaw, kRaw)
 
@@ -140,13 +141,16 @@ sokuonizeInternal s@(c:_) | sokuonizable c = [[c], s]
                           | otherwise      = [s]
 
 -- | long vowelize a factorized romaji.
--- FIXME: seems it should return Romaji Bundle if m = True.
-longVowelize :: Bool -> [Romaji Single] -> [Romaji Single]
-longVowelize _ [] = []
-longVowelize m r = mapLast (longVowelizeInternal m <$$>) r
+longVowelize :: [Romaji Single] -> [Romaji Single]
+longVowelize [] = []
+longVowelize r = mapLast (longVowelizeInternal False <$$>) r
 
-longVowelize1 :: Romaji Single -> Romaji Single
-longVowelize1 r = head (longVowelizeInternal True <$$> r)
+longVowelizeWithMacron :: [Romaji a] -> [Romaji Bundle]
+longVowelizeWithMacron [] = []
+longVowelizeWithMacron r = toRB <$> mapLast (longVowelizeInternal True <$$>) r
+
+longVowelize1WithMacron :: Romaji a -> Romaji Bundle
+longVowelize1WithMacron r = toRB $ head (longVowelizeInternal True <$$> r)
 
 unLongVowelize :: Romaji Bundle -> Choice (Maybe (Romaji Single), Romaji Bundle)
 unLongVowelize r 
