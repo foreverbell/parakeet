@@ -12,8 +12,8 @@ Build the most convenient tool for Japanese beginners!
 
 Input:
 
-* https://raw.githubusercontent.com/foreverbell/parakeet/master/tests/Butter-fly/Butter-fly.j
-* https://raw.githubusercontent.com/foreverbell/parakeet/master/tests/Butter-fly/Butter-fly.r
+* https://raw.githubusercontent.com/foreverbell/parakeet/master/test-suite/Butter-fly/Butter-fly.j
+* https://raw.githubusercontent.com/foreverbell/parakeet/master/test-suite/Butter-fly/Butter-fly.r
 
 Output:
 
