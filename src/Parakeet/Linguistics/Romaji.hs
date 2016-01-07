@@ -26,7 +26,7 @@ import           Control.Monad.Choice (Choice, fromList, toList, foremost)
 
 import           Parakeet.Types.Lexeme (wrap, unwrap, toRLV, toRS, toRB, Hiragana, Katakana, Romaji, Bundle, Single, (<**>), (<$$>))
 import           Parakeet.Linguistics.Misc (isMacron, toMacron, fromMacron, isVowel)
-import           Parakeet.Linguistics.Internal (hRaw, kRaw)
+import           Parakeet.Linguistics.RawData (hRaw, kRaw)
 
 chList :: [Romaji Single]
 chList = nub' $ concatMap (toList . otherForms . wrap . snd) $ hRaw ++ kRaw
@@ -37,7 +37,7 @@ buildMap raw = M.fromList $ map toChoice (raw ++ raw')
   where 
     swapped = map swap raw
     toChoice (k, r) = (r, return k)
-    raw' = concatMap f (tail otherList) 
+    raw' = concatMap f (tail otherFormList) 
       where 
         f (r, rs) = foldl g [] rs where
           kana = fromJust $ lookup r swapped
@@ -56,8 +56,8 @@ toKana r = (lookup hMap, lookup kMap)
       Just ch -> wrap <$> ch
       Nothing -> mzero
 
-otherList :: [(String, [String])]
-otherList = [ ("n",  ["n", "m", "nn", "n-", "n'"]) -- syllabic n
+otherFormList :: [(String, [String])]
+otherFormList = [ ("n",  ["n", "m", "nn", "n-", "n'"]) -- syllabic n
             , ("ha", ["ha", "wa"])                 -- particles mutation
             , ("he", ["he", "e"])
             , ("wo", ["wo", "o"])
@@ -65,12 +65,12 @@ otherList = [ ("n",  ["n", "m", "nn", "n-", "n'"]) -- syllabic n
             , ("du", ["du", "zu", "dzu"])
             ]
 
-otherMap :: M.Map String (Choice String)
-otherMap = M.fromList $ map (second fromList) otherList
+otherFormMap :: M.Map String (Choice String)
+otherFormMap = M.fromList $ map (second fromList) otherFormList
 
 otherForms :: Romaji Single -> Choice (Romaji Single)
 otherForms r = go <$$> r
-  where go r = fromMaybe (return r) (M.lookup r otherMap)
+  where go r = fromMaybe (return r) (M.lookup r otherFormMap)
 
 buildDakutenPairs :: [(Int, Int)] -> [(String, String)]
 buildDakutenPairs = extend . concatMap convert 

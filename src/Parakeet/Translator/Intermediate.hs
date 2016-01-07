@@ -20,11 +20,6 @@ escape ('{' : xs) = "{{" ++ escape xs
 escape ('}' : xs) = "}}" ++ escape xs
 escape (x : xs) = x : escape xs
 
-smartConcat :: [Text] -> Text
-smartConcat [] = T.empty
-smartConcat ("\n":ts) = "\n" `T.append` smartConcat ts
-smartConcat (t:ts) = if T.null t then smartConcat ts else T.concat [t, " ", smartConcat ts]
-
 tokenToText :: FToken -> Parakeet Text
 tokenToText Line = return "\n"
 tokenToText (Lit s) = return $ T.pack $ printf "\\lit{%s}" (escape s)
@@ -34,12 +29,15 @@ tokenToText (Katakana k r) = return $ T.pack $ printf "\\katakana{%s}{%s}" k (un
 
 intermediate :: (Maybe Meta, [FToken]) -> Parakeet Text
 intermediate (meta, tokens) = do
-  title <- maybe (return T.empty) (\meta -> wrap "title" . smartConcat <$> mapM tokenToText (getTitle meta)) meta
-  author <- maybe (return T.empty) (\meta -> wrap "author" . smartConcat <$> mapM tokenToText (getAuthor meta)) meta
-  body <- smartConcat <$> forM tokens tokenToText
+  title <- maybe (return T.empty) (\meta -> wrap "title" . tconcat <$> mapM tokenToText (getTitle meta)) meta
+  author <- maybe (return T.empty) (\meta -> wrap "author" . tconcat <$> mapM tokenToText (getAuthor meta)) meta
+  body <- tconcat <$> forM tokens tokenToText
   return $ title `lnappend` author `lnappend` body
   where 
     wrap tag text = T.concat ["\\", tag, "{", text, "}"]
     lnappend a b = if T.null a
       then b
       else T.concat [a, "\n", b]
+    tconcat [] = T.empty
+    tconcat ("\n":ts) = "\n" `T.append` tconcat ts
+    tconcat (t:ts) = if T.null t then tconcat ts else T.concat [t, " ", tconcat ts]

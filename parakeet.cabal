@@ -39,11 +39,10 @@ library
     Data.Char.Fuzzy
     Data.List.Extra
     Parakeet.Linguistics.Hiragana
-    Parakeet.Linguistics.Internal
     Parakeet.Linguistics.Katakana
     Parakeet.Linguistics.Misc
+    Parakeet.Linguistics.RawData
     Parakeet.Linguistics.Romaji
-    Parakeet.Parakeet
     Parakeet.Parser.Parser
     Parakeet.Parser.Stage0
     Parakeet.Parser.Stage1

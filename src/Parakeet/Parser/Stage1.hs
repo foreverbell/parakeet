@@ -175,7 +175,7 @@ kanji token = do
     continue $ T.Kanji token hiraganas katakanas romajis
 
 alphanum :: L.AlphaNum -> Parser [Token]
--- | two strategies: lit matching, or fallbacks to corespond romaji matching (similar to kanji).
+-- | two strategies: lit matching, or fall backs to correspond romaji matching (similar to kanji).
 alphanum token = try strat1 <|> strat2  
   where
     eat :: String -> Parser ()

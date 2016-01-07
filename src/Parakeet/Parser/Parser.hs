@@ -47,8 +47,8 @@ type WithLine = ([String], [Line])
 dropl :: Int -> WithLine -> WithLine
 dropl d (buf, l) = (drop d buf, drop d l)
 
-lstrip :: WithLine -> WithLine
-lstrip wl@(buf, _) = dropl emptys wl
+lstripl :: WithLine -> WithLine
+lstripl wl@(buf, _) = dropl emptys wl
   where 
     emptys = length $ takeWhile isEmpty buf
     isEmpty = not . any (not . isSpace)
@@ -58,15 +58,15 @@ zipl (b1, l1) (b2, l2) = zip4 l1 l2 b1 b2
 
 parse :: Parakeet (Maybe Meta, [FToken])
 parse = do
-  j@(js, _) <- fst <$> env optContent >>= \j -> return (lstrip (lines j, [1 .. ]))
-  r@(rs, _) <- snd <$> env optContent >>= \r -> return (lstrip (lines r, [1 .. ]))
+  j@(js, _) <- fst <$> env optContent >>= \j -> return (lstripl (lines j, [1 .. ]))
+  r@(rs, _) <- snd <$> env optContent >>= \r -> return (lstripl (lines r, [1 .. ]))
   let (js0, js1, rs0, rs1) = (js!!0, js!!1, rs!!0, rs!!1)
   ignoreMeta <- env optNoMeta
   let hasMetaJ = not ignoreMeta && hasMeta js
   let hasMetaR = not ignoreMeta && hasMetaJ && hasMeta rs 
-  let j' | hasMetaJ = lstrip $ dropl 2 j
+  let j' | hasMetaJ = lstripl $ dropl 2 j
          | otherwise = j
-  let r' | hasMetaR = lstrip $ dropl 2 r
+  let r' | hasMetaR = lstripl $ dropl 2 r
          | otherwise = r
   meta <- if hasMetaJ
     then do

@@ -14,7 +14,7 @@ import qualified Data.Map as M
 import           Parakeet.Types.Lexeme (LexemeKana(..), wrap, unwrap, Katakana)
 import           Parakeet.Linguistics.Romaji (otherForms, dakutenize, unDakutenize, sokuonize, longVowelize, isSyllabicN, toKana)
 import           Parakeet.Linguistics.Misc (isChoonpu)
-import           Parakeet.Linguistics.Internal (kRaw)
+import           Parakeet.Linguistics.RawData (kRaw)
 
 chmap :: M.Map String String
 chmap = M.fromList kRaw

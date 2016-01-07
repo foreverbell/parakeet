@@ -13,7 +13,7 @@ import qualified Data.Map as M
 
 import           Parakeet.Types.Lexeme (LexemeKana(..), wrap, unwrap, Hiragana)
 import           Parakeet.Linguistics.Romaji (otherForms, dakutenize, unDakutenize, sokuonize, isSyllabicN, toKana)
-import           Parakeet.Linguistics.Internal (hRaw)
+import           Parakeet.Linguistics.RawData (hRaw)
 
 chmap :: M.Map String String
 chmap = M.fromList hRaw
