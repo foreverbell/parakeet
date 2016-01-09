@@ -1,29 +1,43 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE ExistentialQuantification #-}
 
 module Control.Monad.Parakeet (
   Parakeet
 , runParakeet
 , env
 , throw
+
+-- * Exceptions
+, ParseError(..)
+, InternalError(..)
+, module Control.Exception
 ) where
 
+
+import Control.Exception (toException, Exception, SomeException)
 import Control.Monad.Except (ExceptT(..), runExceptT, throwError)
 import Control.Monad.Reader (ReaderT(..), runReaderT, asks)
 import Control.Monad.Identity (Identity, runIdentity)
+import Data.Typeable
 
 import Parakeet.Types.Options (Options(..))
 
-newtype Parakeet a = Parakeet (ReaderT Options (ExceptT String Identity) a) 
+newtype Parakeet a = Parakeet (ReaderT Options (ExceptT SomeException Identity) a) 
   deriving ( Functor
            , Applicative
            , Monad
            )
+newtype ParseError = ParseError String deriving (Typeable, Show)
+newtype InternalError = InternalError String deriving (Typeable, Show)
 
-runParakeet :: Options -> Parakeet a -> Either String a
+instance Exception ParseError
+instance Exception InternalError
+
+runParakeet :: Options -> Parakeet a -> Either SomeException a
 runParakeet opts (Parakeet e) = runIdentity $ runExceptT $ runReaderT e opts
 
 env :: (Options -> a) -> Parakeet a
 env = Parakeet . asks
 
-throw :: String -> Parakeet a
+throw :: SomeException -> Parakeet a
 throw = Parakeet . throwError

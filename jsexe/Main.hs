@@ -32,7 +32,7 @@ main = do
     , optKeepLV     = True
     }
     let result = case parakeet options of
-                        Left a -> unlines ["Error:", a]
+                        Left a -> unlines [show a]
                         Right b -> b
     setElement (pack "result") (pack result)
   setParakeet callback

@@ -3,7 +3,7 @@ module Parakeet.Parser.Parser (
 ) where
 
 import           Control.Monad (liftM)
-import           Control.Monad.Parakeet (Parakeet, env, throw)
+import           Control.Monad.Parakeet (Parakeet, env, throw, toException, ParseError(..))
 import           Data.Char (isSpace)
 import           Data.Char.Extra (toLower)
 import           Data.List (isPrefixOf, zip4)
@@ -32,7 +32,7 @@ parseLine (lj, lr, j, r) = do
      then liftM (concatLit . map (fromToken furigana)) (stage2 tk)
      else return $ concatLit $ map (fromToken furigana) tk
   where
-    fromEither = either (throw . show) return
+    fromEither = either (throw . toException . ParseError . show) return
 
 formatMeta :: (String, String) -> Maybe (String, String) -> Parakeet Meta
 formatMeta (j1, j2) (Just (r1, r2)) = do

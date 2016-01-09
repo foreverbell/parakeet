@@ -1,5 +1,6 @@
 module Main where
 
+import           Control.Exception (throw)
 import           Control.Monad (when)
 import           Data.Char (toLower)
 import           System.Console.GetOpt (getOpt, usageInfo, ArgOrder(..), OptDescr(..), ArgDescr(..))
@@ -93,5 +94,5 @@ main = do
   (opts, output) <- runOpts =<< getArgs
   let res = parakeet opts
   case res of 
-    Left err -> fail err
+    Left err -> throw err
     Right r  -> output r

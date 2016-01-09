@@ -3,7 +3,7 @@ module Parakeet.Parser.Stage2 (
 ) where
 
 import           Control.Monad (when)
-import           Control.Monad.Parakeet (Parakeet, throw)
+import           Control.Monad.Parakeet (Parakeet, toException, SomeException, InternalError(..), throw)
 
 import           Parakeet.Types.Token
 import qualified Parakeet.Types.Lexeme as L
@@ -54,5 +54,5 @@ stage2 tokens = do
   let (b, rs) = splitToken (head tokens)
   substitute False b rs [] (tail tokens)
 
-internalError :: String
-internalError = "[internal error] except an vowel romaji but not found"
+internalError :: SomeException
+internalError = toException $ InternalError "except an vowel romaji but not found"
