@@ -21,7 +21,7 @@ splitToken token = case token of
 
 substitute :: Bool                                    -- ^ If the next romaji is the part of a long vowel
            -> ([L.Romaji L.Bundle] -> Token L.Bundle) -- ^ Token builder
-           -> [L.Romaji L.Single]                     -- ^ Romajis waits to be process for the current token
+           -> [L.Romaji L.Single]                     -- ^ Romajis wait to be process for the current token
            -> [L.Romaji L.Bundle]                     -- ^ Processed romajis of the current token
            -> [Token L.Single]                        -- ^ Remaining tokens wait to be processed
            -> Parakeet [Token L.Bundle]

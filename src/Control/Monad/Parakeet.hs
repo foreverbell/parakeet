@@ -1,5 +1,4 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE ExistentialQuantification #-}
 
 module Control.Monad.Parakeet (
   Parakeet

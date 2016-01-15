@@ -26,9 +26,7 @@ library
   other-extensions:    OverloadedStrings, 
                        QuasiQuotes, 
                        ExistentialQuantification, 
-                       GeneralizedNewtypeDeriving,
-                       FlexibleInstances,
-                       UndecidableInstances
+                       GeneralizedNewtypeDeriving
   exposed-modules:
     Text.Parakeet
   other-modules:       

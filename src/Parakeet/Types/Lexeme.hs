@@ -1,5 +1,3 @@
-{-# LANGUAGE FlexibleInstances, UndecidableInstances #-}
-
 module Parakeet.Types.Lexeme (
   Lexeme(..)
 , LexemeKana(..)
