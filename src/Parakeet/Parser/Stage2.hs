@@ -19,14 +19,12 @@ splitToken token = case token of
   Hiragana h rs -> (Hiragana h, rs)
   Katakana k rs -> (Katakana k, rs)
 
-{-
- - if the next romaji is the part of a long vowel
- - token builder
- - romajis wait to be processed of the current token
- - processed romajis of the current token
- - remaining tokens to be processed
- -}
-substitute :: Bool -> ([L.Romaji L.Bundle] -> Token L.Bundle) -> [L.Romaji L.Single] -> [L.Romaji L.Bundle] -> [Token L.Single] -> Parakeet [Token L.Bundle]
+substitute :: Bool                                    -- ^ If the next romaji is the part of a long vowel
+           -> ([L.Romaji L.Bundle] -> Token L.Bundle) -- ^ Token builder
+           -> [L.Romaji L.Single]                     -- ^ Romajis waits to be process for the current token
+           -> [L.Romaji L.Bundle]                     -- ^ Processed romajis of the current token
+           -> [Token L.Single]                        -- ^ Remaining tokens wait to be processed
+           -> Parakeet [Token L.Bundle]
 substitute False b [] d [] = return [b (reverse d)] 
 
 substitute False b (c:r) d r0 = if L.isRLV c

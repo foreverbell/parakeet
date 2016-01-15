@@ -55,7 +55,7 @@ alphanum = L.wrap <$> many1 (satisfy fuzzyAlphaNum)
 lit :: Parser L.Lit
 lit = L.wrap <$> many1 (satisfy other <|> escapedSeparator)
   where 
-    other c = not $ any (\f -> f c) 
+    other c = not $ any ($ c) 
                 [ M.isChoonpu
                 , M.isKanji, H.isHiragana, K.isKatakana
                 , M.isSeparator

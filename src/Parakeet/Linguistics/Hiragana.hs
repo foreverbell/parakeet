@@ -30,7 +30,7 @@ instance LexemeKana Hiragana where
   fromRomaji hs = toMaybe <$> convert hs
     where
       convert [] = []
-      convert (x:xs) = msum (map (\f -> f x) [checkSyllabicN, lookupNormal, checkSokuon]) : convert xs
+      convert (x:xs) = msum (map ($ x) [checkSyllabicN, lookupNormal, checkSokuon]) : convert xs
         where
           checkSyllabicN x = do
             guard $ isSyllabicN x

@@ -58,12 +58,12 @@ toKana r = (lookup hMap, lookup kMap)
 
 otherFormList :: [(String, [String])]
 otherFormList = [ ("n",  ["n", "m", "nn", "n-", "n'"]) -- syllabic n
-            , ("ha", ["ha", "wa"])                 -- particles mutation
-            , ("he", ["he", "e"])
-            , ("wo", ["wo", "o"])
-            , ("di", ["di", "ji", "dji"])          -- ambiguous ji & zu
-            , ("du", ["du", "zu", "dzu"])
-            ]
+                , ("ha", ["ha", "wa"])                 -- particles mutation
+                , ("he", ["he", "e"])
+                , ("wo", ["wo", "o"])
+                , ("di", ["di", "ji", "dji"])          -- ambiguous ji & zu
+                , ("du", ["du", "zu", "dzu"])
+                ]
 
 otherFormMap :: M.Map String (Choice String)
 otherFormMap = M.fromList $ map (second fromList) otherFormList
