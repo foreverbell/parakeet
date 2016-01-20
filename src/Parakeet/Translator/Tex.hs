@@ -18,22 +18,16 @@ import           Parakeet.Types.Meta
 
 build :: Bool -> Int -> String -> String
 build useVerb f
-  | useVerb      = printf "\\%s{\\verb|%s|}" (fonts !! f)
+  | useVerb   = printf "\\%s{\\verb|%s|}" (fonts !! f)
   | otherwise = printf "\\%s{%s}" (fonts !! f)
-  where fonts = [ "Huge"
-                , "huge"
-                , "LARGE"
-                , "Large"
-                , "large"
+  where fonts = [ "Huge", "huge"
+                , "LARGE", "Large", "large"
                 , "normalsize"
-                , "small"
-                , "footnotesize"
-                , "scriptsize"
-                , "tiny" 
+                , "small" , "footnotesize", "scriptsize", "tiny" 
                 ] :: [String]
 
-texify :: Bool -> Int -> [FToken] -> Parakeet Text
-texify useVerb offset tokens = T.concat <$> mapM singleTexify tokens
+texify :: Bool -> Int -> [FToken] -> Text
+texify useVerb offset tokens = T.concat $ map singleTexify tokens
   where
     mainFont = fixFont $ 4 + offset
     rubyFont = fixFont $ 6 + offset
@@ -41,41 +35,40 @@ texify useVerb offset tokens = T.concat <$> mapM singleTexify tokens
     fixFont f | f < 0 = 0
               | f > 9 = 9
               | otherwise = f
-    singleTexify :: FToken -> Parakeet Text
+    singleTexify :: FToken -> Text
     singleTexify d = case d of
-      Line         -> return " \\\\ \n"
-      Lit s        -> return $ T.pack $ build useVerb mainFont s ++ " "
-      Kanji k h r  -> return $ T.pack $ printf "\\ruby{%s%s}{%s} " (build False mainFont k) (build False rubyFont ("(" ++ concat h ++ ")")) (build False romajiFont (unwords r))
-      Hiragana h r -> return $ T.pack $ printf "\\ruby{%s}{%s} " (build False mainFont h) (build False romajiFont (unwords r))
-      Katakana k r -> return $ T.pack $ printf "\\ruby{%s}{%s} " (build False mainFont k) (build False romajiFont (unwords r))
+      Line         -> " \\\\ \n"
+      Lit s        -> T.pack $ build useVerb mainFont s ++ " "
+      Kanji k h r  -> T.pack $ printf "\\ruby{%s%s}{%s} " (build False mainFont k) (build False rubyFont ("(" ++ concat h ++ ")")) (build False romajiFont (unwords r))
+      Hiragana h r -> T.pack $ printf "\\ruby{%s}{%s} " (build False mainFont h) (build False romajiFont (unwords r))
+      Katakana k r -> T.pack $ printf "\\ruby{%s}{%s} " (build False mainFont k) (build False romajiFont (unwords r))
 
-texifyTitle :: [FToken] -> Parakeet Text
-texifyTitle title = do
-  tex <- texify False (-2) title
-  return $ T.pack $ printf "\\title{%s}" (T.unpack tex)
+texifyTitle :: [FToken] -> Text
+texifyTitle title = T.pack $ printf "\\title{%s}" (T.unpack tex)
+  where
+    tex = texify False (-2) title
 
-texifyAuthor :: [FToken] -> Parakeet Text
-texifyAuthor author = do
-  tex <- texify False 1 author
-  return $ T.pack $ printf "\\author{%s}" (T.unpack tex)
+texifyAuthor :: [FToken] -> Text
+texifyAuthor author = T.pack $ printf "\\author{%s}" (T.unpack tex)
+  where
+    tex = texify False 1 author
 
 texBare :: (Maybe Meta, [FToken]) -> Parakeet Text
-texBare (meta, tokens) = do
-  title  <- maybe (return T.empty) (texifyTitle . getTitle) meta
-  author <- maybe (return T.empty) (texifyAuthor . getLitAuthor) meta
-  body   <- texify True 0 tokens
-  return $ T.concat [title, "\n", author, "\n\n", body]
+texBare (meta, tokens) = return $ T.concat [title, "\n", author, "\n\n", body]
+  where
+    title  = maybe T.empty (texifyTitle . getTitle) meta
+    author = maybe T.empty (texifyAuthor . getLitAuthor) meta
+    body   = texify True 0 tokens
 
 tex :: (Maybe Meta, [FToken]) -> Parakeet Text
 tex (meta0, tokens) = do
   mincho <- env optMincho
   gothic <- env optGothic
-  title <- maybe (return T.empty) (texifyTitle . getTitle) meta0
+  let title = maybe T.empty (texifyTitle . getTitle) meta0
   -- TODO: using lit author is workaround, since ruby is not well supported in \author{ }
-  author <- maybe (return T.empty) (texifyAuthor . getLitAuthor) meta0
+  let author = maybe T.empty (texifyAuthor . getLitAuthor) meta0
   let date = maybe T.empty (const "\\date{ }") meta0
-  body0 <- texify True 0 tokens
   let meta = T.concat [title, "\n", author, "\n", date]
   let font = T.concat [T.pack $ printf "\\setCJKmainfont{%s}" mincho, "\n", T.pack $ printf "\\setCJKsansfont{%s}" gothic]
-  let body = maybe T.empty (const "\\maketitle\n\n") meta0 `T.append` body0
+  let body = maybe T.empty (const "\\maketitle\n\n") meta0 `T.append` texify True 0 tokens
   return $ T.concat [efile|template.tex|]

@@ -4,23 +4,19 @@ module System.IO.UTF8 (
 ) where
 
 import           Control.Exception (bracket)
-import           System.IO (openFile, hClose, hSetEncoding, IOMode(..), utf8)
+import           System.IO (openFile, hClose, hSetEncoding, IOMode (..), Handle, utf8)
 import qualified Data.Text.IO as T
 import           Data.Text (pack, unpack)
 import           Prelude hiding (readFile, writeFile)
 
+open :: FilePath -> IOMode -> IO Handle
+open path mode = do
+  h <- openFile path mode
+  hSetEncoding h utf8
+  return h
+
 readFile :: FilePath -> IO String
-readFile path = unpack <$> bracket open hClose T.hGetContents
-  where
-    open = do
-      h <- openFile path ReadMode
-      hSetEncoding h utf8
-      return h
+readFile path = unpack <$> bracket (open path ReadMode) hClose T.hGetContents
 
 writeFile :: FilePath -> String -> IO ()
-writeFile path t = bracket open hClose $ \h -> T.hPutStr h $ pack t
-  where 
-    open = do
-      h <- openFile path WriteMode
-      hSetEncoding h utf8
-      return h
+writeFile path t = bracket (open path WriteMode) hClose $ \h -> T.hPutStr h $ pack t
