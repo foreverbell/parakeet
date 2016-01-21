@@ -29,6 +29,7 @@ library
                        TemplateHaskell
                        ExistentialQuantification, 
                        GeneralizedNewtypeDeriving
+                       DeriveDataTypeable
   exposed-modules:
     Text.Parakeet
   other-modules:       

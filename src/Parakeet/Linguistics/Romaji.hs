@@ -24,7 +24,7 @@ import           Control.Arrow (second)
 import           Control.Monad (mzero, guard)
 import           Control.Monad.Choice (Choice, fromList, toList, foremost)
 
-import           Parakeet.Types.Lexeme (wrap, unwrap, toRLV, toRS, toRB, Hiragana, Katakana, Romaji, Bundle, Single, (<**>), (<$$>))
+import           Parakeet.Types.Lexeme (wrap, unwrap, toRLV, toRS, toRB, Hiragana, Katakana, Romaji, RType, Bundle, Single, (<**>), (<$$>))
 import           Parakeet.Linguistics.Misc (isMacron, toMacron, fromMacron, isVowel)
 import           Parakeet.Linguistics.RawData (hRaw, kRaw)
 
@@ -145,11 +145,11 @@ longVowelize :: [Romaji Single] -> [Romaji Single]
 longVowelize [] = []
 longVowelize r = mapLast (longVowelizeInternal False <$$>) r
 
-longVowelizeWithMacron :: [Romaji a] -> [Romaji Bundle]
+longVowelizeWithMacron :: RType a => [Romaji a] -> [Romaji Bundle]
 longVowelizeWithMacron [] = []
 longVowelizeWithMacron r = toRB <$> mapLast (longVowelizeInternal True <$$>) r
 
-longVowelize1WithMacron :: Romaji a -> Romaji Bundle
+longVowelize1WithMacron :: RType a => Romaji a -> Romaji Bundle
 longVowelize1WithMacron r = toRB $ head (longVowelizeInternal True <$$> r)
 
 unLongVowelize :: Romaji Bundle -> Choice (Maybe (Romaji Single), Romaji Bundle)

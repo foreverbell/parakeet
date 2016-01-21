@@ -2,16 +2,16 @@
 
 module Parakeet.Parser.Stage1 (
   stage1
-, TokenBox(..)
 ) where
 
-import           Control.Monad (forM_, void, mzero, guard, replicateM)
+import           Control.Monad (forM_, void, mzero, msum, guard, replicateM)
 import           Control.Monad.Choice (foremost, toList, strip)
 import           Control.Monad.Parakeet
 import           Data.Char (toLower, isSpace)
 import           Data.Char.Fuzzy (fuzzyEq)
 import           Data.List (sortBy, nub, intercalate)
 import           Data.Function (on)
+import           Data.Maybe (fromJust)
 import           Prelude hiding (break)
 import           Text.Parsec
 
@@ -22,29 +22,8 @@ import           Parakeet.Linguistics.Katakana ()
 import qualified Parakeet.Linguistics.Romaji as R
 import qualified Parakeet.Linguistics.Misc as M
 
-type Parser = ParsecT String [TokenBox] Parakeet
-
+type Parser = ParsecT String [L.SomeLexeme] Parakeet
 type Token = T.Token L.Single
-
-data TokenBox = forall t. (TokenType t, Show t) => TokenBox t
-
-class L.Lexeme t => TokenType t where
-  match :: t -> Parser [Token]
-
-instance TokenType L.Hiragana where
-  match = hiragana
-
-instance TokenType L.Katakana where
-  match = katakana
-
-instance TokenType L.Kanji where
-  match = kanji
-
-instance TokenType L.Lit where
-  match = lit
-
-instance TokenType L.AlphaNum where
-  match = alphanum
 
 prepend :: String -> Parser ()
 prepend a = void $ do
@@ -55,7 +34,7 @@ prepend a = void $ do
   }
   setPosition $ incSourceColumn p (negate $ length a)
 
-popUserToken :: Parser TokenBox
+popUserToken :: Parser L.SomeLexeme
 popUserToken = do
   s <- getState
   guard $ not $ null s
@@ -201,5 +180,10 @@ terminate = do
 stage1 :: Parser [Token]
 stage1 = terminate
      <|> break
-     <|> do TokenBox token <- popUserToken
-            match token
+     <|> do token <- popUserToken
+            fromJust $ msum [ hiragana <$> L.fromLexeme token
+                            , katakana <$> L.fromLexeme token
+                            , kanji    <$> L.fromLexeme token
+                            , lit      <$> L.fromLexeme token
+                            , alphanum <$> L.fromLexeme token
+                            ]

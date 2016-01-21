@@ -1,6 +1,10 @@
+{-# LANGUAGE ExistentialQuantification, DeriveDataTypeable #-}
+
 module Parakeet.Types.Lexeme (
   Lexeme(..)
 , LexemeKana(..)
+, SomeLexeme(..)
+, fromLexeme
 , Lit
 , AlphaNum
 , Kanji
@@ -15,32 +19,40 @@ module Parakeet.Types.Lexeme (
 , appendR
 , Bundle
 , Single
+, RType
 ) where
 
 import Control.Monad.Choice (Choice)
+import Data.Typeable (Typeable, cast)
 
-data Bundle
-data Single
+data Bundle deriving (Typeable)
+data Single deriving (Typeable)
+
+class Typeable a => RType a
+instance RType Bundle
+instance RType Single
+
 -- | Phantom type `a` to distinguish bundle and single romaji.
-data Romaji a = Romaji String 
-              | RomajiLV String -- romaji with long vowel
-              deriving (Show)
+-- Based on ideas in /https://wiki.haskell.org/Phantom_type/.
+data RType a => Romaji a = Romaji String 
+                         | RomajiLV String -- romaji with long vowel
+                         deriving (Show, Typeable)
 
-newtype Lit = Lit String deriving (Show)
-newtype AlphaNum = AlphaNum String deriving (Show)
-newtype Kanji = Kanji String deriving (Show)
-newtype Hiragana = Hiragana String deriving (Show)
-newtype Katakana = Katakana String deriving (Show)
+newtype Lit = Lit String deriving (Show, Typeable)
+newtype AlphaNum = AlphaNum String deriving (Show, Typeable)
+newtype Kanji = Kanji String deriving (Show, Typeable)
+newtype Hiragana = Hiragana String deriving (Show, Typeable)
+newtype Katakana = Katakana String deriving (Show, Typeable)
 
-instance Eq (Romaji a) where
+instance RType a => Eq (Romaji a) where
   a == b = unwrap a == unwrap b
 
-instance Ord (Romaji a) where
+instance RType a => Ord (Romaji a) where
   a `compare` b = unwrap a `compare` unwrap b
   
 infixl 4 <**>, <$$>
 
-class Lexeme t where
+class Typeable t => Lexeme t where
   unwrap :: t -> String
   wrap   :: String -> t
   (<**>) :: (String -> String) -> t -> t
@@ -52,6 +64,13 @@ class (Lexeme k) => LexemeKana k where
   -- | toRomaji k: sokuon ++ body ++ choonpu (katakana only) / itermark 
   toRomaji :: k -> Choice [Romaji Single] 
   fromRomaji :: [Romaji Single] -> [Maybe k] 
+
+-- | Based on ideas in /An Extensible Dynamically-Typed Hierarchy of
+-- Exceptions/, Simon Marlow, 2006. 
+data SomeLexeme = forall k. Lexeme k => SomeLexeme k deriving (Typeable)
+
+fromLexeme :: Lexeme k => SomeLexeme -> Maybe k
+fromLexeme (SomeLexeme k) = cast k
 
 instance Lexeme Lit where
   unwrap (Lit t) = t
@@ -73,28 +92,28 @@ instance Lexeme Katakana where
   unwrap (Katakana t) = t
   wrap = Katakana
 
-instance Lexeme (Romaji a) where
+instance RType a => Lexeme (Romaji a) where
   unwrap (Romaji t) = t
   unwrap (RomajiLV t) = t
   wrap = Romaji
 
-isRLV :: Romaji a -> Bool
+isRLV :: RType a => Romaji a -> Bool
 isRLV (RomajiLV _) = True
 isRLV _            = False
 
-toRLV :: Romaji a -> Romaji a
+toRLV :: RType a => Romaji a -> Romaji a
 toRLV = RomajiLV . unwrap
 
-toRB :: Romaji a -> Romaji Bundle
+toRB :: RType a => Romaji a -> Romaji Bundle
 toRB (Romaji r)   = Romaji r
 toRB (RomajiLV r) = RomajiLV r
 
-toRS :: Romaji a -> Romaji Single
+toRS :: RType a => Romaji a -> Romaji Single
 toRS (Romaji r)   = Romaji r
 toRS (RomajiLV r) = RomajiLV r
 
-concatR :: [Romaji a] -> Romaji Bundle
+concatR :: RType a => [Romaji a] -> Romaji Bundle
 concatR = wrap . mconcat . map unwrap
 
-appendR :: Romaji a -> Romaji b -> Romaji Bundle
+appendR :: (RType a, RType b) => Romaji a -> Romaji b -> Romaji Bundle
 appendR a b = wrap $ unwrap a `mappend` unwrap b

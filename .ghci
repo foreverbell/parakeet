@@ -1,5 +1,6 @@
 :set -fwarn-incomplete-patterns
 :set -fwarn-unused-binds -fwarn-unused-imports
+:set -XDatatypeContexts
 :set -isrc -iexe
 :load exe/Main.hs
 

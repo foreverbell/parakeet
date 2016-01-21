@@ -12,7 +12,6 @@ import qualified Parakeet.Types.Lexeme as L
 import qualified Parakeet.Linguistics.Hiragana as H
 import qualified Parakeet.Linguistics.Katakana as K
 import qualified Parakeet.Linguistics.Misc as M
-import           Parakeet.Parser.Stage1 (TokenBox(..))
 
 type Parser = ParsecT String () Parakeet
 
@@ -70,13 +69,13 @@ separator = try $ void $ do
   char M.separator
   notFollowedBy $ char M.separator
 
-stage0 :: Parser [TokenBox]
+stage0 :: Parser [L.SomeLexeme]
 stage0 = do
-  r <- many $ optional separator >> choice [ TokenBox <$> hiragana
-                                           , TokenBox <$> katakana
-                                           , TokenBox <$> kanji
-                                           , TokenBox <$> alphanum
-                                           , TokenBox <$> lit
+  r <- many $ optional separator >> choice [ L.SomeLexeme <$> hiragana
+                                           , L.SomeLexeme <$> katakana
+                                           , L.SomeLexeme <$> kanji
+                                           , L.SomeLexeme <$> alphanum
+                                           , L.SomeLexeme <$> lit
                                            ]
   eof
-  return $ r ++ [TokenBox (L.wrap "\n" :: L.Lit)]
+  return $ r ++ [L.SomeLexeme (L.wrap "\n" :: L.Lit)]

@@ -4,7 +4,7 @@ module Parakeet.Types.FToken (
 , concatLit
 ) where
 
-import           Parakeet.Types.Lexeme (unwrap)
+import           Parakeet.Types.Lexeme (unwrap, RType)
 import qualified Parakeet.Types.Token as Token
 import           Parakeet.Types.Options (FuriganaFormat(..))
 
@@ -16,7 +16,7 @@ data FToken = Line
             | Katakana String [String]
             deriving (Show)
 
-fromToken :: FuriganaFormat -> Token.Token a -> FToken
+fromToken :: RType a => FuriganaFormat -> Token.Token a -> FToken
 fromToken _ Token.Line = Line
 fromToken _ (Token.Lit l) = Lit (unwrap l)
 fromToken _ (Token.Hiragana h rs) = Hiragana (unwrap h) (map unwrap rs)
