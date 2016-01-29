@@ -1,5 +1,5 @@
 ## Natsu-yuuzora
-## Kōsuke Atari
+## Atari Kōsuke
 
 i ro zu ku　ni shi so ra ni
 sa shi ko mu hi to su ji no hi

@@ -1,5 +1,5 @@
 ## Butter-fly
-## Kouji Wada
+## Wada Kouji
 
 Gokigen na chou ni natte kirameku kaze ni notte 
 Ima sugu kimi ni ai ni yukou 
