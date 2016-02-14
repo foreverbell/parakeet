@@ -48,8 +48,8 @@ library
     Parakeet.Parser.Stage0
     Parakeet.Parser.Stage1
     Parakeet.Parser.Stage2
+    Parakeet.Parser.TeX
     Parakeet.Parser.WithLine
-    Parakeet.Translator.Tex
     Parakeet.Types.FToken
     Parakeet.Types.Lexeme
     Parakeet.Types.Meta
@@ -77,7 +77,7 @@ executable parakeet
                          OverloadedStrings
  else
     hs-source-dirs:      exe
-    build-depends:       base, text, parakeet
+    build-depends:       base, text, temporary, directory >= 1.2.2, process, parakeet
     other-modules:
       System.IO.UTF8
 

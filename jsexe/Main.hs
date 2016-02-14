@@ -26,7 +26,6 @@ main = do
       optJInputFile = ("japanese", unpack jap)
     , optRInputFile = ("romaji", unpack rom)
     , optTemplate   = Nothing
-    , optOutput     = InTex
     , optFurigana   = InHiragana
     , optNoMeta     = False
     , optKeepLV     = True

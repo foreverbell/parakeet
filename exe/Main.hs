@@ -5,16 +5,21 @@ module Main where
 import           Control.Exception (throw)
 import           Control.Monad (when)
 import           Data.Char (toLower)
+import           Data.List (isSuffixOf)
 import           System.Console.GetOpt (getOpt, usageInfo, ArgOrder (..), OptDescr (..), ArgDescr (..))
+import           System.Directory (getTemporaryDirectory, getCurrentDirectory, setCurrentDirectory, makeAbsolute, renameFile)
 import           System.Environment (getArgs)
-import qualified System.IO.UTF8 as IO
 import           System.Exit (exitFailure, exitSuccess)
+import qualified System.IO.UTF8 as IO
+import           System.IO (hClose)
+import           System.IO.Temp (openTempFile)
+import           System.Process (callProcess)
 import           Text.Parakeet
 
 type OutputIO = String -> IO ()
 
 data ExtraOptions = ExtraOptions {
-  eoptOutputIO     :: OutputIO
+  eoptIO           :: OutputIO
 , eoptShowHelp     :: Bool
 , eoptDumpTemplate :: Bool
 }
@@ -27,7 +32,6 @@ defaultOptions = Options {
   optJInputFile = ([], [])
 , optRInputFile = ([], [])
 , optTemplate   = Nothing
-, optOutput     = InTex
 , optFurigana   = InHiragana
 , optNoMeta     = False
 , optKeepLV     = False
@@ -35,7 +39,7 @@ defaultOptions = Options {
 
 defaultExtraOptions :: ExtraOptions
 defaultExtraOptions = ExtraOptions {
-  eoptOutputIO     = putStr
+  eoptIO           = putStr
 , eoptShowHelp     = False
 , eoptDumpTemplate = False
 }
@@ -58,15 +62,21 @@ bindTemplate a = firstM $ \o -> do
   f <- initFile a
   return o { optTemplate = Just f }
 
-bindOutputIO a (o, eo) = return (o, eo { eoptOutputIO = IO.writeFile a })
-
-bindFormat a = firstM $ \o -> do
-  f <- format
-  return $ o { optOutput = f } 
-  where format = case map toLower a of
-          "tex"          -> return InTex
-          "plaintex"     -> return InPlainTex
-          _              -> die "Bad output format."
+bindOutputIO a (o, eo) = do
+  if ".pdf" `isSuffixOf` (map toLower a)
+     then return (o, eo { eoptIO = xelatex a })
+     else return (o, eo { eoptIO = IO.writeFile a })
+  where
+    xelatex f buf = do
+      tmpDir <- getTemporaryDirectory
+      curDir <- getCurrentDirectory
+      (tmp, h) <- openTempFile tmpDir "parakeet.tex"
+      hClose h
+      setCurrentDirectory tmpDir
+      IO.writeFile tmp buf
+      callProcess "xelatex" [tmp]
+      setCurrentDirectory curDir
+      makeAbsolute f >>= renameFile (take (length tmp - 3) tmp ++ "pdf")
 
 bindFurigana a = firstM $ \o -> do
   f <- format
@@ -90,7 +100,6 @@ options = [ Option ['j'] ["japanese"]      (ReqArg bindJInputFile "FILE") "Japan
           , Option ['t'] ["template"]      (ReqArg bindTemplate   "FILE") "Template file"
           , Option ['o'] ["output"]        (ReqArg bindOutputIO   "FILE") "Output file"
           , Option [   ] ["dump-template"] (NoArg  setDumpTemplate      ) "Dump tex template"
-          , Option [   ] ["format"]        (ReqArg bindFormat   "FORMAT") "Output format: tex, plaintex" 
           , Option [   ] ["furigana"]      (ReqArg bindFurigana "FORMAT") "Furigana format: hiragana, katakana"
           , Option [   ] ["no-meta"]       (NoArg  setNoMeta            ) "Ignore meta data (title & author)"
           , Option [   ] ["keep-lv"]       (NoArg  setKeepLV            ) "Keep long vowel macron in output"
@@ -121,4 +130,4 @@ main = do
   checkFile opts
   case parakeet opts of 
        Left err -> throw err
-       Right r  -> eoptOutputIO r
+       Right r  -> eoptIO r

@@ -9,8 +9,7 @@ defaultOptions :: Options
 defaultOptions = Options {
   optJInputFile = ([], [])
 , optRInputFile = ([], [])
-, optTemplate   = Nothing
-, optOutput     = InPlainTex
+, optTemplate   = Just ([], "$meta$\n$body$")
 , optFurigana   = InHiragana
 , optNoMeta     = False
 , optKeepLV     = False
@@ -32,8 +31,8 @@ getTest testName keepLV = do
   opts <- getOptions testName keepLV
   let result = parakeet opts 
   output <- case result of
-              Left err -> throw err
-              Right r  -> return (lines r)
+                 Left err -> throw err
+                 Right r  -> return (lines r)
   expect <- lines <$> IO.readFile ("test-expect/" ++ testName ++ ".tex.expect")
   return $ TestLabel testName $ TestCase $ do
     let nlines = length expect

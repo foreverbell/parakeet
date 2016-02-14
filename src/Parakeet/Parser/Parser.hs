@@ -1,5 +1,6 @@
 module Parakeet.Parser.Parser (
-  parse
+  ParsedDocument
+, parse
 ) where
 
 import           Control.Monad (liftM)
@@ -16,6 +17,8 @@ import           Parakeet.Parser.Stage0 (stage0)
 import           Parakeet.Parser.Stage1 (stage1)
 import           Parakeet.Parser.Stage2 (stage2)
 import qualified Parakeet.Parser.WithLine as L
+
+type ParsedDocument = (Maybe Meta, [FToken])
 
 setLine l = do
   pos <- getPosition
@@ -43,7 +46,7 @@ formatMeta (j1, j2) (Just (r1, r2)) = do
   return $ Meta (Title title, Author (author, authorLit))
 formatMeta (j1, j2) Nothing = return $ Meta (Title [Lit j1], Author ([Lit j2], [Lit j2]))
 
-parse :: Parakeet (Maybe Meta, [FToken])
+parse :: Parakeet ParsedDocument
 parse = do
   jContent <- snd <$> env optJInputFile
   rContent <- snd <$> env optRInputFile

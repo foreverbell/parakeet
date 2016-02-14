@@ -1,8 +1,7 @@
 {-# LANGUAGE QuasiQuotes, OverloadedStrings #-}
 
-module Parakeet.Translator.Tex (
-  plainTex
-, tex
+module Parakeet.Parser.TeX (
+  tex
 ) where
 
 import           Control.Monad.Parakeet (Parakeet, TemplateError (..), toException, throw, env)
@@ -13,6 +12,7 @@ import           Text.Printf (printf)
 import           Text.QuasiEmbedFile (efile)
 import qualified Text.TemplateParser as TP
 
+import           Parakeet.Parser.Parser (ParsedDocument)
 import           Parakeet.Types.FToken
 import           Parakeet.Types.Meta 
 import           Parakeet.Types.Options
@@ -67,21 +67,14 @@ texifyAuthor author = T.pack $ printf "\\author{%s}" (T.unpack tex)
   where
     tex = texify False 1 author
 
-plainTex :: (Maybe Meta, [FToken]) -> Parakeet Text
-plainTex (meta, tokens) = return $ T.concat [title, "\n", author, "\n\n", body]
-  where
-    title  = maybe T.empty (texifyTitle . getTitle) meta
-    author = maybe T.empty (texifyAuthor . getLitAuthor) meta
-    body   = texify True 0 tokens
-
-tex :: (Maybe Meta, [FToken]) -> Parakeet Text
+tex :: ParsedDocument -> Parakeet Text
 tex (meta0, tokens) = do
   let title = maybe T.empty (texifyTitle . getTitle) meta0
   -- TODO: using lit author is workaround, since ruby is not well supported in \author{ }
   let author = maybe T.empty (texifyAuthor . getLitAuthor) meta0
   let date = maybe T.empty (const "\\date{ }") meta0
   let meta = T.concat [title, "\n", author, "\n", date]
-  let body = maybe T.empty (const "\\maketitle\n\n") meta0 `T.append` texify True 0 tokens
+  let body = T.concat [maybe T.empty (const "\\maketitle") meta0, "\n\n", texify True 0 tokens]
   template <- env optTemplate
   case template of
        Nothing            -> return $ T.concat [efile|template.tex|]
