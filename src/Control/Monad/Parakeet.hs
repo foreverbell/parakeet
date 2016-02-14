@@ -8,6 +8,7 @@ module Control.Monad.Parakeet (
 
 -- * Exceptions
 , ParseError (..)
+, TemplateError (..)
 , InternalError (..)
 , module Control.Exception
 ) where
@@ -27,9 +28,11 @@ newtype Parakeet a = Parakeet (ReaderT Options (ExceptT SomeException Identity) 
            , Monad
            )
 newtype ParseError = ParseError String deriving (Typeable, Show)
+newtype TemplateError = TemplateError String deriving (Typeable, Show)
 newtype InternalError = InternalError String deriving (Typeable, Show)
 
 instance Exception ParseError
+instance Exception TemplateError
 instance Exception InternalError
 
 runParakeet :: Options -> Parakeet a -> Either SomeException a

@@ -7,13 +7,11 @@ import           Text.Parakeet
 
 defaultOptions :: Options 
 defaultOptions = Options {
-  optContent    = ([], [])
-, optJInputFile = []
-, optRInputFile = []
-, optOutput     = InBareTex
+  optJInputFile = ([], [])
+, optRInputFile = ([], [])
+, optTemplate   = Nothing
+, optOutput     = InPlainTex
 , optFurigana   = InHiragana
-, optMincho     = "MS Mincho"
-, optGothic     = "MS Gothic"
 , optNoMeta     = False
 , optKeepLV     = False
 }
@@ -24,9 +22,8 @@ getOptions test keepLV = do
   let rf = "test-suite/" ++ test ++ "/" ++ test ++ ".r"
   j <- IO.readFile jf
   r <- IO.readFile rf
-  return defaultOptions { optJInputFile = jf
-                        , optRInputFile = rf 
-                        , optContent = (j, r)
+  return defaultOptions { optJInputFile = (jf, j)
+                        , optRInputFile = (rf, r)
                         , optKeepLV = keepLV
                         }
 

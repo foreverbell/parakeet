@@ -16,3 +16,6 @@
 .cabal-sandbox/
 cabal.sandbox.config
 dist/
+
+# hlint report
+report.html

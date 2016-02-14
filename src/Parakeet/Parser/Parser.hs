@@ -23,10 +23,10 @@ setLine l = do
 
 parseLine :: (Line, Line, String, String) -> Parakeet [FToken]
 parseLine (lj, lr, j, r) = do
-  jf <- env optJInputFile
-  rf <- env optRInputFile
-  wd <- fromEither =<< runParserT (setLine lj >> stage0) () jf j
-  tk <- fromEither =<< runParserT (setLine lr >> stage1) wd rf (toLower r)
+  jName <- fst <$> env optJInputFile
+  rName <- fst <$> env optRInputFile
+  wd <- fromEither =<< runParserT (setLine lj >> stage0) () jName j
+  tk <- fromEither =<< runParserT (setLine lr >> stage1) wd rName (toLower r)
   keeplv <- env optKeepLV
   furigana <- env optFurigana
   if keeplv
@@ -45,20 +45,22 @@ formatMeta (j1, j2) Nothing = return $ Meta (Title [Lit j1], Author ([Lit j2], [
 
 parse :: Parakeet (Maybe Meta, [FToken])
 parse = do
-  j@(js, _) <- fst <$> env optContent >>= \j -> return (L.hstrip (L.create $ lines j))
-  r@(rs, _) <- snd <$> env optContent >>= \r -> return (L.hstrip (L.create $ lines r))
+  jContent <- snd <$> env optJInputFile
+  rContent <- snd <$> env optRInputFile
+  let j@(js, _) = L.hstrip (L.create $ lines jContent)
+  let r@(rs, _) = L.hstrip (L.create $ lines rContent)
   let (js0, js1, rs0, rs1) = (js!!0, js!!1, rs!!0, rs!!1)
   ignoreMeta <- env optNoMeta
-  let hasMetaJ = not ignoreMeta && hasMeta js
-  let hasMetaR = not ignoreMeta && hasMetaJ && hasMeta rs 
-  let j' | hasMetaJ = L.hstrip $ L.drop 2 j
+  let jHasMeta = not ignoreMeta && hasMeta js
+  let rHasMeta = not ignoreMeta && jHasMeta && hasMeta rs 
+  let j' | jHasMeta = L.hstrip $ L.drop 2 j
          | otherwise = j
-  let r' | hasMetaR = L.hstrip $ L.drop 2 r
+  let r' | rHasMeta = L.hstrip $ L.drop 2 r
          | otherwise = r
-  meta <- if hasMetaJ
+  meta <- if jHasMeta
     then do
       let jSection = (getMetaData js0, getMetaData js1)
-      let rSection | hasMetaR  = Just (getMetaData rs0, getMetaData rs1)
+      let rSection | rHasMeta  = Just (getMetaData rs0, getMetaData rs1)
                    | otherwise = Nothing
       Just <$> formatMeta jSection rSection
     else return Nothing

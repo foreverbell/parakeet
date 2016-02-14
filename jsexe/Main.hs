@@ -1,5 +1,7 @@
 {-# LANGUAGE JavaScriptFFI, OverloadedStrings #-}
 
+-- * Warning: probably BROKEN.
+
 module Main where
 
 import GHCJS.Types
@@ -21,18 +23,16 @@ main = do
     jap <- getElement (pack "jap")
     rom <- getElement (pack "rom")
     let options = Options {
-      optContent    = (unpack jap, unpack rom)
-    , optJInputFile = "japanese"
-    , optRInputFile = "romaji"
+      optJInputFile = ("japanese", unpack jap)
+    , optRInputFile = ("romaji", unpack rom)
+    , optTemplate   = Nothing
     , optOutput     = InTex
     , optFurigana   = InHiragana
-    , optMincho     = "MS Mincho"
-    , optGothic     = "MS Gothic"
     , optNoMeta     = False
     , optKeepLV     = True
     }
     let result = case parakeet options of
-                        Left a -> unlines [show a]
-                        Right b -> b
+                      Left a -> unlines [show a]
+                      Right b -> b
     setElement (pack "result") (pack result)
   setParakeet callback

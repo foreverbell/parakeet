@@ -1,47 +1,72 @@
+{-# LANGUAGE RecordWildCards #-}
+
 module Main where
 
 import           Control.Exception (throw)
 import           Control.Monad (when)
 import           Data.Char (toLower)
-import           System.Console.GetOpt (getOpt, usageInfo, ArgOrder(..), OptDescr(..), ArgDescr(..))
+import           System.Console.GetOpt (getOpt, usageInfo, ArgOrder (..), OptDescr (..), ArgDescr (..))
 import           System.Environment (getArgs)
 import qualified System.IO.UTF8 as IO
+import           System.Exit (exitFailure, exitSuccess)
 import           Text.Parakeet
 
 type OutputIO = String -> IO ()
+
+data ExtraOptions = ExtraOptions {
+  eoptOutputIO     :: OutputIO
+, eoptShowHelp     :: Bool
+, eoptDumpTemplate :: Bool
+}
 
 firstM :: Monad m => (a -> m b) -> (a, c) -> m (b, c)
 firstM f (a, c) = f a >>= \b -> return (b, c)
 
 defaultOptions :: Options 
 defaultOptions = Options {
-  optContent    = ([], [])
-, optJInputFile = []
-, optRInputFile = []
+  optJInputFile = ([], [])
+, optRInputFile = ([], [])
+, optTemplate   = Nothing
 , optOutput     = InTex
 , optFurigana   = InHiragana
-, optMincho     = "MS Mincho"
-, optGothic     = "MS Gothic"
 , optNoMeta     = False
 , optKeepLV     = False
 }
 
-defaultOutput :: OutputIO
-defaultOutput = putStr
+defaultExtraOptions :: ExtraOptions
+defaultExtraOptions = ExtraOptions {
+  eoptOutputIO     = putStr
+, eoptShowHelp     = False
+, eoptDumpTemplate = False
+}
 
-bindJInputFile a = firstM $ \o -> return o { optJInputFile = a }
+isEmptyFile :: File -> Bool
+isEmptyFile (f, _) = null f
 
-bindRInputFile a = firstM $ \o -> return o { optRInputFile = a }
+initFile :: FilePath -> IO File
+initFile f = IO.readFile f >>= \c -> return (f, c)
 
-bindOutputIO a (o, _) = return (o, IO.writeFile a)
+bindJInputFile a = firstM $ \o -> do
+  f <- initFile a
+  return o { optJInputFile = f }
+
+bindRInputFile a = firstM $ \o -> do
+  f <- initFile a
+  return o { optRInputFile = f }
+
+bindTemplate a = firstM $ \o -> do
+  f <- initFile a
+  return o { optTemplate = Just f }
+
+bindOutputIO a (o, eo) = return (o, eo { eoptOutputIO = IO.writeFile a })
 
 bindFormat a = firstM $ \o -> do
   f <- format
   return $ o { optOutput = f } 
   where format = case map toLower a of
           "tex"          -> return InTex
-          "baretex"      -> return InBareTex
-          _              -> die "Bad output format"
+          "plaintex"     -> return InPlainTex
+          _              -> die "Bad output format."
 
 bindFurigana a = firstM $ \o -> do
   f <- format
@@ -49,49 +74,51 @@ bindFurigana a = firstM $ \o -> do
   where format = case map toLower a of
           "hiragana" -> return InHiragana
           "katakana" -> return InKatakana
-          _          -> die "Bad furigana format"
-
-bindMincho a = firstM $ \o -> return o { optMincho = a }
-
-bindGothic a = firstM $ \o -> return o { optGothic = a }
+          _          -> die "Bad furigana format."
 
 setNoMeta = firstM $ \o -> return o { optNoMeta = True }
 
 setKeepLV = firstM $ \o -> return o { optKeepLV = True }
 
-options :: [OptDescr ((Options, OutputIO) -> IO (Options, OutputIO))]
-options = 
-  [ Option ['j'] ["japanese"]   (ReqArg bindJInputFile "FILE") "japanese input file"
-  , Option ['r'] ["romaji"]     (ReqArg bindRInputFile "FILE") "romaji input file"
-  , Option ['o'] ["output"]     (ReqArg bindOutputIO   "FILE") "output file (default stdout)"
-  , Option [   ] ["format"]     (ReqArg bindFormat   "FORMAT") "output format: tex (default) | baretex" 
-  , Option [   ] ["furigana"]   (ReqArg bindFurigana "FORMAT") "furigana format: hiragana (default) | katakana"
-  , Option [   ] ["mincho"]     (ReqArg bindMincho     "FONT") "mincho font for tex output, \"MS Mincho\" by default"
-  , Option [   ] ["gothic"]     (ReqArg bindGothic     "FONT") "gothic font for tex output, \"MS Gothic\" by default"
-  , Option [   ] ["no-meta"]    (NoArg  setNoMeta            ) "ignore meta data (title & author)"
-  , Option [   ] ["keep-lv"]    (NoArg  setKeepLV            ) "keep long vowel macron in output"
-  ]
+setDumpTemplate (o, eo) = return (o, eo { eoptDumpTemplate = True })
+
+setShowHelp (o, eo) = return (o, eo { eoptShowHelp = True })
+
+options :: [OptDescr ((Options, ExtraOptions) -> IO (Options, ExtraOptions))]
+options = [ Option ['j'] ["japanese"]      (ReqArg bindJInputFile "FILE") "Japanese input file"
+          , Option ['r'] ["romaji"]        (ReqArg bindRInputFile "FILE") "Romaji input file"
+          , Option ['t'] ["template"]      (ReqArg bindTemplate   "FILE") "Template file"
+          , Option ['o'] ["output"]        (ReqArg bindOutputIO   "FILE") "Output file"
+          , Option [   ] ["dump-template"] (NoArg  setDumpTemplate      ) "Dump tex template"
+          , Option [   ] ["format"]        (ReqArg bindFormat   "FORMAT") "Output format: tex, plaintex" 
+          , Option [   ] ["furigana"]      (ReqArg bindFurigana "FORMAT") "Furigana format: hiragana, katakana"
+          , Option [   ] ["no-meta"]       (NoArg  setNoMeta            ) "Ignore meta data (title & author)"
+          , Option [   ] ["keep-lv"]       (NoArg  setKeepLV            ) "Keep long vowel macron in output"
+          , Option ['h'] ["help"]          (NoArg  setShowHelp          ) "Show help"
+          ]
 
 die :: String -> IO a
-die e = fail $ e ++ usageInfo "Usage: " options
+die e = do
+  putStrLn $ e ++ "\n" ++ usageInfo "Usage: " options
+  exitFailure
 
-runOpts :: [String] -> IO (Options, OutputIO)
+checkFile :: Options -> IO Options
+checkFile opts = do
+  let (jName, rName) = (fst $ optJInputFile opts, fst $ optRInputFile opts)
+  when (null jName || null rName) $ die "Missing inputs."
+  return opts
+
+runOpts :: [String] -> IO (Options, ExtraOptions)
 runOpts argv = case getOpt Permute options argv of
-  (a, _, [])  -> firstM readFileContent =<< foldl (>>=) (return (defaultOptions, defaultOutput)) a
+  (a, _, [])  -> foldl (>>=) (return (defaultOptions, defaultExtraOptions)) a
   (_, _, err) -> die $ concat err
-  where
-    readFileContent opts = do
-      let jf = optJInputFile opts
-      let rf = optRInputFile opts
-      when (null jf || null rf) $ die "Missing inputs\n"
-      j <- IO.readFile jf
-      r <- IO.readFile rf
-      return opts { optContent = (j, r) }
-       
+
 main :: IO ()
 main = do
-  (opts, output) <- runOpts =<< getArgs
-  let res = parakeet opts
-  case res of 
-    Left err -> throw err
-    Right r  -> output r
+  (opts, ExtraOptions {..}) <- runOpts =<< getArgs
+  when eoptShowHelp $ putStrLn (usageInfo "Usage: " options) >> exitSuccess
+  when eoptDumpTemplate $ putStr template >> exitSuccess
+  checkFile opts
+  case parakeet opts of 
+       Left err -> throw err
+       Right r  -> eoptOutputIO r

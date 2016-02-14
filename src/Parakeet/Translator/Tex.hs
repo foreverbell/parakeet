@@ -1,19 +1,21 @@
 {-# LANGUAGE QuasiQuotes, OverloadedStrings #-}
 
 module Parakeet.Translator.Tex (
-  texBare
+  plainTex
 , tex
 ) where
 
-import           Control.Monad.Parakeet (Parakeet, env)
+import           Control.Monad.Parakeet (Parakeet, TemplateError (..), toException, throw, env)
 import qualified Data.Text.Lazy as T
 import           Data.Text.Lazy (Text)
+import           Text.Parsec
 import           Text.Printf (printf)
 import           Text.QuasiEmbedFile (efile)
+import qualified Text.TemplateParser as TP
 
 import           Parakeet.Types.FToken
-import           Parakeet.Types.Options
 import           Parakeet.Types.Meta 
+import           Parakeet.Types.Options
 
 build :: Bool -> Int -> String -> Text
 build useVerb f
@@ -24,6 +26,19 @@ build useVerb f
                 , "normalsize"
                 , "small" , "footnotesize", "scriptsize", "tiny" 
                 ] :: [String]
+
+substituteTemplate :: String -> Text -> Text -> Parakeet Text
+substituteTemplate template body meta = do
+  chunks <- case runParser TP.templateParser () [] template of
+                 Right chunks -> return chunks
+                 Left err -> throw $ toException (TemplateError $ printf "invalid template: %s." (show err))
+  T.concat <$> mapM substitute chunks
+  where
+    substitute (TP.Lit l) = return $ T.pack l
+    substitute (TP.Value v) = case v of
+      "body" -> return body
+      "meta" -> return meta
+      _      -> throw $ toException (TemplateError $ printf "invalid placeholder %s." v)
 
 texify :: Bool -> Int -> [FToken] -> Text
 texify useVerb offset tokens = T.concat $ map singleTexify tokens
@@ -52,8 +67,8 @@ texifyAuthor author = T.pack $ printf "\\author{%s}" (T.unpack tex)
   where
     tex = texify False 1 author
 
-texBare :: (Maybe Meta, [FToken]) -> Parakeet Text
-texBare (meta, tokens) = return $ T.concat [title, "\n", author, "\n\n", body]
+plainTex :: (Maybe Meta, [FToken]) -> Parakeet Text
+plainTex (meta, tokens) = return $ T.concat [title, "\n", author, "\n\n", body]
   where
     title  = maybe T.empty (texifyTitle . getTitle) meta
     author = maybe T.empty (texifyAuthor . getLitAuthor) meta
@@ -61,13 +76,13 @@ texBare (meta, tokens) = return $ T.concat [title, "\n", author, "\n\n", body]
 
 tex :: (Maybe Meta, [FToken]) -> Parakeet Text
 tex (meta0, tokens) = do
-  mincho <- env optMincho
-  gothic <- env optGothic
   let title = maybe T.empty (texifyTitle . getTitle) meta0
   -- TODO: using lit author is workaround, since ruby is not well supported in \author{ }
   let author = maybe T.empty (texifyAuthor . getLitAuthor) meta0
   let date = maybe T.empty (const "\\date{ }") meta0
   let meta = T.concat [title, "\n", author, "\n", date]
-  let font = T.concat [T.pack $ printf "\\setCJKmainfont{%s}" mincho, "\n", T.pack $ printf "\\setCJKsansfont{%s}" gothic]
   let body = maybe T.empty (const "\\maketitle\n\n") meta0 `T.append` texify True 0 tokens
-  return $ T.concat [efile|template.tex|]
+  template <- env optTemplate
+  case template of
+       Nothing            -> return $ T.concat [efile|template.tex|]
+       Just (_, template) -> substituteTemplate template body meta

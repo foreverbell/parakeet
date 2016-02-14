@@ -2,23 +2,24 @@ module Parakeet.Types.Options (
   Options (..)
 , OutputFormat (..)
 , FuriganaFormat (..)
+, File
 ) where
 
-data OutputFormat = InTex 
-                  | InBareTex 
+data OutputFormat = InTex  -- TODO: pdf
+                  | InPlainTex
                   deriving (Eq)
 data FuriganaFormat = InHiragana 
                     | InKatakana 
                     deriving (Eq)
 
+type File = (FilePath, String)
+
 data Options = Options {
-  optContent    :: (String, String)
-, optJInputFile :: FilePath
-, optRInputFile :: FilePath
+  optJInputFile :: File
+, optRInputFile :: File
+, optTemplate   :: Maybe File
 , optOutput     :: OutputFormat
 , optFurigana   :: FuriganaFormat
-, optMincho     :: String
-, optGothic     :: String
 , optNoMeta     :: Bool
 , optKeepLV     :: Bool
 }
