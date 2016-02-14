@@ -48,7 +48,7 @@ library
     Parakeet.Parser.Stage0
     Parakeet.Parser.Stage1
     Parakeet.Parser.Stage2
-    Parakeet.Translator.Intermediate
+    Parakeet.Parser.WithLine
     Parakeet.Translator.Tex
     Parakeet.Types.FToken
     Parakeet.Types.Lexeme

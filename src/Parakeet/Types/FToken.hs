@@ -1,14 +1,13 @@
 module Parakeet.Types.FToken (
-  FToken(..)
+  FToken (..)
 , fromToken
 , concatLit
 ) where
 
 import           Parakeet.Types.Lexeme (unwrap, RType)
 import qualified Parakeet.Types.Token as Token
-import           Parakeet.Types.Options (FuriganaFormat(..))
+import           Parakeet.Types.Options (FuriganaFormat (..))
 
--- | AlphaNum shall be converted to Lit/Kanji.
 data FToken = Line
             | Lit String
             | Kanji String [String] [String]

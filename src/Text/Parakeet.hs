@@ -9,7 +9,6 @@ import Data.Text.Lazy (unpack)
 import Parakeet.Parser.Parser (parse)
 import Parakeet.Types.Options 
 import Parakeet.Translator.Tex (tex, texBare)
-import Parakeet.Translator.Intermediate (intermediate)
 
 parakeet :: Options -> Either SomeException String
 parakeet opts = runParakeet opts $ do
@@ -20,4 +19,3 @@ parakeet opts = runParakeet opts $ do
     translator format = case format of
       InTex -> tex
       InBareTex -> texBare
-      InIntermediate -> intermediate

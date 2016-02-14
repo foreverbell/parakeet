@@ -7,19 +7,19 @@ module Control.Monad.Parakeet (
 , throw
 
 -- * Exceptions
-, ParseError(..)
-, InternalError(..)
+, ParseError (..)
+, InternalError (..)
 , module Control.Exception
 ) where
 
 
 import Control.Exception (toException, Exception, SomeException)
-import Control.Monad.Except (ExceptT(..), runExceptT, throwError)
-import Control.Monad.Reader (ReaderT(..), runReaderT, asks)
+import Control.Monad.Except (ExceptT (..), runExceptT, throwError)
+import Control.Monad.Reader (ReaderT (..), runReaderT, asks)
 import Control.Monad.Identity (Identity, runIdentity)
 import Data.Typeable
 
-import Parakeet.Types.Options (Options(..))
+import Parakeet.Types.Options (Options (..))
 
 newtype Parakeet a = Parakeet (ReaderT Options (ExceptT SomeException Identity) a) 
   deriving ( Functor

@@ -3,10 +3,10 @@ module Parakeet.Parser.Parser (
 ) where
 
 import           Control.Monad (liftM)
-import           Control.Monad.Parakeet (Parakeet, env, throw, toException, ParseError(..))
+import           Control.Monad.Parakeet (Parakeet, env, throw, toException, ParseError (..))
 import           Data.Char (isSpace)
 import           Data.Char.Extra (toLower)
-import           Data.List (isPrefixOf, zip4)
+import           Data.List (isPrefixOf)
 import           Text.Parsec hiding (parse)
 
 import           Parakeet.Types.FToken
@@ -15,6 +15,7 @@ import           Parakeet.Types.Options
 import           Parakeet.Parser.Stage0 (stage0)
 import           Parakeet.Parser.Stage1 (stage1)
 import           Parakeet.Parser.Stage2 (stage2)
+import qualified Parakeet.Parser.WithLine as L
 
 setLine l = do
   pos <- getPosition
@@ -42,31 +43,17 @@ formatMeta (j1, j2) (Just (r1, r2)) = do
   return $ Meta (Title title, Author (author, authorLit))
 formatMeta (j1, j2) Nothing = return $ Meta (Title [Lit j1], Author ([Lit j2], [Lit j2]))
 
-type WithLine = ([String], [Line])
-
-dropl :: Int -> WithLine -> WithLine
-dropl d (buf, l) = (drop d buf, drop d l)
-
-lstripl :: WithLine -> WithLine
-lstripl wl@(buf, _) = dropl emptys wl
-  where 
-    emptys = length $ takeWhile isEmpty buf
-    isEmpty = not . any (not . isSpace)
-
-zipl :: WithLine -> WithLine -> [(Line, Line, String, String)]
-zipl (b1, l1) (b2, l2) = zip4 l1 l2 b1 b2
-
 parse :: Parakeet (Maybe Meta, [FToken])
 parse = do
-  j@(js, _) <- fst <$> env optContent >>= \j -> return (lstripl (lines j, [1 .. ]))
-  r@(rs, _) <- snd <$> env optContent >>= \r -> return (lstripl (lines r, [1 .. ]))
+  j@(js, _) <- fst <$> env optContent >>= \j -> return (L.hstrip (L.create $ lines j))
+  r@(rs, _) <- snd <$> env optContent >>= \r -> return (L.hstrip (L.create $ lines r))
   let (js0, js1, rs0, rs1) = (js!!0, js!!1, rs!!0, rs!!1)
   ignoreMeta <- env optNoMeta
   let hasMetaJ = not ignoreMeta && hasMeta js
   let hasMetaR = not ignoreMeta && hasMetaJ && hasMeta rs 
-  let j' | hasMetaJ = lstripl $ dropl 2 j
+  let j' | hasMetaJ = L.hstrip $ L.drop 2 j
          | otherwise = j
-  let r' | hasMetaR = lstripl $ dropl 2 r
+  let r' | hasMetaR = L.hstrip $ L.drop 2 r
          | otherwise = r
   meta <- if hasMetaJ
     then do
@@ -75,7 +62,7 @@ parse = do
                    | otherwise = Nothing
       Just <$> formatMeta jSection rSection
     else return Nothing
-  token <- concat <$> mapM parseLine (zipl j' r')
+  token <- concat <$> mapM parseLine (L.zip2 j' r')
   return (meta, token)
   where 
     hasMeta (a:b:_) = isMetaLine a && isMetaLine b

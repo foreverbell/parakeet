@@ -122,7 +122,7 @@ lit token = do
           spaces
           if M.isSeparator x
             then return M.separator <* string (replicate 2 M.separator) -- two separators as lit to distinguish from separator
-            else fuzzyChar (toLower x) -- romaji input is already lower-cased
+            else fuzzyChar (toLower x)                                  -- romaji input is already lower-cased
           eat xs
 
 fuzzyChar :: Char -> Parser Char
@@ -153,8 +153,8 @@ kanji token = do
     (hiraganas, katakanas) <- furigana romajis
     continue $ T.Kanji token hiraganas katakanas romajis
 
-alphanum :: L.AlphaNum -> Parser [Token]
 -- | two strategies: lit matching, or fall backs to correspond romaji matching (similar to kanji).
+alphanum :: L.AlphaNum -> Parser [Token]
 alphanum token = try strat1 <|> strat2  
   where
     eat :: String -> Parser ()

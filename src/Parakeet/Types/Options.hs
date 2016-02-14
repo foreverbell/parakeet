@@ -1,12 +1,11 @@
 module Parakeet.Types.Options (
-  Options(..)
-, OutputFormat(..)
-, FuriganaFormat(..)
+  Options (..)
+, OutputFormat (..)
+, FuriganaFormat (..)
 ) where
 
 data OutputFormat = InTex 
                   | InBareTex 
-                  | InIntermediate 
                   deriving (Eq)
 data FuriganaFormat = InHiragana 
                     | InKatakana 

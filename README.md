@@ -2,7 +2,7 @@
 
 ## Disclaimer
 
-I know **nothing** about compilers, Haskell and Japanese. This repository is purely for fun, and serving as a test-bed for some Haskell experiments. 
+I know **nothing** about parsing, Haskell and Japanese. This repository is purely for fun, and serving as a test-bed for some Haskell experiments. 
 
 ## Introduction
 

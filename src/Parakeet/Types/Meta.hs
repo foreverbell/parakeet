@@ -1,7 +1,7 @@
 module Parakeet.Types.Meta (
-  Author(..)
-, Title(..)
-, Meta(..)
+  Author (..)
+, Title (..)
+, Meta (..)
 , getTitle
 , getAuthor
 , getLitAuthor

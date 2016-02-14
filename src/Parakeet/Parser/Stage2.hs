@@ -3,7 +3,7 @@ module Parakeet.Parser.Stage2 (
 ) where
 
 import           Control.Monad (when)
-import           Control.Monad.Parakeet (Parakeet, toException, SomeException, InternalError(..), throw)
+import           Control.Monad.Parakeet (Parakeet, toException, SomeException, InternalError (..), throw)
 
 import           Parakeet.Types.Token
 import qualified Parakeet.Types.Lexeme as L

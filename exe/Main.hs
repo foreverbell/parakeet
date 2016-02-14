@@ -41,7 +41,6 @@ bindFormat a = firstM $ \o -> do
   where format = case map toLower a of
           "tex"          -> return InTex
           "baretex"      -> return InBareTex
-          "intermediate" -> return InIntermediate
           _              -> die "Bad output format"
 
 bindFurigana a = firstM $ \o -> do
@@ -65,7 +64,7 @@ options =
   [ Option ['j'] ["japanese"]   (ReqArg bindJInputFile "FILE") "japanese input file"
   , Option ['r'] ["romaji"]     (ReqArg bindRInputFile "FILE") "romaji input file"
   , Option ['o'] ["output"]     (ReqArg bindOutputIO   "FILE") "output file (default stdout)"
-  , Option [   ] ["format"]     (ReqArg bindFormat   "FORMAT") "output format: tex (default) | baretex | intermediate" 
+  , Option [   ] ["format"]     (ReqArg bindFormat   "FORMAT") "output format: tex (default) | baretex" 
   , Option [   ] ["furigana"]   (ReqArg bindFurigana "FORMAT") "furigana format: hiragana (default) | katakana"
   , Option [   ] ["mincho"]     (ReqArg bindMincho     "FONT") "mincho font for tex output, \"MS Mincho\" by default"
   , Option [   ] ["gothic"]     (ReqArg bindGothic     "FONT") "gothic font for tex output, \"MS Gothic\" by default"

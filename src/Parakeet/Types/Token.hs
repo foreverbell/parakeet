@@ -1,5 +1,5 @@
 module Parakeet.Types.Token (
-  Token(..)
+  Token (..)
 ) where
 
 import qualified Parakeet.Types.Lexeme as L

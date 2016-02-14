@@ -10,16 +10,15 @@ import qualified Data.Text.Lazy as T
 import           Data.Text.Lazy (Text)
 import           Text.Printf (printf)
 import           Text.QuasiEmbedFile (efile)
-import           Prelude hiding (print)
 
 import           Parakeet.Types.FToken
 import           Parakeet.Types.Options
 import           Parakeet.Types.Meta 
 
-build :: Bool -> Int -> String -> String
+build :: Bool -> Int -> String -> Text
 build useVerb f
-  | useVerb   = printf "\\%s{\\verb|%s|}" (fonts !! f)
-  | otherwise = printf "\\%s{%s}" (fonts !! f)
+  | useVerb   = T.pack . printf "\\%s{\\verb|%s|}" (fonts !! f)
+  | otherwise = T.pack . printf "\\%s{%s}" (fonts !! f)
   where fonts = [ "Huge", "huge"
                 , "LARGE", "Large", "large"
                 , "normalsize"
@@ -38,7 +37,7 @@ texify useVerb offset tokens = T.concat $ map singleTexify tokens
     singleTexify :: FToken -> Text
     singleTexify d = case d of
       Line         -> " \\\\ \n"
-      Lit s        -> T.pack $ build useVerb mainFont s ++ " "
+      Lit s        -> build useVerb mainFont s `T.append` " "
       Kanji k h r  -> T.pack $ printf "\\ruby{%s%s}{%s} " (build False mainFont k) (build False rubyFont ("(" ++ concat h ++ ")")) (build False romajiFont (unwords r))
       Hiragana h r -> T.pack $ printf "\\ruby{%s}{%s} " (build False mainFont h) (build False romajiFont (unwords r))
       Katakana k r -> T.pack $ printf "\\ruby{%s}{%s} " (build False mainFont k) (build False romajiFont (unwords r))

@@ -1,9 +1,9 @@
 {-# LANGUAGE ExistentialQuantification, DeriveDataTypeable #-}
 
 module Parakeet.Types.Lexeme (
-  Lexeme(..)
-, LexemeKana(..)
-, SomeLexeme(..)
+  Lexeme (..)
+, LexemeKana (..)
+, SomeLexeme (..)
 , fromLexeme
 , Lit
 , AlphaNum

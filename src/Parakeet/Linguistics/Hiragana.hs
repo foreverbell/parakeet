@@ -11,7 +11,7 @@ import           Control.Monad.Choice (fromMaybe, toMaybe)
 import           Data.Maybe (isJust)
 import qualified Data.Map as M
 
-import           Parakeet.Types.Lexeme (LexemeKana(..), wrap, unwrap, Hiragana)
+import           Parakeet.Types.Lexeme (LexemeKana (..), wrap, unwrap, Hiragana)
 import           Parakeet.Linguistics.Romaji (otherForms, dakutenize, unDakutenize, sokuonize, isSyllabicN, toKana)
 import           Parakeet.Linguistics.RawData (hRaw)
 
@@ -51,19 +51,19 @@ isNormal :: Char -> Bool
 isNormal = isJust . flip M.lookup chmap . return
 
 isSmall :: Char -> Bool
-isSmall c = c `elem` ['ぁ', 'ぃ', 'ぅ', 'ぇ', 'ぉ', 'っ', 'ゃ', 'ゅ', 'ょ', 'ゎ', 'ゕ', 'ゖ']
+isSmall = flip elem ['ぁ', 'ぃ', 'ぅ', 'ぇ', 'ぉ', 'っ', 'ゃ', 'ゅ', 'ょ', 'ゎ', 'ゕ', 'ゖ']
 
 isSokuon :: Char -> Bool
 isSokuon = (==) sokuon
 
 isIterationMark :: Char -> Bool
-isIterationMark c = c `elem` iterationMarks
+isIterationMark = flip elem iterationMarks
 
 isIterationMark1 :: Char -> Bool
-isIterationMark1 c = c == iterationMarks !! 0
+isIterationMark1 = (==) (iterationMarks !! 0)
 
 isIterationMark2 :: Char -> Bool
-isIterationMark2 c = c == iterationMarks !! 1
+isIterationMark2 = (==) (iterationMarks !! 1)
 
 isHiragana :: Char -> Bool
 isHiragana c = isNormal c || isSmall c || isIterationMark c
