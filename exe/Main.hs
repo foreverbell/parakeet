@@ -62,8 +62,7 @@ bindTemplate a = firstM $ \o -> do
   f <- initFile a
   return o { optTemplate = Just f }
 
-bindOutputIO a (o, eo) = do
-  if ".pdf" `isSuffixOf` (map toLower a)
+bindOutputIO a (o, eo) = if ".pdf" `isSuffixOf` map toLower a
      then return (o, eo { eoptIO = xelatex a })
      else return (o, eo { eoptIO = IO.writeFile a })
   where

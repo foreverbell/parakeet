@@ -12,6 +12,7 @@
 *.hi
 
 # stack & cabal
+stack.yaml
 .stack-work/
 .cabal-sandbox/
 cabal.sandbox.config

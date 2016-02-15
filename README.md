@@ -37,6 +37,7 @@ $ cabal install parakeet.cabal
 For stack users, 
 
 ```bash
+$ stack init
 $ stack install
 ```
 
@@ -64,6 +65,12 @@ $ cabal build
 ```bash
 $ parakeet -j Butter-fly.j -r Butter-fly.r -o Butter-fly.tex
 $ xelatex Butter-fly.tex
+```
+
+or directly,
+
+```bash
+$ parakeet -j Buffer-fly.j -r Buffer-fly.r -o Buffer-fly.pdf
 ```
 
 You should guarantee that the two input files are encoded in UTF-8.

@@ -26,6 +26,7 @@ or p q c = p c || q c
 
 -}
 
+infix 0 ==>
 (==>) a b = (a, b)
 
 -- | Rules for characters transformation. If two rules overlap, always pick the first rule.
