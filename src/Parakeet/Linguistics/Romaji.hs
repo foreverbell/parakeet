@@ -16,7 +16,7 @@ module Parakeet.Linguistics.Romaji (
 ) where
 
 import           Data.Functor.Compose (Compose (..))
-import           Data.List (sort, group)
+import           Data.List (sort, group, isPrefixOf)
 import           Data.List.Extra (concatMapLast)
 import qualified Data.Map as M
 import           Data.Maybe (maybeToList, fromJust, fromMaybe, isNothing)
@@ -122,7 +122,7 @@ sokuonize r = getCompose (lfap (Compose . sokuonizeInternal) (head r)) >>= \h ->
 unSokuonize :: Romaji Bundle -> Choice (Maybe (Romaji Single), Romaji Bundle)
 unSokuonize r
   | length r' <= 1 = return (Nothing, r)
-  | firstOne == 't' && take 2 exceptFirst == "ch" = return (Just $ wrap [firstOne], tail `lap` r)
+  | "tch" `isPrefixOf` r' = return (Just $ wrap [firstOne], tail `lap` r)
   | sokuonizable firstOne && head exceptFirst == firstOne = return (Just $ wrap [firstOne], tail `lap` r)
   | otherwise = return (Nothing, r)
   where

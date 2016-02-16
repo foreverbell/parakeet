@@ -1,6 +1,5 @@
 module Parakeet.Parser.Parser (
-  ParsedDocument
-, parse
+  parse
 ) where
 
 import           Control.Monad (liftM)
@@ -11,14 +10,12 @@ import           Data.List (isPrefixOf)
 import           Text.Parsec hiding (parse)
 
 import           Parakeet.Types.FToken
-import           Parakeet.Types.Meta
+import           Parakeet.Types.Document
 import           Parakeet.Types.Options
 import           Parakeet.Parser.Stage0 (stage0)
 import           Parakeet.Parser.Stage1 (stage1)
 import           Parakeet.Parser.Stage2 (stage2)
 import qualified Parakeet.Parser.WithLine as L
-
-type ParsedDocument = (Maybe Meta, [FToken])
 
 setLine l = do
   pos <- getPosition
@@ -38,39 +35,17 @@ parseLine (lj, lr, j, r) = do
   where
     fromEither = either (throw . toException . ParseError . show) return
 
-formatMeta :: (String, String) -> Maybe (String, String) -> Parakeet Meta
-formatMeta (j1, j2) (Just (r1, r2)) = do
-  title <- if null r1 then return [Lit j1] else init <$> parseLine (1, 1, j1, r1)
-  author <- if null r2 then return [Lit j2] else init <$> parseLine (2, 2, j2, r2)
-  let authorLit = if null r2 then [Lit j2] else [Lit j2, Lit ("(" ++ r2 ++ ")")]
-  return $ Meta (Title title, Author (author, authorLit))
-formatMeta (j1, j2) Nothing = return $ Meta (Title [Lit j1], Author ([Lit j2], [Lit j2]))
-
-parse :: Parakeet ParsedDocument
+parse :: Parakeet Document
 parse = do
   jContent <- snd <$> env optJInputFile
   rContent <- snd <$> env optRInputFile
-  let j@(js, _) = L.hstrip (L.create $ lines jContent)
-  let r@(rs, _) = L.hstrip (L.create $ lines rContent)
-  let (js0, js1, rs0, rs1) = (js!!0, js!!1, rs!!0, rs!!1)
+  let j@(jBuffer, _) = L.create $ lines jContent
   ignoreMeta <- env optNoMeta
-  let jHasMeta = not ignoreMeta && hasMeta js
-  let rHasMeta = not ignoreMeta && jHasMeta && hasMeta rs 
-  let j' | jHasMeta = L.hstrip $ L.drop 2 j
-         | otherwise = j
-  let r' | rHasMeta = L.hstrip $ L.drop 2 r
-         | otherwise = r
-  meta <- if jHasMeta
-    then do
-      let jSection = (getMetaData js0, getMetaData js1)
-      let rSection | rHasMeta  = Just (getMetaData rs0, getMetaData rs1)
-                   | otherwise = Nothing
-      Just <$> formatMeta jSection rSection
-    else return Nothing
-  token <- concat <$> mapM parseLine (L.zip2 j' r')
-  return (meta, token)
-  where 
-    hasMeta (a:b:_) = isMetaLine a && isMetaLine b
-    hasMeta _       = False
-    isMetaLine l = "##" `isPrefixOf` l 
-    getMetaData l = dropWhile isSpace $ drop 2 l
+  let has = not ignoreMeta && length jBuffer >= 2 && all ("##" `isPrefixOf`) (take 2 jBuffer)
+  let jRest | has = L.hstrip $ L.drop 2 j
+            | otherwise = j
+  let getMeta = dropWhile isSpace . drop 2
+  let meta | has = Just Meta { title = getMeta (jBuffer!!0), author = getMeta (jBuffer!!1) }
+           | otherwise = Nothing
+  body <- concat <$> mapM parseLine (L.zip2 jRest (L.hstrip $ L.create $ lines rContent))
+  return Document { meta = meta, body = body }

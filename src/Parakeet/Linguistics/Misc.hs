@@ -15,7 +15,8 @@ import Data.List (find)
 import Control.Monad.Choice
 
 isKanji :: Char -> Bool
-isKanji = (\x -> (x >= 0x4e00 && x <= 0x9fbf) || x ==  0x3005) . ord -- 0x3005 is kanji iteration mark
+isKanji = (\x -> (x >= 0x4e00 && x <= 0x9fbf) || x == k) . ord
+  where k = ord '々'
 
 isChoonpu :: Char -> Bool 
 isChoonpu = (==) 'ー'

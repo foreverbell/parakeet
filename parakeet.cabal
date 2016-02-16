@@ -50,9 +50,9 @@ library
     Parakeet.Parser.Stage2
     Parakeet.Parser.TeX
     Parakeet.Parser.WithLine
+    Parakeet.Types.Document
     Parakeet.Types.FToken
     Parakeet.Types.Lexeme
-    Parakeet.Types.Meta
     Parakeet.Types.Options
     Parakeet.Types.Token
     Text.QuasiEmbedFile

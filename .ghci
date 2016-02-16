@@ -4,7 +4,7 @@
 :set -isrc -iexe
 :load exe/Main.hs
 
-let testList = ["Anonymous", "Butter-fly", "Nagori-yuki", "Natsu-yuuzora", "Nada-sousou", "Yuki-no-hana"]
+let testList = ["Anonymous", "Butter-fly", "Nagori-yuki", "Natsu-yuuzora", "Nada-sousou", "Yuki-no-hana", "Secret-base"]
 
 let buildTestEx j r t = unwords [":main", "-j", j, "-r", r, "-o", t]
 let buildTest test    = buildTestEx ("test-suite/" ++ test ++ "/" ++ test ++ ".j") ("test-suite/" ++ test ++ "/" ++ test ++ ".r") (test ++ ".tex")

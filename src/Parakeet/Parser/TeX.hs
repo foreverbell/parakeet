@@ -12,9 +12,8 @@ import           Text.Printf (printf)
 import           Text.QuasiEmbedFile (efile)
 import qualified Text.TemplateParser as TP
 
-import           Parakeet.Parser.Parser (ParsedDocument)
 import           Parakeet.Types.FToken
-import           Parakeet.Types.Meta 
+import qualified Parakeet.Types.Document as D
 import           Parakeet.Types.Options
 
 build :: Bool -> Int -> String -> Text
@@ -38,44 +37,39 @@ substituteTemplate template body meta = do
     substitute (TP.Value v) = case v of
       "body" -> return body
       "meta" -> return meta
-      _      -> throw $ toException (TemplateError $ printf "invalid placeholder %s." v)
+      _      -> throw $ toException (TemplateError $ printf "invalid placeholder $%s$." v)
 
-texify :: Bool -> Int -> [FToken] -> Text
-texify useVerb offset tokens = T.concat $ map singleTexify tokens
+texify :: Int -> [FToken] -> Text
+texify offset tokens = T.concat $ map singleTexify tokens
   where
-    mainFont = fixFont $ 4 + offset
-    rubyFont = fixFont $ 6 + offset
-    romajiFont = fixFont $ 5 + offset
-    fixFont f | f < 0 = 0
-              | f > 9 = 9
-              | otherwise = f
+    mainFont = clampFont $ 4 + offset
+    rubyFont = clampFont $ 6 + offset
+    romajiFont = clampFont $ 5 + offset
+    clampFont f | f < 0 = 0
+                | f > 9 = 9
+                | otherwise = f
     singleTexify :: FToken -> Text
     singleTexify d = case d of
       Line         -> " \\\\ \n"
-      Lit s        -> build useVerb mainFont s `T.append` " "
+      Lit s        -> build True mainFont s `T.append` " "
       Kanji k h r  -> T.pack $ printf "\\ruby{%s%s}{%s} " (build False mainFont k) (build False rubyFont ("(" ++ concat h ++ ")")) (build False romajiFont (unwords r))
       Hiragana h r -> T.pack $ printf "\\ruby{%s}{%s} " (build False mainFont h) (build False romajiFont (unwords r))
       Katakana k r -> T.pack $ printf "\\ruby{%s}{%s} " (build False mainFont k) (build False romajiFont (unwords r))
 
-texifyTitle :: [FToken] -> Text
-texifyTitle title = T.pack $ printf "\\title{%s}" (T.unpack tex)
-  where
-    tex = texify False (-2) title
+texifyTitle :: String -> Text
+texifyTitle title = T.pack $ printf "\\title{%s}" (T.unpack $ texify (-2) [Lit title])
 
-texifyAuthor :: [FToken] -> Text
-texifyAuthor author = T.pack $ printf "\\author{%s}" (T.unpack tex)
-  where
-    tex = texify False 1 author
+texifyAuthor :: String -> Text
+texifyAuthor author = T.pack $ printf "\\author{%s}" (T.unpack $ texify 1 [Lit author])
 
-tex :: ParsedDocument -> Parakeet Text
-tex (meta0, tokens) = do
-  let title = maybe T.empty (texifyTitle . getTitle) meta0
-  -- TODO: using lit author is workaround, since ruby is not well supported in \author{ }
-  let author = maybe T.empty (texifyAuthor . getLitAuthor) meta0
-  let date = maybe T.empty (const "\\date{ }") meta0
-  let meta = T.concat [title, "\n", author, "\n", date]
-  let body = T.concat [maybe T.empty (const "\\maketitle") meta0, "\n\n", texify True 0 tokens]
-  template <- env optTemplate
+tex :: D.Document -> Parakeet Text
+tex document = do
+  let title  = maybe T.empty (texifyTitle . D.title) (D.meta document)
+  let author = maybe T.empty (texifyAuthor . D.author) (D.meta document)
+  let date   = maybe T.empty (const "\\date{ }") (D.meta document)
+  let meta   = T.concat [title, "\n", author, "\n", date]
+  let body   = T.concat [maybe T.empty (const "\\maketitle") (D.meta document), "\n\n", texify 0 (D.body document)]
+  template   <- env optTemplate
   case template of
        Nothing            -> return $ T.concat [efile|template.tex|]
        Just (_, template) -> substituteTemplate template body meta
