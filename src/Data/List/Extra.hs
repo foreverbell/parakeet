@@ -1,13 +1,8 @@
 module Data.List.Extra (
-  mapHead
-, mapLast
+  concatMapLast
 ) where
 
-mapHead :: (a -> [a]) -> [a] -> [a]
-mapHead _ [] = []
-mapHead f (x:xs) = f x ++ xs
-
-mapLast :: (a -> [a]) -> [a] -> [a]
-mapLast _ [] = []
-mapLast f [x] = f x
-mapLast f (x:xs) = x : mapLast f xs
+concatMapLast :: (a -> [a]) -> [a] -> [a]
+concatMapLast _ [] = []
+concatMapLast f [x] = f x
+concatMapLast f (x:xs) = x : concatMapLast f xs

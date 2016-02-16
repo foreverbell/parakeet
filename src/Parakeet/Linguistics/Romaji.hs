@@ -15,16 +15,17 @@ module Parakeet.Linguistics.Romaji (
 , factor
 ) where
 
-import           Data.Tuple (swap)
+import           Data.Functor.Compose (Compose (..))
 import           Data.List (sort, group)
-import           Data.List.Extra (mapHead, mapLast)
+import           Data.List.Extra (concatMapLast)
 import qualified Data.Map as M
 import           Data.Maybe (maybeToList, fromJust, fromMaybe, isNothing)
+import           Data.Tuple (swap)
 import           Control.Arrow (second)
 import           Control.Monad (mzero, guard)
 import           Control.Monad.Choice (Choice, fromList, toList, foremost)
 
-import           Parakeet.Types.Lexeme (wrap, unwrap, toRLV, toRS, toRB, Hiragana, Katakana, Romaji, RType, Bundle, Single, (<**>), (<$$>))
+import           Parakeet.Types.Lexeme (Lexeme (..), toRLV, toRS, toRB, Hiragana, Katakana, Romaji, RType, Bundle, Single)
 import           Parakeet.Linguistics.Misc (isMacron, toMacron, fromMacron, isVowel)
 import           Parakeet.Linguistics.RawData (hRaw, kRaw)
 
@@ -69,7 +70,7 @@ otherFormMap :: M.Map String (Choice String)
 otherFormMap = M.fromList $ map (second fromList) otherFormList
 
 otherForms :: Romaji Single -> Choice (Romaji Single)
-otherForms r = go <$$> r
+otherForms r = go `lfap` r
   where go r = fromMaybe (return r) (M.lookup r otherFormMap)
 
 buildDakutenPairs :: [(Int, Int)] -> [(String, String)]
@@ -98,11 +99,11 @@ dakutenPair2 = [(8, 10), (21, 23)] -- (normal, han-dakuten)
 dakutenPair3 = [(9, 10), (22, 23)] -- (dakuten, han-dakuten)
 
 dakutenize :: Romaji Single -> Romaji Single
-dakutenize r = lookup <**> r
+dakutenize r = lookup `lap` r
   where lookup x = fromMaybe x (M.lookup x dakutenMap)
 
 unDakutenize :: Romaji Single -> Romaji Single
-unDakutenize r = lookup <**> r
+unDakutenize r = lookup `lap` r
   where lookup x = fromMaybe x (M.lookup x unDakutenMap)
 
 isSyllabicN :: Romaji Single -> Bool
@@ -110,20 +111,20 @@ isSyllabicN n = n `elem` toList (otherForms (wrap "n"))
 
 -- | normalize syllabic n (take the first alphabet).
 normSyllabicN :: Romaji Single -> Romaji Single
-normSyllabicN r = if isSyllabicN r
-    then return . head <**> r
+normSyllabicN r = if isSyllabicN r -- TODO: View patterns?
+    then (return . head) `lap` r
     else r
 
 -- | sokuonize a factorized romaji, chi -> tchi, ka -> kka, a -> a.
-sokuonize :: [Romaji Single] -> [Romaji Single]
-sokuonize [] = []
-sokuonize r = mapHead (sokuonizeInternal <$$>) r
+sokuonize :: [Romaji Single] -> Choice [Romaji Single]
+sokuonize [] = return []
+sokuonize r = getCompose ((lfap (Compose . sokuonizeInternal)) (head r)) >>= \h -> return (h ++ tail r)
 
 unSokuonize :: Romaji Bundle -> Choice (Maybe (Romaji Single), Romaji Bundle)
 unSokuonize r
   | length r' <= 1 = return (Nothing, r)
-  | firstOne == 't' && take 2 exceptFirst == "ch" = return (Just $ wrap [firstOne], tail <**> r)
-  | sokuonizable firstOne && head exceptFirst == firstOne = return (Just $ wrap [firstOne], tail <**> r)
+  | firstOne == 't' && take 2 exceptFirst == "ch" = return (Just $ wrap [firstOne], tail `lap` r)
+  | sokuonizable firstOne && head exceptFirst == firstOne = return (Just $ wrap [firstOne], tail `lap` r)
   | otherwise = return (Nothing, r)
   where
     r' = unwrap r
@@ -134,23 +135,23 @@ sokuonizable :: Char -> Bool
 -- | https://en.wikipedia.org/wiki/Sokuon
 sokuonizable c = c `notElem` "aiueonmrwy" -- ++ "gzdbh"
 
-sokuonizeInternal :: String -> [String]
-sokuonizeInternal [] = []
-sokuonizeInternal s@('c':'h':_) = ["t", s]
-sokuonizeInternal s@(c:_) | sokuonizable c = [[c], s]
-                          | otherwise      = [s]
+sokuonizeInternal :: String -> Choice [String]
+sokuonizeInternal [] = return []
+sokuonizeInternal s@('c':'h':_) = fromList [["t", s], ["c", s]]
+sokuonizeInternal s@(c:_) | sokuonizable c = return [[c], s]
+                          | otherwise      = return [s]
 
 -- | long vowelize a factorized romaji.
 longVowelize :: [Romaji Single] -> [Romaji Single]
 longVowelize [] = []
-longVowelize r = mapLast (longVowelizeInternal False <$$>) r
+longVowelize r = concatMapLast (longVowelizeInternal False `lfap`) r
 
 longVowelizeWithMacron :: RType a => [Romaji a] -> [Romaji Bundle]
 longVowelizeWithMacron [] = []
-longVowelizeWithMacron r = toRB <$> mapLast (longVowelizeInternal True <$$>) r
+longVowelizeWithMacron r = toRB <$> concatMapLast (longVowelizeInternal True `lfap`) r
 
 longVowelize1WithMacron :: RType a => Romaji a -> Romaji Bundle
-longVowelize1WithMacron r = toRB $ head (longVowelizeInternal True <$$> r)
+longVowelize1WithMacron r = toRB $ head (longVowelizeInternal True `lfap` r)
 
 unLongVowelize :: Romaji Bundle -> Choice (Maybe (Romaji Single), Romaji Bundle)
 unLongVowelize r 
@@ -168,7 +169,7 @@ unLongVowelize r
 longVowelizeInternal :: Bool -> String -> [String]
 longVowelizeInternal _ [] = []
 longVowelizeInternal m s | not (isVowel ls) = [s]
-                         | m                = [mapLast (return . foremost . toMacron) s]
+                         | m                = [concatMapLast (return . foremost . toMacron) s]
                          | otherwise        = [s, [ls]] 
   where ls = last s
 

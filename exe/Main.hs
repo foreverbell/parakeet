@@ -2,7 +2,6 @@
 
 module Main where
 
-import           Control.Exception (throw)
 import           Control.Monad (when)
 import           Data.Char (toLower)
 import           Data.List (isSuffixOf)
@@ -128,5 +127,5 @@ main = do
   when eoptDumpTemplate $ putStr template >> exitSuccess
   checkFile opts
   case parakeet opts of 
-       Left err -> throw err
+       Left err -> putStrLn $ show err
        Right r  -> eoptIO r

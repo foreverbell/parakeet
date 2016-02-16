@@ -50,15 +50,13 @@ instance RType a => Eq (Romaji a) where
 instance RType a => Ord (Romaji a) where
   a `compare` b = unwrap a `compare` unwrap b
   
-infixl 4 <**>, <$$>
-
 class Typeable t => Lexeme t where
   unwrap :: t -> String
   wrap   :: String -> t
-  (<**>) :: (String -> String) -> t -> t
-  f <**> t = wrap $ f (unwrap t)
-  (<$$>) :: Functor f => (String -> f String) -> t -> f t 
-  f <$$> t = wrap <$> f (unwrap t)
+  lap :: (String -> String) -> t -> t
+  lap f = \t -> wrap $ f (unwrap t)
+  lfap :: Functor f => (String -> f String) -> t -> f t 
+  lfap f = \t -> wrap <$> f (unwrap t)
 
 class (Lexeme k) => LexemeKana k where
   -- | toRomaji k: sokuon ++ body ++ choonpu (katakana only) / itermark 

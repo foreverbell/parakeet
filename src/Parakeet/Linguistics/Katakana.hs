@@ -7,7 +7,7 @@ module Parakeet.Linguistics.Katakana (
 ) where
 
 import           Control.Monad (guard, msum, mzero, join)
-import           Control.Monad.Choice (fromMaybe, toMaybe)
+import           Control.Monad.Choice (fromMaybe, toMaybe, foremost)
 import           Data.Maybe (isJust)
 import qualified Data.Map as M
 
@@ -23,7 +23,7 @@ instance LexemeKana Katakana where
   toRomaji k = lookup (unwrap k)
     where
       lookup [] = mzero
-      lookup k | isSokuon (head k) = sokuonize <$> lookup (tail k)
+      lookup k | isSokuon (head k) = foremost $ sokuonize <$> lookup (tail k)
                | isChoonpu (last k) = longVowelize <$> lookup (init k)
                | isIterationMark1 (last k) = (\xs -> xs ++ [unDakutenize (last xs)]) <$> lookup (init k)
                | isIterationMark2 (last k) = (\xs -> xs ++ [dakutenize (last xs)]) <$> lookup (init k)

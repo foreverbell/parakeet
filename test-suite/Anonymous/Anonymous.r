@@ -12,7 +12,7 @@ sūgaku
 Tōkyō, Tōkyō
 Sūpāman
 mē, mee
-matcha, matcha 
+matcha, maccha, matcha 
 sassato
 kin'yōbi, kin'yōbi, kin-yōbi, kin-yōbi
 mittsu

@@ -7,7 +7,7 @@ module Parakeet.Linguistics.Hiragana (
 ) where
 
 import           Control.Monad (guard, msum, mzero, join)
-import           Control.Monad.Choice (fromMaybe, toMaybe)
+import           Control.Monad.Choice (fromMaybe, toMaybe, foremost)
 import           Data.Maybe (isJust)
 import qualified Data.Map as M
 
@@ -22,7 +22,7 @@ instance LexemeKana Hiragana where
   toRomaji h = lookup (unwrap h)
     where
       lookup [] = mzero
-      lookup h | isSokuon (head h) = sokuonize <$> lookup (tail h)
+      lookup h | isSokuon (head h) = foremost $ sokuonize <$> lookup (tail h)
                | isIterationMark1 (last h) = (\xs -> xs ++ [unDakutenize (last xs)]) <$> lookup (init h)
                | isIterationMark2 (last h) = (\xs -> xs ++ [dakutenize (last xs)]) <$> lookup (init h)
                | otherwise  = return <$> join (otherForms . wrap <$> fromMaybe (M.lookup h chmap))

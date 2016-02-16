@@ -7,8 +7,8 @@ module Parakeet.Parser.Stage1 (
 import           Control.Monad (forM_, void, mzero, msum, guard, replicateM)
 import           Control.Monad.Choice (foremost, toList, strip)
 import           Control.Monad.Parakeet
-import           Data.Char (toLower, isSpace)
-import           Data.Char.Fuzzy (fuzzyEq)
+import           Data.Char (toLower, isSpace, chr)
+import           Data.Char.Fuzzy (fuzzyEq, canonicalOrd)
 import           Data.List (sortBy, nub, intercalate)
 import           Data.Function (on)
 import           Data.Maybe (fromJust)
@@ -63,14 +63,14 @@ break = do
 sugarize :: Bool -> Bool -> [L.Romaji L.Single] -> [L.Romaji L.Bundle]
 sugarize sokuonize longVowelize from = sortBy (flip compare `on` (length . L.unwrap)) $ nub $ map L.concatR $ do 
   r <- from
-  g <- getTransformer sokuonize [R.sokuonize, id]
-  v <- getTransformer longVowelize [R.longVowelizeWithMacron, map L.toRB]
-  return $ if R.isSyllabicN r
-    then [L.toRB r]
-    else v (g [r])
-  where 
-    getTransformer True xs  = xs
-    getTransformer False xs = drop 1 xs
+  g <- getTransformer sokuonize (R.sokuonize, return)
+  v <- getTransformer longVowelize (R.longVowelizeWithMacron, map L.toRB)
+  if R.isSyllabicN r
+    then [[L.toRB r]]
+    else v <$> toList (g [r])
+  where
+    getTransformer True (x, y)  = [x, y]
+    getTransformer False (_, y) = [y]
 
 unitRomajis :: [L.Romaji L.Bundle]
 unitRomajis = sugarize True True R.chList
@@ -126,11 +126,15 @@ lit token = do
           eat xs
 
 fuzzyChar :: Char -> Parser Char
-fuzzyChar ch = satisfy (fuzzyEq ch) <?> "character likely \'" ++ [ch, '\''] 
+fuzzyChar ch = satisfy (fuzzyEq ch) <?> errorMsg 
+  where
+    fuzzyC = chr $ canonicalOrd ch
+    errorMsg | fuzzyC == ch = "character namely \'" ++ [ch] ++ "\'" 
+             | otherwise = "characters namely \'" ++ [ch] ++ "\' or \'" ++ [fuzzyC] ++ "\'"
 
 skip :: Int -> Parser [L.Romaji L.Single]
 skip n = replicateM n $ do
-  void (char '-') <|> void spaces <?> "delimiter likely (\'-\' or spaces)" -- eat possible delimiters
+  void (char '-') <|> void spaces <?> "delimiter namely (\'-\' or spaces)" -- eat possible delimiters
   next <- strip . R.factor <$> romaji unitRomajis
   let (r:rs) = foremost next -- TODO: ambiguity!
   prepend $ concatMap L.unwrap rs

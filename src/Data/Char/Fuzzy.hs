@@ -1,5 +1,6 @@
 module Data.Char.Fuzzy (
-  fuzzyEq
+  canonicalOrd
+, fuzzyEq
 , fuzzyAlphaNum
 ) where
 
@@ -41,14 +42,14 @@ rules = [ elem [0x60, 0xff40]   ==> const 0x27              -- ` -> '
         , elem [0x300f, 0x201d] ==> const 0x22
         ]
 
-normOrder :: Char -> Int
-normOrder c = case L.find (\(p, _) -> p x) rules of
+canonicalOrd :: Char -> Int
+canonicalOrd c = case L.find (\(p, _) -> p x) rules of
   Nothing     -> x
   Just (_, f) -> f x
   where x = ord c
 
 fuzzyEq :: Char -> Char -> Bool
-fuzzyEq a b  = (==) (normOrder a) (normOrder b) 
+fuzzyEq a b  = (==) (canonicalOrd a) (canonicalOrd b) 
 
 fuzzyAlphaNum :: Char -> Bool
 fuzzyAlphaNum c | inside 0xff01 0xff5e x = fuzzyAlphaNum (chr (x - 0xff01 + 0x21))

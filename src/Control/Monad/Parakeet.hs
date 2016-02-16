@@ -27,9 +27,18 @@ newtype Parakeet a = Parakeet (ReaderT Options (ExceptT SomeException Identity) 
            , Applicative
            , Monad
            )
-newtype ParseError = ParseError String deriving (Typeable, Show)
-newtype TemplateError = TemplateError String deriving (Typeable, Show)
-newtype InternalError = InternalError String deriving (Typeable, Show)
+newtype ParseError = ParseError String deriving (Typeable)
+newtype TemplateError = TemplateError String deriving (Typeable)
+newtype InternalError = InternalError String deriving (Typeable)
+
+instance Show ParseError where
+  show (ParseError e) = "ParseError: " ++ e
+
+instance Show TemplateError where
+  show (TemplateError e) = "TemplateError: " ++ e
+
+instance Show InternalError where
+  show (InternalError e) = "InternalError: " ++ e
 
 instance Exception ParseError
 instance Exception TemplateError
