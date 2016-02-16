@@ -8,6 +8,7 @@ import           Data.Char (isSpace)
 import           Data.Char.Extra (toLower)
 import           Data.List (isPrefixOf)
 import           Text.Parsec hiding (parse)
+import           Text.Parsec.Extra (setLine)
 
 import           Parakeet.Types.FToken
 import           Parakeet.Types.Document
@@ -16,10 +17,6 @@ import           Parakeet.Parser.Stage0 (stage0)
 import           Parakeet.Parser.Stage1 (stage1)
 import           Parakeet.Parser.Stage2 (stage2)
 import qualified Parakeet.Parser.WithLine as L
-
-setLine l = do
-  pos <- getPosition
-  setPosition $ setSourceLine pos l
 
 parseLine :: (Line, Line, String, String) -> Parakeet [FToken]
 parseLine (lj, lr, j, r) = do

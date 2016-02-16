@@ -55,6 +55,7 @@ library
     Parakeet.Types.Lexeme
     Parakeet.Types.Options
     Parakeet.Types.Token
+    Text.Parsec.Extra
     Text.QuasiEmbedFile
     Text.TemplateParser
   build-depends: 

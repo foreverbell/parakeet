@@ -14,6 +14,7 @@ import           Data.Function (on)
 import           Data.Maybe (fromJust)
 import           Prelude hiding (break)
 import           Text.Parsec
+import           Text.Parsec.Extra (prepend, popUserToken)
 
 import qualified Parakeet.Types.Token as T
 import qualified Parakeet.Types.Lexeme as L
@@ -24,23 +25,6 @@ import qualified Parakeet.Linguistics.Misc as M
 
 type Parser = ParsecT String [L.SomeLexeme] Parakeet
 type Token = T.Token L.Single
-
-prepend :: String -> Parser ()
-prepend a = void $ do
-  s <- getParserState
-  p <- getPosition
-  setParserState $ s {
-    stateInput = (++) a (stateInput s)
-  }
-  setPosition $ incSourceColumn p (negate $ length a)
-
-popUserToken :: Parser L.SomeLexeme
-popUserToken = do
-  s <- getState
-  guard $ not $ null s
-  let token = head s
-  modifyState tail
-  return token
 
 separator :: Parser ()
 separator = void $ try $ do
