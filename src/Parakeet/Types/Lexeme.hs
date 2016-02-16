@@ -32,8 +32,7 @@ class Typeable a => RType a
 instance RType Bundle
 instance RType Single
 
--- | Phantom type `a` to distinguish bundle and single romaji.
--- Based on ideas in /https://wiki.haskell.org/Phantom_type/.
+-- | Phantom type `a` to distinguish bundle and single romaji. Based on ideas in /https://wiki.haskell.org/Phantom_type/.
 data RType a => Romaji a = Romaji String 
                          | RomajiLV String -- romaji with long vowel
                          deriving (Show, Typeable)
@@ -54,17 +53,16 @@ class Typeable t => Lexeme t where
   unwrap :: t -> String
   wrap   :: String -> t
   lap :: (String -> String) -> t -> t
-  lap f = \t -> wrap $ f (unwrap t)
+  lap f = wrap . f . unwrap
   lfap :: Functor f => (String -> f String) -> t -> f t 
-  lfap f = \t -> wrap <$> f (unwrap t)
+  lfap f = fmap wrap . f . unwrap
 
 class (Lexeme k) => LexemeKana k where
   -- | toRomaji k: sokuon ++ body ++ choonpu (katakana only) / itermark 
   toRomaji :: k -> Choice [Romaji Single] 
   fromRomaji :: [Romaji Single] -> [Maybe k] 
 
--- | Based on ideas in /An Extensible Dynamically-Typed Hierarchy of
--- Exceptions/, Simon Marlow, 2006. 
+-- | Based on ideas in /An Extensible Dynamically-Typed Hierarchy of Exceptions/, Simon Marlow, 2006. 
 data SomeLexeme = forall k. Lexeme k => SomeLexeme k deriving (Typeable)
 
 fromLexeme :: Lexeme k => SomeLexeme -> Maybe k

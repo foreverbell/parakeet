@@ -111,14 +111,13 @@ isSyllabicN n = n `elem` toList (otherForms (wrap "n"))
 
 -- | normalize syllabic n (take the first alphabet).
 normSyllabicN :: Romaji Single -> Romaji Single
-normSyllabicN r = if isSyllabicN r -- TODO: View patterns?
-    then (return . head) `lap` r
-    else r
+normSyllabicN r | isSyllabicN r = (return . head) `lap` r
+                | otherwise = r
 
 -- | sokuonize a factorized romaji, chi -> tchi, ka -> kka, a -> a.
 sokuonize :: [Romaji Single] -> Choice [Romaji Single]
 sokuonize [] = return []
-sokuonize r = getCompose ((lfap (Compose . sokuonizeInternal)) (head r)) >>= \h -> return (h ++ tail r)
+sokuonize r = getCompose (lfap (Compose . sokuonizeInternal) (head r)) >>= \h -> return (h ++ tail r)
 
 unSokuonize :: Romaji Bundle -> Choice (Maybe (Romaji Single), Romaji Bundle)
 unSokuonize r
