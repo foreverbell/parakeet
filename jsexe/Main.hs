@@ -23,12 +23,12 @@ main = do
     jap <- getElement (pack "jap")
     rom <- getElement (pack "rom")
     let options = Options {
-      optJInputFile = ("japanese", unpack jap)
-    , optRInputFile = ("romaji", unpack rom)
-    , optTemplate   = Nothing
-    , optFurigana   = InHiragana
-    , optNoMeta     = False
-    , optKeepLV     = True
+      inputFileJ   = ("japanese", unpack jap)
+    , inputFileR   = ("romaji", unpack rom)
+    , templateFile = Nothing
+    , furigana     = InHiragana
+    , noMeta       = False
+    , keepLV       = True
     }
     let result = case parakeet options of
                       Left a -> unlines [show a]

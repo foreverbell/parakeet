@@ -11,10 +11,10 @@ data FuriganaFormat = InHiragana
 type File = (FilePath, String)
 
 data Options = Options {
-  optJInputFile :: File
-, optRInputFile :: File
-, optTemplate   :: Maybe File
-, optFurigana   :: FuriganaFormat
-, optNoMeta     :: Bool
-, optKeepLV     :: Bool
+  inputFileJ   :: File
+, inputFileR   :: File
+, templateFile :: Maybe File
+, furigana     :: FuriganaFormat
+, noMeta       :: Bool
+, keepLV       :: Bool
 }

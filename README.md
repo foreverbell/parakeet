@@ -80,6 +80,7 @@ You should guarantee that the two input files are encoded in UTF-8.
 * The parsing algorithm is essentially LL(infinity), it is an exponential algorithm of course! So the program may get extremely slow when there is a mistake in a long line of romaji. A proper use of separator `$` can avoid this trap.
 * The long vowel `ō` is ambiguous in Hepburn romanization, which is interpreted to `ou` or `oo`. To resolve this, we always pick the former one. For example, `東京(Tōkyō)` is correctly translated to `とうきょう`, while `大阪(Ōsaka)` is wrongly translated to `おうさか`.
 * There are two `zu`s and `ji`s in romanization, namely `ずづ` and `じぢ` in hiragana respectively. We always pick `ずじ` when translating `zu` and `ji` into furigana. If you want `づぢ`, use `du(dzu)` and `di(dji)` instead.
+* Unfriendly parse error message.
 
 ## Document
 

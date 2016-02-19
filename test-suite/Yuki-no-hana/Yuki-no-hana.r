@@ -53,4 +53,4 @@ Sunao ni sou omoeru
 Kono machi ni furitsumotteku 
 Masshiro na yuki no hana 
 Futa$ri no mune ni sotto omoide wo egaku yo 
-Kore kara mo kimi to zutto...
+Kore kara mo kimi to zutto…

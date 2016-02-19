@@ -7,12 +7,12 @@ import           Text.Parakeet
 
 defaultOptions :: Options 
 defaultOptions = Options {
-  optJInputFile = ([], [])
-, optRInputFile = ([], [])
-, optTemplate   = Just ([], "$meta$\n$body$")
-, optFurigana   = InHiragana
-, optNoMeta     = False
-, optKeepLV     = False
+  inputFileJ   = ([], [])
+, inputFileR   = ([], [])
+, templateFile = Just ([], "$meta$\n$body$")
+, furigana     = InHiragana
+, noMeta       = False
+, keepLV       = False
 }
 
 getOptions :: String -> Bool -> IO Options
@@ -21,9 +21,9 @@ getOptions test keepLV = do
   let rf = "test-suite/" ++ test ++ "/" ++ test ++ ".r"
   j <- IO.readFile jf
   r <- IO.readFile rf
-  return defaultOptions { optJInputFile = (jf, j)
-                        , optRInputFile = (rf, r)
-                        , optKeepLV = keepLV
+  return defaultOptions { inputFileJ = (jf, j)
+                        , inputFileR = (rf, r)
+                        , keepLV     = keepLV
                         }
 
 getTest :: String -> Bool -> IO Test

@@ -18,9 +18,9 @@ import           Text.Parakeet
 type OutputIO = String -> IO ()
 
 data ExtraOptions = ExtraOptions {
-  eoptIO           :: OutputIO
-, eoptShowHelp     :: Bool
-, eoptDumpTemplate :: Bool
+  outputIO     :: OutputIO
+, showHelp     :: Bool
+, dumpTemplate :: Bool
 }
 
 firstM :: Monad m => (a -> m b) -> (a, c) -> m (b, c)
@@ -28,19 +28,19 @@ firstM f (a, c) = f a >>= \b -> return (b, c)
 
 defaultOptions :: Options 
 defaultOptions = Options {
-  optJInputFile = ([], [])
-, optRInputFile = ([], [])
-, optTemplate   = Nothing
-, optFurigana   = InHiragana
-, optNoMeta     = False
-, optKeepLV     = False
+  inputFileJ   = ([], [])
+, inputFileR   = ([], [])
+, templateFile = Nothing
+, furigana     = InHiragana
+, noMeta       = False
+, keepLV       = False
 }
 
 defaultExtraOptions :: ExtraOptions
 defaultExtraOptions = ExtraOptions {
-  eoptIO           = putStr
-, eoptShowHelp     = False
-, eoptDumpTemplate = False
+  outputIO     = putStr
+, showHelp     = False
+, dumpTemplate = False
 }
 
 isEmptyFile :: File -> Bool
@@ -49,21 +49,21 @@ isEmptyFile (f, _) = null f
 initFile :: FilePath -> IO File
 initFile f = IO.readFile f >>= \c -> return (f, c)
 
-bindJInputFile a = firstM $ \o -> do
+bindInputFileJ a = firstM $ \o -> do
   f <- initFile a
-  return o { optJInputFile = f }
+  return o { inputFileJ = f }
 
-bindRInputFile a = firstM $ \o -> do
+bindInputFileR a = firstM $ \o -> do
   f <- initFile a
-  return o { optRInputFile = f }
+  return o { inputFileR = f }
 
-bindTemplate a = firstM $ \o -> do
+bindTemplateFile a = firstM $ \o -> do
   f <- initFile a
-  return o { optTemplate = Just f }
+  return o { templateFile = Just f }
 
 bindOutputIO a (o, eo) = if ".pdf" `isSuffixOf` map toLower a
-     then return (o, eo { eoptIO = xelatex a })
-     else return (o, eo { eoptIO = IO.writeFile a })
+     then return (o, eo { outputIO = xelatex a })
+     else return (o, eo { outputIO = IO.writeFile a })
   where
     xelatex f buf = do
       tmpDir <- getTemporaryDirectory
@@ -78,30 +78,30 @@ bindOutputIO a (o, eo) = if ".pdf" `isSuffixOf` map toLower a
 
 bindFurigana a = firstM $ \o -> do
   f <- format
-  return $ o { optFurigana = f }
+  return $ o { furigana = f }
   where format = case map toLower a of
           "hiragana" -> return InHiragana
           "katakana" -> return InKatakana
           _          -> die "Bad furigana format."
 
-setNoMeta = firstM $ \o -> return o { optNoMeta = True }
+setNoMeta = firstM $ \o -> return o { noMeta = True }
 
-setKeepLV = firstM $ \o -> return o { optKeepLV = True }
+setKeepLV = firstM $ \o -> return o { keepLV = True }
 
-setDumpTemplate (o, eo) = return (o, eo { eoptDumpTemplate = True })
+setDumpTemplate (o, eo) = return (o, eo { dumpTemplate = True })
 
-setShowHelp (o, eo) = return (o, eo { eoptShowHelp = True })
+setShowHelp (o, eo) = return (o, eo { showHelp = True })
 
 options :: [OptDescr ((Options, ExtraOptions) -> IO (Options, ExtraOptions))]
-options = [ Option ['j'] ["japanese"]      (ReqArg bindJInputFile "FILE") "Japanese input file"
-          , Option ['r'] ["romaji"]        (ReqArg bindRInputFile "FILE") "Romaji input file"
-          , Option ['t'] ["template"]      (ReqArg bindTemplate   "FILE") "Template file"
-          , Option ['o'] ["output"]        (ReqArg bindOutputIO   "FILE") "Output file"
-          , Option [   ] ["dump-template"] (NoArg  setDumpTemplate      ) "Dump tex template"
-          , Option [   ] ["furigana"]      (ReqArg bindFurigana "FORMAT") "Furigana format: hiragana, katakana"
-          , Option [   ] ["no-meta"]       (NoArg  setNoMeta            ) "Ignore meta data (title & author)"
-          , Option [   ] ["keep-lv"]       (NoArg  setKeepLV            ) "Keep long vowel macron in output"
-          , Option ['h'] ["help"]          (NoArg  setShowHelp          ) "Show help"
+options = [ Option ['j'] ["japanese"]      (ReqArg bindInputFileJ   "FILE") "Japanese input file"
+          , Option ['r'] ["romaji"]        (ReqArg bindInputFileR   "FILE") "Romaji input file"
+          , Option ['t'] ["template"]      (ReqArg bindTemplateFile "FILE") "Template file"
+          , Option ['o'] ["output"]        (ReqArg bindOutputIO     "FILE") "Output file"
+          , Option [   ] ["dump-template"] (NoArg  setDumpTemplate        ) "Dump tex template"
+          , Option [   ] ["furigana"]      (ReqArg bindFurigana   "FORMAT") "Furigana format: hiragana, katakana"
+          , Option [   ] ["no-meta"]       (NoArg  setNoMeta              ) "Ignore meta data (title & author)"
+          , Option [   ] ["keep-lv"]       (NoArg  setKeepLV              ) "Keep long vowel macron in output"
+          , Option ['h'] ["help"]          (NoArg  setShowHelp            ) "Show help"
           ]
 
 die :: String -> IO a
@@ -111,7 +111,7 @@ die e = do
 
 checkFile :: Options -> IO Options
 checkFile opts = do
-  let (jName, rName) = (fst $ optJInputFile opts, fst $ optRInputFile opts)
+  let (jName, rName) = (fst $ inputFileJ opts, fst $ inputFileR opts)
   when (null jName || null rName) $ die "Missing inputs."
   return opts
 
@@ -123,9 +123,9 @@ runOpts argv = case getOpt Permute options argv of
 main :: IO ()
 main = do
   (opts, ExtraOptions {..}) <- runOpts =<< getArgs
-  when eoptShowHelp $ putStrLn (usageInfo "Usage: " options) >> exitSuccess
-  when eoptDumpTemplate $ putStr template >> exitSuccess
+  when showHelp $ putStrLn (usageInfo "Usage: " options) >> exitSuccess
+  when dumpTemplate $ putStr template >> exitSuccess
   checkFile opts
   case parakeet opts of 
        Left err -> putStrLn $ show err
-       Right r  -> eoptIO r
+       Right r  -> outputIO r

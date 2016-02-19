@@ -14,7 +14,7 @@ import qualified Text.TemplateParser as TP
 
 import           Parakeet.Types.FToken
 import qualified Parakeet.Types.Document as D
-import           Parakeet.Types.Options
+import qualified Parakeet.Types.Options as O
 
 build :: Bool -> Int -> String -> Text
 build useVerb f
@@ -39,11 +39,11 @@ substituteTemplate template body meta = do
       "meta" -> return meta
       _      -> throw $ toException (TemplateError $ printf "invalid placeholder $%s$." v)
 
-texify :: Bool -> Int -> [FToken] -> Text
-texify useVerb offset tokens = T.concat $ map singleTexify tokens
+texify :: Int -> [FToken] -> Text
+texify offset tokens = T.concat $ map singleTexify tokens
   where
     mainFont = clampFont $ 4 + offset
-    rubyFont = clampFont $ 6 + offset
+    kanjiFont = clampFont $ 6 + offset
     romajiFont = clampFont $ 5 + offset
     clampFont f | f < 0 = 0
                 | f > 9 = 9
@@ -51,25 +51,25 @@ texify useVerb offset tokens = T.concat $ map singleTexify tokens
     singleTexify :: FToken -> Text
     singleTexify d = case d of
       Line         -> " \\\\ \n"
-      Lit s        -> build useVerb mainFont s `T.append` " "
-      Kanji k h r  -> T.pack $ printf "\\ruby{%s%s}{%s} " (build False mainFont k) (build False rubyFont ("(" ++ concat h ++ ")")) (build False romajiFont (unwords r))
+      Lit s        -> build True mainFont s `T.append` " "
+      Kanji k h r  -> T.pack $ printf "\\ruby{%s%s}{%s} " (build False mainFont k) (build False kanjiFont ("(" ++ concat h ++ ")")) (build False romajiFont (unwords r))
       Hiragana h r -> T.pack $ printf "\\ruby{%s}{%s} " (build False mainFont h) (build False romajiFont (unwords r))
       Katakana k r -> T.pack $ printf "\\ruby{%s}{%s} " (build False mainFont k) (build False romajiFont (unwords r))
 
 texifyTitle :: String -> Text
-texifyTitle title = T.pack $ printf "\\title{%s}" (T.unpack $ texify False (-2) [Lit title])
+texifyTitle title = T.pack $ printf "\\title{%s}" title
 
 texifyAuthor :: String -> Text
-texifyAuthor author = T.pack $ printf "\\author{%s}" (T.unpack $ texify False 1 [Lit author])
+texifyAuthor author = T.pack $ printf "\\author{%s}" author
 
 tex :: D.Document -> Parakeet Text
 tex document = do
   let title  = maybe T.empty (texifyTitle . D.title) (D.meta document)
   let author = maybe T.empty (texifyAuthor . D.author) (D.meta document)
-  let date   = maybe T.empty (const "\\date{ }") (D.meta document)
+  let date   = maybe T.empty (const "\\date{}") (D.meta document)
   let meta   = T.concat [title, "\n", author, "\n", date]
-  let body   = T.concat [maybe T.empty (const "\\maketitle") (D.meta document), "\n\n", texify True 0 (D.body document)]
-  template   <- env optTemplate
+  let body   = T.concat [maybe T.empty (const "\\maketitle") (D.meta document), "\n\n", texify 0 (D.body document)]
+  template   <- env O.templateFile
   case template of
        Nothing            -> return $ T.concat [efile|template.tex|]
        Just (_, template) -> substituteTemplate template body meta

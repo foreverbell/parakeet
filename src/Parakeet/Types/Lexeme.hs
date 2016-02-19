@@ -15,8 +15,7 @@ module Parakeet.Types.Lexeme (
 , toRLV
 , toRB
 , toRS
-, concatR
-, appendR
+, concat
 , Bundle
 , Single
 , RType
@@ -24,6 +23,7 @@ module Parakeet.Types.Lexeme (
 
 import Control.Monad.Choice (Choice)
 import Data.Typeable (Typeable, cast)
+import Prelude hiding (concat)
 
 data Bundle deriving (Typeable)
 data Single deriving (Typeable)
@@ -49,7 +49,7 @@ instance RType a => Eq (Romaji a) where
 instance RType a => Ord (Romaji a) where
   a `compare` b = unwrap a `compare` unwrap b
   
-class Typeable t => Lexeme t where
+class Lexeme t where
   unwrap :: t -> String
   wrap   :: String -> t
   lap :: (String -> String) -> t -> t
@@ -63,9 +63,9 @@ class (Lexeme k) => LexemeKana k where
   fromRomaji :: [Romaji Single] -> [Maybe k] 
 
 -- | Based on ideas in /An Extensible Dynamically-Typed Hierarchy of Exceptions/, Simon Marlow, 2006. 
-data SomeLexeme = forall k. Lexeme k => SomeLexeme k deriving (Typeable)
+data SomeLexeme = forall k. (Lexeme k, Typeable k) => SomeLexeme k deriving (Typeable)
 
-fromLexeme :: Lexeme k => SomeLexeme -> Maybe k
+fromLexeme :: (Lexeme k, Typeable k) => SomeLexeme -> Maybe k
 fromLexeme (SomeLexeme k) = cast k
 
 instance Lexeme Lit where
@@ -108,8 +108,5 @@ toRS :: RType a => Romaji a -> Romaji Single
 toRS (Romaji r)   = Romaji r
 toRS (RomajiLV r) = RomajiLV r
 
-concatR :: RType a => [Romaji a] -> Romaji Bundle
-concatR = wrap . mconcat . map unwrap
-
-appendR :: (RType a, RType b) => Romaji a -> Romaji b -> Romaji Bundle
-appendR a b = wrap $ unwrap a `mappend` unwrap b
+concat :: RType a => [Romaji a] -> Romaji Bundle
+concat = wrap . mconcat . map unwrap

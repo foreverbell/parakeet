@@ -45,7 +45,7 @@ break = do
   stage1
 
 sugarize :: Bool -> Bool -> [L.Romaji L.Single] -> [L.Romaji L.Bundle]
-sugarize sokuonize longVowelize from = sortBy (flip compare `on` (length . L.unwrap)) $ nub $ map L.concatR $ do 
+sugarize sokuonize longVowelize from = sortBy (flip compare `on` (length . L.unwrap)) $ nub $ map L.concat $ do 
   r <- from
   g <- getTransformer sokuonize (R.sokuonize, return)
   v <- getTransformer longVowelize (R.longVowelizeWithMacron, map L.toRB)

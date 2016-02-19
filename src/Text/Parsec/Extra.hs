@@ -16,9 +16,7 @@ prepend :: Monad m => String -> ParsecT String u m ()
 prepend a = void $ do
   s <- getParserState
   p <- getPosition
-  setParserState $ s {
-    stateInput = (++) a (stateInput s)
-  }
+  setParserState $ s { stateInput = (++) a (stateInput s) }
   setPosition $ incSourceColumn p (negate $ length a)
 
 popUserToken :: Monad m => ParsecT s [u] m u
