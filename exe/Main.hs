@@ -4,6 +4,7 @@ module Main where
 
 import           Control.Monad (when)
 import           Data.Char (toLower)
+import           Data.Default.Class (Default (..))
 import           Data.List (isSuffixOf)
 import           System.Console.GetOpt (getOpt, usageInfo, ArgOrder (..), OptDescr (..), ArgDescr (..))
 import           System.Directory (getTemporaryDirectory, getCurrentDirectory, setCurrentDirectory, makeAbsolute, renameFile)
@@ -26,22 +27,20 @@ data ExtraOptions = ExtraOptions {
 firstM :: Monad m => (a -> m b) -> (a, c) -> m (b, c)
 firstM f (a, c) = f a >>= \b -> return (b, c)
 
-defaultOptions :: Options 
-defaultOptions = Options {
-  inputFileJ   = ([], [])
-, inputFileR   = ([], [])
-, templateFile = Nothing
-, furigana     = InHiragana
-, noMeta       = False
-, keepLV       = False
-}
+instance Default Options where
+  def = Options { inputFileJ   = ([], [])
+                , inputFileR   = ([], [])
+                , templateFile = Nothing
+                , furigana     = InHiragana
+                , noMeta       = False
+                , keepLV       = False
+                }
 
-defaultExtraOptions :: ExtraOptions
-defaultExtraOptions = ExtraOptions {
-  outputIO     = putStr
-, showHelp     = False
-, dumpTemplate = False
-}
+instance Default ExtraOptions where
+  def = ExtraOptions { outputIO     = putStr
+                     , showHelp     = False
+                     , dumpTemplate = False
+                     }
 
 isEmptyFile :: File -> Bool
 isEmptyFile (f, _) = null f
@@ -117,7 +116,7 @@ checkFile opts = do
 
 runOpts :: [String] -> IO (Options, ExtraOptions)
 runOpts argv = case getOpt Permute options argv of
-  (a, _, [])  -> foldl (>>=) (return (defaultOptions, defaultExtraOptions)) a
+  (a, _, [])  -> foldl (>>=) (return (def, def)) a
   (_, _, err) -> die $ concat err
 
 main :: IO ()

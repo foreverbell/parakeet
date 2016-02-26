@@ -79,7 +79,7 @@ executable parakeet
                          OverloadedStrings
  else
     hs-source-dirs:      exe
-    build-depends:       base, text, temporary, directory >= 1.2.2, process, parakeet
+    build-depends:       base, text, data-default-class, temporary, directory >= 1.2.2, process, parakeet
     other-modules:
       System.IO.UTF8
 

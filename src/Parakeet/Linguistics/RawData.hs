@@ -1,6 +1,6 @@
 module Parakeet.Linguistics.RawData (
-  hRaw,
-  kRaw
+  hRaw
+, kRaw
 ) where
 
 hRaw, kRaw :: [(String, String)]
