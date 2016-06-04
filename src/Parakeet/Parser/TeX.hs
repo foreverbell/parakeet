@@ -1,4 +1,5 @@
 {-# LANGUAGE QuasiQuotes, OverloadedStrings #-}
+{-# LANGUAGE CPP #-}
 
 module Parakeet.Parser.TeX (
   tex
@@ -8,13 +9,18 @@ import           Control.Monad.Parakeet (Parakeet, TemplateError (..), toExcepti
 import qualified Data.Text.Lazy as T
 import           Data.Text.Lazy (Text)
 import           Text.Parsec
-import           Text.Printf (printf)
+import           Text.Printf
 import           Text.QuasiEmbedFile (efile)
 import qualified Text.TemplateParser as TP
 
 import           Parakeet.Types.FToken
 import qualified Parakeet.Types.Document as D
 import qualified Parakeet.Types.Options as O
+
+#if !MIN_VERSION_text(1,2,2)
+instance PrintfArg Text where
+  formatArg txt = formatString $ T.unpack txt
+#endif
 
 build :: Bool -> Int -> String -> Text
 build useVerb f

@@ -2,10 +2,11 @@ flags: {}
 setup-info:
   ghcjs:
     source:
-      ghcjs-0.2.0.20151029_ghc-7.10.2:
-        url: https://github.com/nrolland/ghcjs/releases/download/v0.2.0.20151029/ghcjs-0.2.0.20151029.tar.gz
+      ghcjs-0.2.0.20160510_ghc-7.10.3:
+        url: https://s3.amazonaws.com/ghcjs/ghcjs-0.2.0.20160510_ghc-7.10.3.tar.gz
+        sha1: a043a93e16b268f1592d661ce65e4cfda60355d4
 extra-deps:
-- parsec-3.1.9
-- raw-strings-qq-1.0.2
+- parsec-3.1.11
+- raw-strings-qq-1.1
 compiler-check: match-exact
-resolver: ghcjs-0.2.0.20151029_ghc-7.10.2
+resolver: ghcjs-0.2.0.20160510_ghc-7.10.3

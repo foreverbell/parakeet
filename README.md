@@ -6,8 +6,6 @@ I know **nothing** about parsing, Haskell and Japanese. This repository is purel
 
 ## Introduction
 
-**GOOD NEWS!** We have an experimential online demo powered by GHCJS, see [here](https://foreverbell.github.io/parakeet) for more details.
-
 Build the most convenient tool for Japanese beginners!
 
 Input:
@@ -25,6 +23,8 @@ Full output:
 * pdf: https://raw.githubusercontent.com/foreverbell/miscellaneous/master/resource/parakeet/Butter-fly.pdf
 
 Romaji should follow [Hepburn romanization](https://en.wikipedia.org/wiki/Hepburn_romanization).
+
+For an experimential online demo powered by GHCJS, see [here](https://foreverbell.github.io/parakeet) for more details.
 
 ## Installation
 
@@ -90,4 +90,4 @@ Since I haven't find any potential users, so there will be no document available
 
 * Ambiguous `ō` warning.
 * Extended katakana support.
-* Japanese lexical rules.
+* Wiki for Japanese lexical rules.
