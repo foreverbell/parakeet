@@ -27,8 +27,8 @@ parseLine (lj, lr, j, r) = do
   keepLV <- env O.keepLV
   furigana <- env O.furigana
   if keepLV
-     then liftM (concatLit . map (fromToken furigana)) (stage2 tk)
-     else return $ concatLit $ map (fromToken furigana) tk
+    then liftM (concatLit . map (fromToken furigana)) (stage2 tk)
+    else return $ concatLit $ map (fromToken furigana) tk
   where
     fromEither = either (throw . toException . ParseError . show) return
 

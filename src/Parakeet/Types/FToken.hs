@@ -24,15 +24,15 @@ fromToken furigana (Token.Kanji k hs ks rs) = Kanji (unwrap k) kana romaji
   where
     romaji = map unwrap rs
     kana = case furigana of
-                InKatakana -> map unwrap ks
-                InHiragana -> map unwrap hs
+             InKatakana -> map unwrap ks
+             InHiragana -> map unwrap hs
 fromToken _ (Token.AlphaNum a Nothing) = Lit (unwrap a)
 fromToken furigana (Token.AlphaNum a (Just (hs, ks, rs))) = Kanji (unwrap a) kana romaji
   where
     romaji = map unwrap rs
     kana = case furigana of
-                InKatakana -> map unwrap ks
-                InHiragana -> map unwrap hs
+             InKatakana -> map unwrap ks
+             InHiragana -> map unwrap hs
 
 concatLit :: [FToken] -> [FToken]
 concatLit ts = reverse $ go [] ts

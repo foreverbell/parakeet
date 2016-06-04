@@ -35,8 +35,8 @@ build useVerb f
 substituteTemplate :: String -> Text -> Text -> Parakeet Text
 substituteTemplate template body meta = do
   chunks <- case runParser TP.templateParser () [] template of
-                 Right chunks -> return chunks
-                 Left err -> throw $ toException (TemplateError $ printf "invalid template: %s." (show err))
+              Right chunks -> return chunks
+              Left err -> throw $ toException (TemplateError $ printf "invalid template: %s." (show err))
   T.concat <$> mapM substitute chunks
   where
     substitute (TP.Lit l) = return $ T.pack l
@@ -77,5 +77,5 @@ tex document = do
   let body   = T.concat [maybe T.empty (const "\\maketitle") (D.meta document), "\n\n", texify 0 (D.body document)]
   template   <- env O.templateFile
   case template of
-       Nothing            -> return $ T.concat [efile|template.tex|]
-       Just (_, template) -> substituteTemplate template body meta
+    Nothing            -> return $ T.concat [efile|template.tex|]
+    Just (_, template) -> substituteTemplate template body meta

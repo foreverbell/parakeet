@@ -14,12 +14,12 @@ parseQuoteExp :: FilePath -> Q Exp
 parseQuoteExp f = do
   c <- runIO $ readFile f
   case runParser templateParser () f c of
-       Right chunks -> listE $
-         flip map chunks $ \elem ->
-           case elem of
-                Lit lit -> [| lit |]
-                Value v -> varE (mkName v)
-       Left err -> fail ("invalid template file\n" ++ show err)
+    Right chunks -> listE $
+      flip map chunks $ \elem ->
+        case elem of
+          Lit lit -> [| lit |]
+          Value v -> varE (mkName v)
+    Left err -> fail ("invalid template file\n" ++ show err)
 
 efile :: QuasiQuoter
 efile = QuasiQuoter { quoteExp  = parseQuoteExp 

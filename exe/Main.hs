@@ -126,5 +126,5 @@ main = do
   when dumpTemplate $ putStr template >> exitSuccess
   checkFile opts
   case parakeet opts of 
-       Left err -> putStrLn $ show err
-       Right r  -> outputIO r
+    Left err -> putStrLn $ show err
+    Right r  -> outputIO r
