@@ -52,10 +52,10 @@ library
     Parakeet.Printer.HTML
     Parakeet.Printer.TeX
     Parakeet.Types.Document
-    Parakeet.Types.FToken
     Parakeet.Types.Lexeme
     Parakeet.Types.Options
     Parakeet.Types.Token
+    Parakeet.Types.Token2
     Text.Parsec.Extra
     Text.QuasiEmbedFile
     Text.TemplateParser

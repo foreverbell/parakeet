@@ -13,7 +13,7 @@ import           Text.Printf
 import           Text.QuasiEmbedFile (efile)
 import qualified Text.TemplateParser as TP
 
-import           Parakeet.Types.FToken
+import           Parakeet.Types.Token2
 import qualified Parakeet.Types.Document as D
 import qualified Parakeet.Types.Options as O
 
@@ -30,7 +30,7 @@ encode xs = T.concat $ map f xs
 ruby :: Text -> Text -> Text
 ruby b t = T.pack $ printf "<ruby>%s<rt>%s</rt></ruby>" b t
 
-htmlify1 :: FToken -> Text
+htmlify1 :: Token2 -> Text
 htmlify1 d = case d of
   Line         -> " <br /> \n"
   Lit s        -> encode s
@@ -38,7 +38,7 @@ htmlify1 d = case d of
   Hiragana h r -> ruby (encode h) (encode (unwords r))
   Katakana k r -> ruby (encode k) (encode (unwords r))
 
-htmlify :: [FToken] -> Text
+htmlify :: [Token2] -> Text
 htmlify tokens = T.concat $ map htmlify1 tokens
 
 html :: D.Document -> Parakeet Text

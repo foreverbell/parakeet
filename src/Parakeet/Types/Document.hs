@@ -3,7 +3,7 @@ module Parakeet.Types.Document (
 , Meta (..)
 ) where
 
-import Parakeet.Types.FToken (FToken)
+import Parakeet.Types.Token2 (Token2)
 
 data Meta = Meta {
   title :: String
@@ -12,5 +12,5 @@ data Meta = Meta {
 
 data Document = Document {
   metaInfo :: Maybe Meta
-, body :: [FToken]
+, body :: [Token2]
 } deriving (Show)

@@ -12,7 +12,7 @@ import           Text.Printf (printf)
 import           Text.QuasiEmbedFile (efile)
 import qualified Text.TemplateParser as TP
 
-import           Parakeet.Types.FToken
+import           Parakeet.Types.Token2
 import qualified Parakeet.Types.Document as D
 import qualified Parakeet.Types.Options as O
 
@@ -37,7 +37,7 @@ texifyTitle title = T.pack $ printf "\\title{%s}" title
 texifyAuthor :: String -> Text
 texifyAuthor author = T.pack $ printf "\\author{%s}" author
 
-texify :: Int -> [FToken] -> Text
+texify :: Int -> [Token2] -> Text
 texify offset tokens = T.concat $ map texify1 tokens
   where
     mainFont = clampFont $ 4 + offset
@@ -46,7 +46,7 @@ texify offset tokens = T.concat $ map texify1 tokens
     clampFont f | f < 0 = 0
                 | f > 9 = 9
                 | otherwise = f
-    texify1 :: FToken -> Text
+    texify1 :: Token2 -> Text
     texify1 d = case d of
       Line         -> " \\\\ \n"
       Lit s        -> build True mainFont s `T.append` " "

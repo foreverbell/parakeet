@@ -10,7 +10,7 @@ import           Data.List (isPrefixOf)
 import           Text.Parsec hiding (parse)
 import           Text.Parsec.Extra (setLine)
 
-import           Parakeet.Types.FToken
+import           Parakeet.Types.Token2
 import           Parakeet.Types.Document
 import qualified Parakeet.Types.Options as O
 import           Parakeet.Parser.Stage0 (stage0)
@@ -18,7 +18,7 @@ import           Parakeet.Parser.Stage1 (stage1)
 import           Parakeet.Parser.Stage2 (stage2)
 import qualified Parakeet.Parser.WithLine as L
 
-parseLine :: (Line, Line, String, String) -> Parakeet [FToken]
+parseLine :: (Line, Line, String, String) -> Parakeet [Token2]
 parseLine (lj, lr, j, r) = do
   jName <- fst <$> env O.inputFileJ
   rName <- fst <$> env O.inputFileR
