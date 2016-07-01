@@ -32,9 +32,9 @@ ruby b t = T.pack $ printf "<ruby>%s<rt>%s</rt></ruby>" b t
 
 htmlify1 :: Token2 -> Text
 htmlify1 d = case d of
-  Line         -> " <br /> \n"
+  Line         -> " <br/> \n"
   Lit s        -> encode s
-  Kanji k h r  -> ruby (T.pack $ printf "%s(%s)" (encode k) (encode (concat h))) (encode (unwords r))
+  Kanji k h r  -> ruby (T.pack $ printf "%s<x>%s</x>" (encode k) (encode (concat h))) (encode (unwords r))
   Hiragana h r -> ruby (encode h) (encode (unwords r))
   Katakana k r -> ruby (encode k) (encode (unwords r))
 
