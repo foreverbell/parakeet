@@ -13,7 +13,7 @@ import Text.TemplateParser
 parseQuoteExp :: FilePath -> Q Exp
 parseQuoteExp f = do
   c <- runIO $ readFile f
-  case runParser templateParser () f c of
+  case runParser parser () f c of
     Right chunks -> listE $
       flip map chunks $ \elem ->
         case elem of

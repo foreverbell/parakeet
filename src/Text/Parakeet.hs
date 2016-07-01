@@ -2,7 +2,9 @@
 
 module Text.Parakeet (
   parakeet
-, template
+, templateTeX
+, templateHTML
+, OutputFormat (..)
 , module Parakeet.Types.Options
 ) where
 
@@ -11,13 +13,22 @@ import Data.Text.Lazy (unpack)
 import Text.QuasiEmbedFile (rfile)
 
 import Parakeet.Parser.Parser (parse)
-import Parakeet.Parser.TeX (tex)
+import Parakeet.Printer.TeX (tex)
+import Parakeet.Printer.HTML (html)
 import Parakeet.Types.Options 
 
-parakeet :: Options -> Either SomeException String
-parakeet opts = runParakeet opts $ do
-  parsed <- parse
-  unpack <$> tex parsed
+data OutputFormat = TeXFormat | HTMLFormat
 
-template :: String
-template = [rfile|template.tex|]
+parakeet :: Options -> OutputFormat -> Either SomeException String
+parakeet opts format = runParakeet opts $ do
+  parsed <- parse
+  let printer = case format of
+                  TeXFormat -> tex
+                  HTMLFormat -> html
+  unpack <$> printer parsed
+
+templateTeX :: String
+templateTeX = [rfile|template.tex|]
+
+templateHTML :: String
+templateHTML = [rfile|template.html|]

@@ -11,6 +11,6 @@ data Meta = Meta {
 } deriving (Show)
 
 data Document = Document {
-  meta :: Maybe Meta
+  metaInfo :: Maybe Meta
 , body :: [FToken]
 } deriving (Show)

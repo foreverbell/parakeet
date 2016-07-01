@@ -42,7 +42,7 @@ parse = do
   let jRest | has = L.hstrip $ L.drop 2 j
             | otherwise = j
   let getMeta = dropWhile isSpace . drop 2
-  let meta | has = Just Meta { title = getMeta (jBuffer!!0), author = getMeta (jBuffer!!1) }
+  let metaInfo | has = Just Meta { title = getMeta (jBuffer!!0), author = getMeta (jBuffer!!1) }
            | otherwise = Nothing
   body <- concat <$> mapM parseLine (L.zip2 jRest (L.hstrip $ L.create $ lines rContent))
-  return Document { meta = meta, body = body }
+  return Document { metaInfo = metaInfo, body = body }

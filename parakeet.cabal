@@ -48,8 +48,9 @@ library
     Parakeet.Parser.Stage0
     Parakeet.Parser.Stage1
     Parakeet.Parser.Stage2
-    Parakeet.Parser.TeX
     Parakeet.Parser.WithLine
+    Parakeet.Printer.HTML
+    Parakeet.Printer.TeX
     Parakeet.Types.Document
     Parakeet.Types.FToken
     Parakeet.Types.Lexeme

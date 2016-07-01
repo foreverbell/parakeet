@@ -9,7 +9,7 @@ defaultOptions :: Options
 defaultOptions = Options {
   inputFileJ   = ([], [])
 , inputFileR   = ([], [])
-, templateFile = Just ([], "$meta$\n$body$")
+, templateFile = Just ([], "$title$\n$author$\n$body$")
 , furigana     = InHiragana
 , noMeta       = False
 , keepLV       = False
@@ -29,7 +29,7 @@ getOptions test keepLV = do
 getTest :: String -> Bool -> IO Test
 getTest testName keepLV = do
   opts <- getOptions testName keepLV
-  let result = parakeet opts 
+  let result = parakeet opts TeXFormat
   output <- case result of
                  Left err -> throw err
                  Right r  -> return (lines r)

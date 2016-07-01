@@ -5,9 +5,9 @@ module Main where
 import           Control.Monad (when)
 import           Data.Char (toLower)
 import           Data.Default.Class (Default (..))
-import           Data.List (isSuffixOf)
+import           Data.Maybe (fromJust)
 import           System.Console.GetOpt (getOpt, usageInfo, ArgOrder (..), OptDescr (..), ArgDescr (..))
-import           System.Directory (getTemporaryDirectory, getCurrentDirectory, setCurrentDirectory, makeAbsolute, renameFile)
+import           System.Directory (getTemporaryDirectory, getCurrentDirectory, setCurrentDirectory, makeAbsolute, copyFile)
 import           System.Environment (getArgs)
 import           System.Exit (exitFailure, exitSuccess)
 import qualified System.IO.UTF8 as IO
@@ -16,12 +16,11 @@ import           System.IO.Temp (openTempFile)
 import           System.Process (callProcess)
 import           Text.Parakeet
 
-type OutputIO = String -> IO ()
-
 data ExtraOptions = ExtraOptions {
-  outputIO     :: OutputIO
-, showHelp     :: Bool
-, dumpTemplate :: Bool
+  outputPath       :: Maybe FilePath
+, showHelp         :: Bool
+, showTeXTemplate  :: Bool
+, showHTMLTemplate :: Bool
 }
 
 firstM :: Monad m => (a -> m b) -> (a, c) -> m (b, c)
@@ -37,9 +36,10 @@ instance Default Options where
                 }
 
 instance Default ExtraOptions where
-  def = ExtraOptions { outputIO     = putStr
-                     , showHelp     = False
-                     , dumpTemplate = False
+  def = ExtraOptions { outputPath       = Nothing
+                     , showHelp         = False
+                     , showTeXTemplate  = False
+                     , showHTMLTemplate = False
                      }
 
 isEmptyFile :: File -> Bool
@@ -60,20 +60,7 @@ bindTemplateFile a = firstM $ \o -> do
   f <- initFile a
   return o { templateFile = Just f }
 
-bindOutputIO a (o, eo) = if ".pdf" `isSuffixOf` map toLower a
-     then return (o, eo { outputIO = xelatex a })
-     else return (o, eo { outputIO = IO.writeFile a })
-  where
-    xelatex f buf = do
-      tmpDir <- getTemporaryDirectory
-      curDir <- getCurrentDirectory
-      (tmp, h) <- openTempFile tmpDir "parakeet.tex"
-      hClose h
-      setCurrentDirectory tmpDir
-      IO.writeFile tmp buf
-      callProcess "xelatex" [tmp]
-      setCurrentDirectory curDir
-      makeAbsolute f >>= renameFile (take (length tmp - 3) tmp ++ "pdf")
+bindOutputPath a (o, eo) = return (o, eo { outputPath = Just a })
 
 bindFurigana a = firstM $ \o -> do
   f <- format
@@ -87,7 +74,9 @@ setNoMeta = firstM $ \o -> return o { noMeta = True }
 
 setKeepLV = firstM $ \o -> return o { keepLV = True }
 
-setDumpTemplate (o, eo) = return (o, eo { dumpTemplate = True })
+setShowTeXTemplate (o, eo) = return (o, eo { showTeXTemplate = True })
+
+setShowHTMLTemplate (o, eo) = return (o, eo { showHTMLTemplate = True })
 
 setShowHelp (o, eo) = return (o, eo { showHelp = True })
 
@@ -95,10 +84,11 @@ options :: [OptDescr ((Options, ExtraOptions) -> IO (Options, ExtraOptions))]
 options = [ Option ['j'] ["japanese"]      (ReqArg bindInputFileJ   "FILE") "Japanese input file"
           , Option ['r'] ["romaji"]        (ReqArg bindInputFileR   "FILE") "Romaji input file"
           , Option ['t'] ["template"]      (ReqArg bindTemplateFile "FILE") "Template file"
-          , Option ['o'] ["output"]        (ReqArg bindOutputIO     "FILE") "Output file"
-          , Option [   ] ["dump-template"] (NoArg  setDumpTemplate        ) "Dump tex template"
+          , Option ['o'] ["output"]        (ReqArg bindOutputPath   "FILE") "Output file path"
+          , Option [   ] ["template-tex"]  (NoArg  setShowTeXTemplate     ) "Show TeX template"
+          , Option [   ] ["template-html"] (NoArg  setShowHTMLTemplate    ) "Show HTML template"
           , Option [   ] ["furigana"]      (ReqArg bindFurigana   "FORMAT") "Furigana format: hiragana, katakana"
-          , Option [   ] ["no-meta"]       (NoArg  setNoMeta              ) "Ignore meta data (title & author)"
+          , Option [   ] ["no-meta"]       (NoArg  setNoMeta              ) "Ignore title and author metadata"
           , Option [   ] ["keep-lv"]       (NoArg  setKeepLV              ) "Keep long vowel macron in output"
           , Option ['h'] ["help"]          (NoArg  setShowHelp            ) "Show help"
           ]
@@ -119,12 +109,37 @@ runOpts argv = case getOpt Permute options argv of
   (a, _, [])  -> foldl (>>=) (return (def, def)) a
   (_, _, err) -> die $ concat err
 
+xelatex :: FilePath -> String -> IO ()
+xelatex filePath buffer = do
+  tmpDir <- getTemporaryDirectory
+  curDir <- getCurrentDirectory
+  (tmp, h) <- openTempFile tmpDir "parakeet.tex"
+  hClose h
+  setCurrentDirectory tmpDir
+  IO.writeFile tmp buffer
+  callProcess "xelatex" [tmp]
+  setCurrentDirectory curDir
+  let sourcePath = take (length tmp - 3) tmp ++ "pdf"
+  targetPath <- makeAbsolute filePath
+  putStrLn $ "Copying " ++ sourcePath ++ " to " ++ targetPath ++ "."
+  copyFile sourcePath targetPath
+
 main :: IO ()
 main = do
   (opts, ExtraOptions {..}) <- runOpts =<< getArgs
   when showHelp $ putStrLn (usageInfo "Usage: " options) >> exitSuccess
-  when dumpTemplate $ putStr template >> exitSuccess
+  when showTeXTemplate $ putStr templateTeX >> exitSuccess
+  when showHTMLTemplate $ putStr templateHTML >> exitSuccess
   checkFile opts
-  case parakeet opts of 
-    Left err -> putStrLn $ show err
-    Right r  -> outputIO r
+  let ext = map toLower . extName <$> outputPath
+  let (format, io) = case ext of
+                       Nothing -> (TeXFormat, putStr)
+                       Just "pdf" -> (TeXFormat, xelatex (fromJust outputPath))
+                       Just "htm" -> (HTMLFormat, IO.writeFile (fromJust outputPath))
+                       Just "html" -> (HTMLFormat, IO.writeFile (fromJust outputPath))
+                       _ -> (TeXFormat, IO.writeFile (fromJust outputPath))
+  case parakeet opts format of 
+    Left err -> putStrLn (show err)
+    Right r  -> io r
+  where
+    extName = reverse . takeWhile ((/=) '.') . reverse

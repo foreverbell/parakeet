@@ -1,7 +1,5 @@
 {-# LANGUAGE JavaScriptFFI, OverloadedStrings #-}
 
--- * Warning: probably BROKEN.
-
 module Main where
 
 import GHCJS.Types
@@ -30,7 +28,7 @@ main = do
     , noMeta       = False
     , keepLV       = True
     }
-    let result = case parakeet options of
+    let result = case parakeet options TeXFormat of
                    Left a -> unlines [show a]
                    Right b -> b
     setElement (pack "result") (pack result)
